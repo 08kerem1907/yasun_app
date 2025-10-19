@@ -9,6 +9,14 @@ class AuthService {
   // Mevcut kullanıcı stream'i
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
+  // Mevcut kullanıcının UserModel verilerini stream olarak getir
+  Stream<UserModel?> get currentUserDataStream {
+    if (currentUser == null) {
+      return Stream.value(null);
+    }
+    return getUserDataStream(currentUser!.uid);
+  }
+
   // Mevcut kullanıcı
   User? get currentUser => _auth.currentUser;
 
@@ -36,12 +44,12 @@ class AuthService {
   Future<void> _ensureUserDocument(User user) async {
     try {
       DocumentSnapshot doc = await _firestore.collection('users').doc(user.uid).get();
-      
+
       if (!doc.exists) {
         // Doküman yoksa oluştur
         String displayName = user.displayName ?? user.email?.split('@')[0] ?? 'Kullanıcı';
         String role = 'user'; // Varsayılan rol
-        
+
         // Email'e göre özel rol ata
         if (user.email == 'admin@example.com') {
           role = 'admin';
@@ -52,14 +60,14 @@ class AuthService {
         } else if (user.email == 'user@example.com') {
           displayName = 'Normal Kullanıcı';
         }
-        
+
         await _createUserDocument(
           uid: user.uid,
           email: user.email!,
           displayName: displayName,
           role: role,
         );
-        
+
         print('Kullanıcı dokümanı oluşturuldu: ${user.email}');
       }
     } catch (e) {

@@ -228,7 +228,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                
+
                 // User Info
                 Expanded(
                   child: Column(
@@ -300,7 +300,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
                     ],
                   ),
                 ),
-                
+
                 // Actions
                 IconButton(
                   icon: const Icon(
@@ -459,56 +459,81 @@ class _UsersListScreenState extends State<UsersListScreen> {
 
   void _showUserOptionsMenu(BuildContext context, UserModel user, bool isCurrentUser) {
     final authService = Provider.of<AuthService>(context, listen: false);
-    
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
+      builder: (context) => StreamBuilder<UserModel?>(
+        stream: authService.currentUserDataStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              padding: const EdgeInsets.all(24),
+              child: const Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (!snapshot.hasData || snapshot.data == null) {
+            return Container(
+              padding: const EdgeInsets.all(24),
+              child: const Center(
+                child: Text('Kullanıcı bilgileri yüklenemedi'),
               ),
-            ),
-            const SizedBox(height: 24),
-            if (!isCurrentUser) ...[
-              _buildMenuOption(
-                'Rol Değiştir',
-                Icons.admin_panel_settings,
-                () {
-                  Navigator.pop(context);
-                  _showChangeRoleDialog(user);
-                },
-              ),
-              const Divider(),
-              _buildMenuOption(
-                'Kullanıcıyı Sil',
-                Icons.delete,
-                () {
-                  Navigator.pop(context);
-                  _showDeleteConfirmation(user);
-                },
-                isDestructive: true,
-              ),
-            ] else ...[
-              const Text(
-                'Kendi hesabınızı düzenleyemezsiniz',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 14,
+            );
+          }
+
+          final currentUserData = snapshot.data!;
+
+          return Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-            ],
-          ],
-        ),
+                const SizedBox(height: 24),
+                if (!isCurrentUser && currentUserData.isAdmin) ...[
+                  _buildMenuOption(
+                    'Rol Değiştir',
+                    Icons.admin_panel_settings,
+                        () {
+                      Navigator.pop(context);
+                      _showChangeRoleDialog(user);
+                    },
+                  ),
+                  const Divider(),
+                  _buildMenuOption(
+                    'Kullanıcıyı Sil',
+                    Icons.delete,
+                        () {
+                      Navigator.pop(context);
+                      _showDeleteConfirmation(user);
+                    },
+                    isDestructive: true,
+                  ),
+                ] else ...[
+                  Text(
+                    isCurrentUser
+                        ? 'Kendi hesabınızı düzenleyemezsiniz'
+                        : 'Bu işlem için yetkiniz yok',
+                    style: const TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          );
+        },
       ),
     );
   }

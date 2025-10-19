@@ -43,7 +43,7 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
                     final currentUserData = userSnapshot.data!;
 
                     // Sadece admin ve captain'lar rol yönetimi yapabilir
-                    if (!currentUserData.isAdmin && !currentUserData.isCaptain) {
+                    if (!currentUserData.isAdmin) {
                       return _buildNoPermission();
                     }
 
@@ -141,7 +141,7 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
   Widget _buildFilterChip(String value, String label, IconData icon) {
     final isSelected = _selectedFilter == value;
     Color color;
-    
+
     switch (value) {
       case 'admin':
         color = AppColors.error;
@@ -346,9 +346,9 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
         trailing: isSelf
             ? null
             : IconButton(
-                icon: const Icon(Icons.edit, color: AppColors.primary),
-                onPressed: () => _showRoleChangeDialog(user, currentUserData),
-              ),
+          icon: const Icon(Icons.edit, color: AppColors.primary),
+          onPressed: () => _showRoleChangeDialog(user, currentUserData),
+        ),
       ),
     );
   }
@@ -392,15 +392,15 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
   }
 
   Widget _buildRoleOption(
-    UserModel user,
-    String role,
-    String label,
-    IconData icon,
-    Color color,
-    UserModel currentUserData,
-  ) {
+      UserModel user,
+      String role,
+      String label,
+      IconData icon,
+      Color color,
+      UserModel currentUserData,
+      ) {
     final isCurrentRole = user.role == role;
-    
+
     return InkWell(
       onTap: isCurrentRole ? null : () => _changeUserRole(user, role),
       borderRadius: BorderRadius.circular(12),
@@ -438,12 +438,12 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
 
   Future<void> _changeUserRole(UserModel user, String newRole) async {
     Navigator.pop(context); // Dialog'u kapat
-    
+
     setState(() => _isLoading = true);
 
     try {
       await _userService.updateUserRole(user.uid, newRole);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
