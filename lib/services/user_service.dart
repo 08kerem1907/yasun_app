@@ -36,17 +36,18 @@ class UserService {
     });
   }
 
-  // Takım üyelerini getir
+  // Takım üyelerini getir - INDEX HATASI DÜZELTME
   Stream<List<UserModel>> getTeamMembers(String teamId) {
     return _firestore
         .collection('users')
         .where('teamId', isEqualTo: teamId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) =>
-          snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList(),
-    );
+        .snapshots()  // orderBy'ı kaldırdık
+        .map((snapshot) {
+      // Client-side sorting ile sıralama yapıyoruz
+      var users = snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList();
+      users.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return users;
+    });
   }
 
   // Kullanıcı rolünü güncelle
@@ -98,7 +99,7 @@ class UserService {
     }
   }
 
-  // Role göre kullanıcı sayısını getir - DÜZELTİLDİ
+  // Role göre kullanıcı sayısını getir
   Future<Map<String, int>> getUserCountByRole() async {
     try {
       QuerySnapshot snapshot = await _firestore.collection('users').get();
@@ -153,9 +154,16 @@ class UserService {
   }
 
   Future<int> getTeamMemberCount(String captainUid) async {
-    // Kaptanın takımındaki üye sayısını getiren metodu uygulayın.
-    // Şimdilik varsayılan bir değer döndürüyorum.
-    return 8;
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection('users')
+          .where('teamId', isEqualTo: captainUid)
+          .get();
+      return snapshot.docs.length;
+    } catch (e) {
+      print('Takım üye sayısı alınamadı: $e');
+      return 0;
+    }
   }
 
   Future<int> getCompletedTasksThisMonth(String captainUid) async {
