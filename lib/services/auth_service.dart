@@ -66,6 +66,7 @@ class AuthService {
           email: user.email!,
           displayName: displayName,
           role: role,
+          teamId: null, // ensureUserDocument çağrısında teamId null olmalı
         );
 
         print('Kullanıcı dokümanı oluşturuldu: ${user.email}');
@@ -81,6 +82,7 @@ class AuthService {
     required String password,
     required String displayName,
     String role = 'user',
+    String? teamId,
   }) async {
     try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
@@ -97,6 +99,7 @@ class AuthService {
         email: email,
         displayName: displayName,
         role: role,
+        teamId: teamId,
       );
 
       return userCredential;
@@ -116,12 +119,14 @@ class AuthService {
     required String email,
     required String displayName,
     required String role,
+    String? teamId,
   }) async {
     final userModel = UserModel(
       uid: uid,
       email: email,
       displayName: displayName,
       role: role,
+      teamId: teamId,
       createdAt: DateTime.now(),
       lastLogin: DateTime.now(),
     );
@@ -197,3 +202,4 @@ class AuthService {
     }
   }
 }
+

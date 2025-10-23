@@ -112,7 +112,7 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
         if (_searchQuery.isNotEmpty) {
           captains = captains
               .where((captain) =>
-                  captain.displayName.toLowerCase().contains(_searchQuery))
+              captain.displayName.toLowerCase().contains(_searchQuery))
               .toList();
         }
 
@@ -343,8 +343,8 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
             // Takıma atanmamış kullanıcıları filtrele
             final availableUsers = (snapshot.data ?? [])
                 .where((user) =>
-                    user.isUser &&
-                    (user.teamId == null || user.teamId!.isEmpty))
+            user.isUser &&
+                (user.teamId == null || user.teamId!.isEmpty))
                 .toList();
 
             if (availableUsers.isEmpty) {
