@@ -147,6 +147,19 @@ class UserService {
     return 10;
   }
 
+  // Kullanıcının puanlarını güncelle
+  Future<void> updateUserScores(String uid, int totalScore, Map<String, int> monthlyScores) async {
+    try {
+      await _firestore.collection("users").doc(uid).update({
+        "totalScore": totalScore,
+        "monthlyScores": monthlyScores,
+      });
+    } catch (e) {
+      print("Kullanıcı puanları güncellenirken hata oluştu: $e");
+      rethrow;
+    }
+  }
+
   Future<int> getTotalScore(String uid) async {
     // Kullanıcının puanını getiren metodu uygulayın.
     // Şimdilik varsayılan bir değer döndürüyorum.
@@ -179,6 +192,21 @@ class UserService {
   }
 
   // Kullanıcı arama
+  // Belirli bir kullanıcıyı UID ile getir
+  Future<UserModel?> getUser(String uid) async {
+    try {
+      DocumentSnapshot doc = await _firestore.collection("users").doc(uid).get();
+      if (doc.exists) {
+        return UserModel.fromFirestore(doc);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      print("Kullanıcı getirilirken hata oluştu: $e");
+      return null;
+    }
+  }
+
   Future<List<UserModel>> searchUsers(String query) async {
     try {
       QuerySnapshot snapshot =

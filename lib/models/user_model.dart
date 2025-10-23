@@ -8,6 +8,8 @@ class UserModel {
   final String? teamId;
   final DateTime createdAt;
   final DateTime? lastLogin;
+  final int totalScore;
+  final Map<String, int> monthlyScores; // {'YYYY-MM': score}
 
   UserModel({
     required this.uid,
@@ -17,12 +19,22 @@ class UserModel {
     this.teamId,
     required this.createdAt,
     this.lastLogin,
+    this.totalScore = 0,
+    this.monthlyScores = const {},
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is UserModel && runtimeType == other.runtimeType && uid == other.uid;
+
+  @override
+  int get hashCode => uid.hashCode;
 
   // Firestore'dan veri çekme
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    
+
     // createdAt için güvenli dönüşüm
     DateTime createdAt;
     try {
@@ -34,17 +46,19 @@ class UserModel {
     } catch (e) {
       createdAt = DateTime.now();
     }
-    
+
     // lastLogin için güvenli dönüşüm
     DateTime? lastLogin;
     try {
       if (data['lastLogin'] != null) {
         lastLogin = (data['lastLogin'] as Timestamp).toDate();
+      } else {
+        lastLogin = null;
       }
     } catch (e) {
       lastLogin = null;
     }
-    
+
     return UserModel(
       uid: doc.id,
       email: data['email'] ?? '',
@@ -53,6 +67,8 @@ class UserModel {
       teamId: data['teamId'],
       createdAt: createdAt,
       lastLogin: lastLogin,
+      totalScore: data["totalScore"] ?? 0,
+      monthlyScores: Map<String, int>.from(data["monthlyScores"] ?? {}),
     );
   }
 
@@ -65,6 +81,8 @@ class UserModel {
       'teamId': teamId,
       'createdAt': Timestamp.fromDate(createdAt),
       'lastLogin': lastLogin != null ? Timestamp.fromDate(lastLogin!) : null,
+      'totalScore': totalScore,
+      'monthlyScores': monthlyScores,
     };
   }
 
@@ -95,6 +113,8 @@ class UserModel {
     String? teamId,
     DateTime? createdAt,
     DateTime? lastLogin,
+    int? totalScore,
+    Map<String, int>? monthlyScores,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -104,6 +124,9 @@ class UserModel {
       teamId: teamId ?? this.teamId,
       createdAt: createdAt ?? this.createdAt,
       lastLogin: lastLogin ?? this.lastLogin,
+      totalScore: totalScore ?? this.totalScore,
+      monthlyScores: monthlyScores ?? this.monthlyScores,
     );
   }
 }
+
