@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && getUserData().role == 'admin';
+    }
+    
+    function isCaptain() {
+      return isSignedIn() && getUserData().role == 'captain';
+    }
+    
+    function isUser() {
+      return isSignedIn() && getUserData().role == 'user';
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isInSameTeam(teamId) {
+      return isSignedIn() && getUserData().teamId == teamId;
+    }
+    
+    // Users collection rules
+    match /users/{userId} {
+      // Herkes kendi profilini okuyabilir
+      allow read: if isSignedIn();
+      
+      // Sadece admin kullanıcı oluşturabilir/silebilir
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+      
+      // Admin her kullanıcıyı güncelleyebilir
+      // Kullanıcılar sadece kendi profillerini güncelleyebilir
+      allow update: if isAdmin() || isOwner(userId);
+    }
+    
+    // Tasks collection rules
+    match /tasks/{taskId} {
+      // Admin her görevi görebilir
+      // Captain kendi takımının görevlerini görebilir
+      // User kendine atanan görevleri görebilir
+      allow read: if isSignedIn() && (
+        isAdmin() || 
+        resource.data.assignedToUid == request.auth.uid ||
+        resource.data.assignedByUid == request.auth.uid ||
+        (isCaptain() && isInSameTeam(resource.data.assignedToTeamId))
+      );
+      
+      // Admin ve Captain görev oluşturabilir
+      allow create: if isSignedIn() && (isAdmin() || isCaptain());
+      
+      // Admin tüm görevleri güncelleyebilir
+      // Captain kendi takımının görevlerini güncelleyebilir
+      // User kendine atanan görevleri tamamlayabilir (status update)
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (isCaptain() && request.resource.data.assignedByUid == request.auth.uid) ||
+        (request.resource.data.assignedToUid == request.auth.uid)
+      );
+      
+      // Sadece admin görev silebilir
+      allow delete: if isAdmin();
+    }
+    
+    // Announcements collection rules
+    match /announcements/{announcementId} {
+      // Herkes duyuruları okuyabilir
+      allow read: if isSignedIn();
+      
+      // Admin ve Captain duyuru oluşturabilir
+      allow create: if isAdmin() || isCaptain();
+      
+      // Admin ve Captain duyuru güncelleyebilir
+      allow update: if isAdmin() || isCaptain();
+      
+      // Sadece admin duyuru silebilir
+      allow delete: if isAdmin();
+    }
+  }
+}

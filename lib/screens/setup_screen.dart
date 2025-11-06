@@ -12,6 +12,7 @@ class SetupScreen extends StatefulWidget {
 class _SetupScreenState extends State<SetupScreen> {
   final DemoDataService _demoDataService = DemoDataService();
   bool _isCreating = false;
+  bool _isFixing = false; // ✅ YENİ
   String _statusMessage = '';
 
   Future<void> _createDemoUsers() async {
@@ -36,6 +37,35 @@ class _SetupScreenState extends State<SetupScreen> {
       setState(() {
         _statusMessage = 'Hata oluştu: $e';
         _isCreating = false;
+      });
+    }
+  }
+
+  // ✅ YENİ: Captain teamId düzeltme fonksiyonu
+  Future<void> _fixCaptainTeamIds() async {
+    setState(() {
+      _isFixing = true;
+      _statusMessage = 'Captain teamId\'leri düzeltiliyor...';
+    });
+
+    try {
+      await _demoDataService.fixAllCaptainTeamIds();
+      setState(() {
+        _statusMessage = '✅ Tüm captain teamId\'leri başarıyla düzeltildi!';
+        _isFixing = false;
+      });
+
+      // 2 saniye bekle
+      await Future.delayed(const Duration(seconds: 2));
+      if (mounted) {
+        setState(() {
+          _statusMessage = '';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _statusMessage = 'Hata oluştu: $e';
+        _isFixing = false;
       });
     }
   }
@@ -235,21 +265,87 @@ class _SetupScreenState extends State<SetupScreen> {
                       ),
                       child: _isCreating
                           ? const SizedBox(
-                              height: 24,
-                              width: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              ),
-                            )
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
                           : const Text(
-                              'Demo Kullanıcıları Oluştur',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
+                        'Demo Kullanıcıları Oluştur',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // ✅ YENİ: Captain TeamId Düzelt Butonu
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 500),
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Colors.orange, Colors.deepOrange],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.orange.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: _isFixing ? null : _fixCaptainTeamIds,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: _isFixing
+                          ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                          : const Icon(Icons.build, color: Colors.white),
+                      label: const Text(
+                        'Captain TeamId Düzelt',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Açıklama metni
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 500),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: const Text(
+                      '💡 "Takım bilgisi bulunamadı" hatası alıyorsanız bu butonu kullanın',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -277,12 +373,12 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 
   Widget _buildUserInfo(
-    String name,
-    String email,
-    String role,
-    Color color,
-    IconData icon,
-  ) {
+      String name,
+      String email,
+      String role,
+      Color color,
+      IconData icon,
+      ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

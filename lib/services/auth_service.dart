@@ -61,15 +61,30 @@ class AuthService {
           displayName = 'Normal Kullanıcı';
         }
 
+        // ✅ Captain ise teamId'sini kendi uid'sine eşitle
+        String? teamId;
+        if (role == 'captain') {
+          teamId = user.uid;
+        }
+
         await _createUserDocument(
           uid: user.uid,
           email: user.email!,
           displayName: displayName,
           role: role,
-          teamId: null, // ensureUserDocument çağrısında teamId null olmalı
+          teamId: teamId,
         );
 
-        print('Kullanıcı dokümanı oluşturuldu: ${user.email}');
+        print('Kullanıcı dokümanı oluşturuldu: ${user.email} (role: $role, teamId: $teamId)');
+      } else {
+        // ✅ Eğer kullanıcı captain ise ve teamId yanlışsa düzelt
+        final data = doc.data() as Map<String, dynamic>;
+        if (data['role'] == 'captain' && data['teamId'] != user.uid) {
+          await _firestore.collection('users').doc(user.uid).update({
+            'teamId': user.uid,
+          });
+          print('✅ Captain teamId otomatik düzeltildi: ${user.email}');
+        }
       }
     } catch (e) {
       print('Kullanıcı dokümanı kontrolü hatası: $e');
@@ -202,4 +217,3 @@ class AuthService {
     }
   }
 }
-

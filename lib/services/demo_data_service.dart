@@ -34,7 +34,7 @@ class DemoDataService {
         try {
           // Kullanıcının zaten var olup olmadığını kontrol et
           final methods = await _auth.fetchSignInMethodsForEmail(userData['email'] as String);
-          
+
           if (methods.isEmpty) {
             // Kullanıcı yoksa oluştur
             UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
@@ -45,6 +45,12 @@ class DemoDataService {
             // Display name güncelle
             await userCredential.user!.updateDisplayName(userData['displayName'] as String);
 
+            // ✅ Captain ise teamId'sini kendi uid'sine eşitle
+            String? teamId;
+            if (userData['role'] == 'captain') {
+              teamId = userCredential.user!.uid;
+            }
+
             // Firestore'a kullanıcı verilerini kaydet
             await _firestore.collection('users').doc(userCredential.user!.uid).set({
               'email': userData['email'],
@@ -52,12 +58,14 @@ class DemoDataService {
               'role': userData['role'],
               'createdAt': Timestamp.now(),
               'lastLogin': null,
-              'teamId': null,
+              'teamId': teamId,
+              'totalScore': 0,
+              'monthlyScores': {},
             });
 
-            print('Demo kullanıcı oluşturuldu: ${userData['email']}');
+            print('✅ Demo kullanıcı oluşturuldu: ${userData['email']} (role: ${userData['role']}, teamId: $teamId)');
           } else {
-            print('Kullanıcı zaten mevcut: ${userData['email']}');
+            print('ℹ️  Kullanıcı zaten mevcut: ${userData['email']}');
           }
         } catch (e) {
           print('Kullanıcı oluşturma hatası (${userData['email']}): $e');
@@ -79,7 +87,7 @@ class DemoDataService {
 
       // Mevcut kullanıcı için doküman kontrol et
       DocumentSnapshot doc = await _firestore.collection('users').doc(currentUser.uid).get();
-      
+
       if (!doc.exists) {
         // Doküman yoksa oluştur
         String displayName = currentUser.displayName ?? currentUser.email?.split('@')[0] ?? 'Kullanıcı';
@@ -109,6 +117,46 @@ class DemoDataService {
       }
     } catch (e) {
       print('Kullanıcı dokümanı kontrol hatası: $e');
+    }
+  }
+
+  // ✅ YENİ: Tüm captain'ların teamId'lerini düzeltme fonksiyonu
+  Future<void> fixAllCaptainTeamIds() async {
+    try {
+      print('🔧 Tüm captain teamId\'leri düzeltiliyor...');
+
+      final captainsSnapshot = await _firestore
+          .collection('users')
+          .where('role', isEqualTo: 'captain')
+          .get();
+
+      int fixedCount = 0;
+      int alreadyCorrect = 0;
+
+      for (var doc in captainsSnapshot.docs) {
+        final data = doc.data();
+        final currentTeamId = data['teamId'];
+
+        if (currentTeamId != doc.id) {
+          await _firestore.collection('users').doc(doc.id).update({
+            'teamId': doc.id,
+          });
+          print('✅ Düzeltildi: ${data['displayName']} (${data['email']})');
+          fixedCount++;
+        } else {
+          print('ℹ️  Zaten doğru: ${data['displayName']}');
+          alreadyCorrect++;
+        }
+      }
+
+      print('\n📊 Özet:');
+      print('Toplam Captain: ${captainsSnapshot.docs.length}');
+      print('Düzeltilen: $fixedCount');
+      print('Zaten Doğru: $alreadyCorrect');
+      print('✅ İşlem tamamlandı!');
+    } catch (e) {
+      print('❌ Captain teamId düzeltme hatası: $e');
+      rethrow;
     }
   }
 }
