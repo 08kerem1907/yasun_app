@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors.dart';
-import '../services/auth_service.dart';
+import '../services/auth_service_fixed.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _fillDemoCredentials(String email) {
     _emailController.text = email;
-    _passwordController.text = 'password';
+    _passwordController.text = '12345678';
   }
 
   @override
@@ -385,7 +385,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Test için aşağıdaki hesapları kullanabilirsiniz (şifre: password)',
+            'Test için aşağıdaki hesapları kullanabilirsiniz (şifre: 12345678)',
             style: TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,
@@ -393,11 +393,11 @@ class _LoginScreenState extends State<LoginScreen> {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          _buildDemoAccountButton('keremuzuner1907@gmail.com', 'Kaptan'),
+          _buildDemoAccountButton('kaptan@gmail.com', 'Kaptan'),
           const SizedBox(height: 8),
-          _buildDemoAccountButton('admin@example.com', 'Yönetici'),
+          _buildDemoAccountButton('keremuzuner1907@gmail.com', 'Yönetici'),
           const SizedBox(height: 8),
-          _buildDemoAccountButton('user@example.com', 'Kullanıcı'),
+          _buildDemoAccountButton('uye@gmail.com', 'Kullanıcı'),
         ],
       ),
     );

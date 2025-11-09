@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors.dart';
 import '../models/user_model.dart';
-import '../services/auth_service.dart';
+import '../services/auth_service_fixed.dart';
 import '../services/user_service.dart';
 import 'package:intl/intl.dart';
+import 'admin_add_user_screen_fixed.dart';
+import 'admin_create_team_screen.dart';
 
 class UsersListScreen extends StatefulWidget {
   const UsersListScreen({super.key});
@@ -36,6 +38,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
           ),
         ),
       ),
+      floatingActionButton: _buildAdminActions(),
     );
   }
 
@@ -605,6 +608,12 @@ class _UsersListScreenState extends State<UsersListScreen> {
               onPressed: () async {
                 try {
                   await _userService.updateUserRole(user.uid, selectedRole);
+
+                  if (selectedRole == 'captain') {
+                    await _userService.updateUserCaptain(user.uid, user.uid);
+                  } else {
+                    await _userService.updateUserCaptain(user.uid, null);
+                  }
                   if (context.mounted) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -652,6 +661,13 @@ class _UsersListScreenState extends State<UsersListScreen> {
           ElevatedButton(
             onPressed: () async {
               try {
+                if (user.isCaptain) {
+                  final members = await _userService.getTeamMembers(user.uid).first;
+                  for (var member in members) {
+                    await _userService.updateUserCaptain(member.uid, null);
+                  }
+                }
+
                 await _userService.deleteUser(user.uid);
                 if (context.mounted) {
                   Navigator.pop(context);
@@ -680,6 +696,62 @@ class _UsersListScreenState extends State<UsersListScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildAdminActions() {
+    final authService = Provider.of<AuthService>(context, listen: false);
+
+    return StreamBuilder<UserModel?>(
+      stream: authService.currentUserDataStream,
+      builder: (context, snapshot) {
+        final currentUser = snapshot.data;
+        if (currentUser == null || !currentUser.isAdmin) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            FloatingActionButton.extended(
+              heroTag: 'createTeam',
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AdminCreateTeamScreen(),
+                  ),
+                );
+                if (result == true) {
+                  // StreamBuilder otomatik güncellenir
+                }
+              },
+              label: const Text('Takım Oluştur'),
+              icon: const Icon(Icons.group_add),
+              backgroundColor: AppColors.warning,
+            ),
+            const SizedBox(height: 16),
+            FloatingActionButton.extended(
+              heroTag: 'addUser',
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AdminAddUserScreen(),
+                  ),
+                );
+                if (result == true) {
+                  // StreamBuilder otomatik güncellenir
+                }
+              },
+              label: const Text('Kullanıcı Ekle'),
+              icon: const Icon(Icons.person_add),
+              backgroundColor: AppColors.primary,
+            ),
+          ],
+        );
+      },
     );
   }
 }

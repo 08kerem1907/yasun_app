@@ -36,12 +36,12 @@ class UserService {
     });
   }
 
-  // Takım üyelerini getir - INDEX HATASI DÜZELTME
-  Stream<List<UserModel>> getTeamMembers(String teamId) {
+  // Kaptana bağlı üyeleri getir
+  Stream<List<UserModel>> getTeamMembers(String captainId) {
     return _firestore
         .collection('users')
-        .where('teamId', isEqualTo: teamId)
-        .snapshots()  // orderBy'ı kaldırdık
+        .where('captainId', isEqualTo: captainId)
+        .snapshots()
         .map((snapshot) {
       // Client-side sorting ile sıralama yapıyoruz
       var users = snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList();
@@ -59,7 +59,16 @@ class UserService {
     }
   }
 
-  // Kullanıcı takımını güncelle
+  // Kullanıcı kaptanını güncelle
+  Future<void> updateUserCaptain(String uid, String? captainId) async {
+    try {
+      await _firestore.collection('users').doc(uid).update({'captainId': captainId});
+    } catch (e) {
+      throw 'Kaptan güncellenirken hata oluştu: $e';
+    }
+  }
+
+  // Kullanıcının takımını güncelle
   Future<void> updateUserTeam(String uid, String? teamId) async {
     try {
       await _firestore.collection('users').doc(uid).update({'teamId': teamId});
@@ -170,7 +179,7 @@ class UserService {
     try {
       QuerySnapshot snapshot = await _firestore
           .collection('users')
-          .where('teamId', isEqualTo: captainUid)
+          .where('captainId', isEqualTo: captainUid)
           .get();
       return snapshot.docs.length;
     } catch (e) {

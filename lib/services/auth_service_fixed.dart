@@ -51,20 +51,17 @@ class AuthService {
         String role = 'user'; // Varsayılan rol
 
         // Email'e göre özel rol ata
-        if (user.email == 'admin@example.com') {
+        if (user.email == 'keremuzuner1907@gmail.com') {
           role = 'admin';
-          displayName = 'Admin Kullanıcı';
-        } else if (user.email == 'keremuzuner1907@gmail.com') {
-          role = 'captain';
           displayName = 'Kerem Uzuner';
-        } else if (user.email == 'user@example.com') {
-          displayName = 'Normal Kullanıcı';
         }
 
-        // ✅ Captain ise teamId'sini kendi uid'sine eşitle
+        // Captain ise teamId'sini kendi uid'sine eşitle
         String? teamId;
+        String? captainId;
+
         if (role == 'captain') {
-          teamId = user.uid;
+          teamId = user.uid; // Kaptan kendi takımının ID'sine sahip
         }
 
         await _createUserDocument(
@@ -73,18 +70,10 @@ class AuthService {
           displayName: displayName,
           role: role,
           teamId: teamId,
+          captainId: captainId,
         );
 
         print('Kullanıcı dokümanı oluşturuldu: ${user.email} (role: $role, teamId: $teamId)');
-      } else {
-        // ✅ Eğer kullanıcı captain ise ve teamId yanlışsa düzelt
-        final data = doc.data() as Map<String, dynamic>;
-        if (data['role'] == 'captain' && data['teamId'] != user.uid) {
-          await _firestore.collection('users').doc(user.uid).update({
-            'teamId': user.uid,
-          });
-          print('✅ Captain teamId otomatik düzeltildi: ${user.email}');
-        }
       }
     } catch (e) {
       print('Kullanıcı dokümanı kontrolü hatası: $e');
@@ -98,6 +87,7 @@ class AuthService {
     required String displayName,
     String role = 'user',
     String? teamId,
+    String? captainId,
   }) async {
     try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
@@ -108,14 +98,31 @@ class AuthService {
       // Kullanıcı profilini güncelle
       await userCredential.user!.updateDisplayName(displayName);
 
+      // Rol bazlı teamId ayarlaması
+      String? finalTeamId = teamId;
+      String? finalCaptainId = captainId;
+
+      // Eğer kaptan ise, teamId'yi kendi uid'si yap
+      if (role == 'captain') {
+        finalTeamId = userCredential.user!.uid;
+        finalCaptainId = null; // Kaptanın captainId'si yok
+      }
+
       // Firestore'a kullanıcı verilerini kaydet
       await _createUserDocument(
         uid: userCredential.user!.uid,
         email: email,
         displayName: displayName,
         role: role,
-        teamId: teamId,
+        teamId: finalTeamId,
+        captainId: finalCaptainId,
       );
+
+      print('✅ Yeni kullanıcı oluşturuldu:');
+      print('   Email: $email');
+      print('   Rol: $role');
+      print('   TeamId: $finalTeamId');
+      print('   CaptainId: $finalCaptainId');
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -135,6 +142,7 @@ class AuthService {
     required String displayName,
     required String role,
     String? teamId,
+    String? captainId,
   }) async {
     final userModel = UserModel(
       uid: uid,
@@ -142,8 +150,11 @@ class AuthService {
       displayName: displayName,
       role: role,
       teamId: teamId,
+      captainId: captainId,
       createdAt: DateTime.now(),
       lastLogin: DateTime.now(),
+      totalScore: 0,
+      monthlyScores: {},
     );
 
     await _firestore.collection('users').doc(uid).set(userModel.toMap());

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../constants/colors.dart';
 import '../models/user_model.dart';
-import '../services/auth_service.dart';
+import '../services/auth_service_fixed.dart';
 import '../services/user_service.dart';
 
 class MyTeamScreen extends StatefulWidget {
@@ -796,7 +796,7 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
           ElevatedButton(
             onPressed: () async {
               try {
-                await _userService.updateUserTeam(member.uid, null);
+                await _userService.updateUserCaptain(member.uid, null);
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -903,7 +903,7 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
 
         // Takıma eklenmemiş ve captain/admin olmayan kullanıcıları filtrele
         final availableUsers = snapshot.data!.where((user) {
-          return user.teamId == null &&
+          return user.captainId == null &&
               user.role == 'user' &&
               user.uid != captain.uid;
         }).toList();
@@ -1069,7 +1069,7 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
   Future<void> _addMemberToTeam(UserModel user, UserModel captain) async {
     try {
       // Kullanıcının teamId'sini captain'ın uid'si ile güncelle
-      await _userService.updateUserTeam(user.uid, captain.uid);
+      await _userService.updateUserCaptain(user.uid, captain.uid);
 
       if (context.mounted) {
         Navigator.pop(context);
@@ -1081,7 +1081,7 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
               label: 'Geri Al',
               textColor: Colors.white,
               onPressed: () async {
-                await _userService.updateUserTeam(user.uid, null);
+                await _userService.updateUserCaptain(user.uid, null);
               },
             ),
           ),

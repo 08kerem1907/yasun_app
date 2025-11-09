@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../constants/colors.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
+import 'admin_add_user_screen_fixed.dart';
 
 class AdminManageUsersScreen extends StatefulWidget {
   const AdminManageUsersScreen({super.key});
@@ -12,12 +14,60 @@ class AdminManageUsersScreen extends StatefulWidget {
 
 class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
   final UserService _userService = UserService();
+  UserModel? _currentUser;
   String _searchQuery = '';
   String _selectedRoleFilter = 'all';
 
   @override
+  void initState() {
+    super.initState();
+    _getCurrentUser();
+  }
+
+  Future<void> _getCurrentUser() async {
+    User? firebaseUser = FirebaseAuth.instance.currentUser;
+    if (firebaseUser != null) {
+      UserModel? user = await _userService.getUser(firebaseUser.uid);
+      setState(() {
+        _currentUser = user;
+      });
+    }
+  }
+
+  Future<void> _navigateToAddUser() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AdminAddUserScreen(),
+      ),
+    );
+    if (result == true) {
+      setState(() {});
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Kullanıcı bilgisi yüklenene kadar bekle
+    if (_currentUser == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final bool isAdmin = _currentUser?.isAdmin ?? false;
+
     return Scaffold(
+      // FloatingActionButton - Daha görünür yaptık
+      floatingActionButton: isAdmin
+          ? FloatingActionButton.extended(
+        onPressed: _navigateToAddUser,
+        icon: const Icon(Icons.person_add),
+        label: const Text('Yeni Üye'),
+        backgroundColor: AppColors.primary,
+        elevation: 6,
+      )
+          : null,
       body: Container(
         decoration: const BoxDecoration(
           gradient: AppColors.backgroundGradient,
@@ -25,7 +75,7 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(),
+              _buildAppBar(isAdmin),
               _buildFilterBar(),
               Expanded(
                 child: _buildUsersList(),
@@ -37,7 +87,7 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(bool isAdmin) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -67,6 +117,22 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
               ),
             ),
           ),
+          // AppBar'a da buton ekledik
+          if (isAdmin)
+            ElevatedButton.icon(
+              onPressed: _navigateToAddUser,
+              icon: const Icon(Icons.person_add, size: 18),
+              label: const Text('Yeni Üye'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 2,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -92,6 +158,10 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: const BorderSide(color: AppColors.border),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.primary, width: 2),
               ),
             ),
           ),
@@ -129,6 +199,10 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
       side: BorderSide(
         color: isSelected ? AppColors.primary : AppColors.border,
       ),
+      labelStyle: TextStyle(
+        color: isSelected ? AppColors.primary : AppColors.textPrimary,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+      ),
     );
   }
 
@@ -143,7 +217,16 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('Hata: ${snapshot.error}'));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                const SizedBox(height: 16),
+                Text('Hata: ${snapshot.error}'),
+              ],
+            ),
+          );
         }
 
         var users = snapshot.data ?? [];
@@ -152,8 +235,8 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
         if (_searchQuery.isNotEmpty) {
           users = users
               .where((user) =>
-                  user.displayName.toLowerCase().contains(_searchQuery) ||
-                  user.email.toLowerCase().contains(_searchQuery))
+          user.displayName.toLowerCase().contains(_searchQuery) ||
+              user.email.toLowerCase().contains(_searchQuery))
               .toList();
         }
 
@@ -168,10 +251,22 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
                   color: Colors.grey.withOpacity(0.5),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Kullanıcı bulunamadı',
-                  style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                Text(
+                  _searchQuery.isNotEmpty
+                      ? 'Arama sonucu bulunamadı'
+                      : 'Kullanıcı bulunamadı',
+                  style: const TextStyle(fontSize: 16, color: AppColors.textSecondary),
                 ),
+                const SizedBox(height: 8),
+                if (_searchQuery.isEmpty && _currentUser?.isAdmin == true)
+                  ElevatedButton.icon(
+                    onPressed: _navigateToAddUser,
+                    icon: const Icon(Icons.person_add),
+                    label: const Text('İlk Kullanıcıyı Ekle'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                    ),
+                  ),
               ],
             ),
           );
@@ -224,14 +319,24 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text(user.email, style: const TextStyle(fontSize: 12)),
-            const SizedBox(height: 4),
             Text(
-              user.roleDisplayName,
-              style: TextStyle(
-                fontSize: 12,
-                color: _getRoleColor(user.role),
-                fontWeight: FontWeight.w600,
+              user.email,
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: _getRoleColor(user.role).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                user.roleDisplayName,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: _getRoleColor(user.role),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
@@ -346,7 +451,7 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
       case 'admin':
         return Icons.admin_panel_settings;
       case 'captain':
-        return Icons.groups;
+        return Icons.star;
       case 'user':
         return Icons.person;
       default:
@@ -371,7 +476,7 @@ class _EditUserDialog extends StatefulWidget {
 class _EditUserDialogState extends State<_EditUserDialog> {
   late TextEditingController _nameController;
   late String _selectedRole;
-  late String? _selectedTeamId;
+  String? _selectedCaptainId;
   bool _isLoading = false;
 
   @override
@@ -379,7 +484,7 @@ class _EditUserDialogState extends State<_EditUserDialog> {
     super.initState();
     _nameController = TextEditingController(text: widget.user.displayName);
     _selectedRole = widget.user.role;
-    _selectedTeamId = widget.user.teamId;
+    _selectedCaptainId = widget.user.captainId;
   }
 
   @override
@@ -396,19 +501,24 @@ class _EditUserDialogState extends State<_EditUserDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Ad Soyad
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(
                 labelText: 'Ad Soyad',
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person),
               ),
             ),
             const SizedBox(height: 16),
+
+            // Rol Seçimi
             DropdownButtonFormField<String>(
               value: _selectedRole,
               decoration: const InputDecoration(
                 labelText: 'Rol',
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.admin_panel_settings),
               ),
               items: const [
                 DropdownMenuItem(value: 'admin', child: Text('Yönetici')),
@@ -418,33 +528,58 @@ class _EditUserDialogState extends State<_EditUserDialog> {
               onChanged: (value) {
                 setState(() {
                   _selectedRole = value ?? 'user';
-                  if (value == 'admin') {
-                    _selectedTeamId = null;
+                  if (value == 'admin' || value == 'captain') {
+                    _selectedCaptainId = null;
                   }
                 });
               },
             ),
-            if (_selectedRole != 'admin') ...[
+
+            // Kaptan Seçimi (sadece user rolü için)
+            if (_selectedRole == 'user') ...[
               const SizedBox(height: 16),
               StreamBuilder<List<UserModel>>(
                 stream: widget.userService.getUsersByRole('captain'),
                 builder: (context, snapshot) {
                   final captains = snapshot.data ?? [];
+
+                  if (captains.isEmpty) {
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColors.warning),
+                      ),
+                      child: const Text(
+                        'Henüz kaptan bulunmamaktadır',
+                        style: TextStyle(fontSize: 12, color: AppColors.warning),
+                      ),
+                    );
+                  }
+
                   return DropdownButtonFormField<String>(
-                    value: _selectedTeamId,
+                    value: _selectedCaptainId,
                     decoration: const InputDecoration(
-                      labelText: 'Takım',
+                      labelText: 'Bağlı Kaptan',
                       border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.group),
                     ),
-                    hint: const Text('Takım seçin'),
-                    items: captains.map<DropdownMenuItem<String>>((captain) {
-                      return DropdownMenuItem<String>(
-                        value: captain.uid,
-                        child: Text(captain.displayName),
-                      );
-                    }).toList(),
+                    hint: const Text('Kaptan Seçin (Opsiyonel)'),
+                    items: [
+                      const DropdownMenuItem<String>(
+                        value: null,
+                        child: Text('Kaptansız', style: TextStyle(fontStyle: FontStyle.italic)),
+                      ),
+                      ...captains.map<DropdownMenuItem<String>>((captain) {
+                        return DropdownMenuItem<String>(
+                          value: captain.uid,
+                          child: Text(captain.displayName),
+                        );
+                      }).toList(),
+                    ],
                     onChanged: (value) {
-                      setState(() => _selectedTeamId = value);
+                      setState(() => _selectedCaptainId = value);
                     },
                   );
                 },
@@ -460,13 +595,19 @@ class _EditUserDialogState extends State<_EditUserDialog> {
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _saveChanges,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+          ),
           child: _isLoading
               ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Kaydet'),
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          )
+              : const Text('Kaydet', style: TextStyle(color: Colors.white)),
         ),
       ],
     );
@@ -476,6 +617,7 @@ class _EditUserDialogState extends State<_EditUserDialog> {
     setState(() => _isLoading = true);
 
     try {
+      // İsim değişikliği
       if (_nameController.text != widget.user.displayName) {
         await widget.userService.updateUserDisplayName(
           widget.user.uid,
@@ -483,12 +625,20 @@ class _EditUserDialogState extends State<_EditUserDialog> {
         );
       }
 
+      // Rol değişikliği
       if (_selectedRole != widget.user.role) {
         await widget.userService.updateUserRole(widget.user.uid, _selectedRole);
+
+        // Eğer kaptana dönüştürülüyorsa teamId'yi uid yap
+        if (_selectedRole == 'captain') {
+          await widget.userService.updateUserTeam(widget.user.uid, widget.user.uid);
+          await widget.userService.updateUserCaptain(widget.user.uid, null);
+        }
       }
 
-      if (_selectedTeamId != widget.user.teamId) {
-        await widget.userService.updateUserTeam(widget.user.uid, _selectedTeamId);
+      // Kaptan değişikliği (sadece user için)
+      if (_selectedRole == 'user' && _selectedCaptainId != widget.user.captainId) {
+        await widget.userService.updateUserCaptain(widget.user.uid, _selectedCaptainId);
       }
 
       if (mounted) {
@@ -516,4 +666,3 @@ class _EditUserDialogState extends State<_EditUserDialog> {
     }
   }
 }
-

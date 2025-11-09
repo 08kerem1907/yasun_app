@@ -4,7 +4,7 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 
 import '../constants/colors.dart';
 import '../models/user_model.dart';
-import '../services/auth_service.dart';
+import '../services/auth_service_fixed.dart';
 
 import 'home_screen_content.dart';
 import 'duyurular_screen.dart';

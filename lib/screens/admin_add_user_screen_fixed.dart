@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors.dart';
-import '../services/auth_service.dart';
+import '../services/auth_service_fixed.dart';
 import '../services/user_service.dart';
 import '../models/user_model.dart';
 
@@ -17,13 +17,12 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _displayNameController = TextEditingController();
-  final _teamIdController = TextEditingController();
-  
+
   String _selectedRole = 'user';
-  String? _selectedTeamId;
+  String? _selectedCaptainId;
   bool _isLoading = false;
   bool _obscurePassword = true;
-  
+
   final UserService _userService = UserService();
 
   @override
@@ -31,19 +30,17 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _displayNameController.dispose();
-    _teamIdController.dispose();
     super.dispose();
   }
 
   Future<void> _handleAddUser() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Kaptan veya kullanıcı seçiliyse takım gerekli
-    if ((_selectedRole == 'captain' || _selectedRole == 'user') && 
-        (_selectedTeamId == null || _selectedTeamId!.isEmpty)) {
+    // Admin dışındaki roller için kaptan ataması kontrolü
+    if (_selectedRole == 'user' && (_selectedCaptainId == null || _selectedCaptainId!.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Kaptan ve kullanıcılar için takım seçimi zorunludur'),
+          content: Text('Kullanıcılar için kaptan ataması zorunludur'),
           backgroundColor: AppColors.error,
         ),
       );
@@ -54,13 +51,32 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
-      
+
+      // Rol bazlı teamId ve captainId ayarı
+      String? finalTeamId;
+      String? finalCaptainId;
+
+      if (_selectedRole == 'captain') {
+        // Kaptan için: teamId ve captainId null (daha sonra _ensureUserDocument tarafından ayarlanacak)
+        finalTeamId = null;
+        finalCaptainId = null;
+      } else if (_selectedRole == 'user') {
+        // Kullanıcı için: captainId seçilen kaptan
+        finalTeamId = null;
+        finalCaptainId = _selectedCaptainId;
+      } else {
+        // Admin için: her ikisi de null
+        finalTeamId = null;
+        finalCaptainId = null;
+      }
+
       await authService.signUpWithEmailPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
         displayName: _displayNameController.text.trim(),
         role: _selectedRole,
-        teamId: _selectedRole == 'admin' ? null : _selectedTeamId,
+        teamId: finalTeamId,
+        captainId: finalCaptainId,
       );
 
       if (mounted) {
@@ -68,6 +84,7 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
           const SnackBar(
             content: Text('Kullanıcı başarıyla oluşturuldu!'),
             backgroundColor: AppColors.success,
+            duration: Duration(seconds: 2),
           ),
         );
         Navigator.of(context).pop(true);
@@ -76,8 +93,9 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Kullanıcı oluşturulamadı: ${e.toString()}'),
+            content: Text('Hata: ${e.toString()}'),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -225,7 +243,7 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
                 if (value == null || value.isEmpty) {
                   return 'Email adresi gerekli';
                 }
-                if (!value.contains('@')) {
+                if (!value.contains('@') || !value.contains('.')) {
                   return 'Geçerli bir email adresi girin';
                 }
                 return null;
@@ -259,19 +277,19 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
                 return null;
               },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             // Rol Seçimi
             _buildRoleSelector(),
             const SizedBox(height: 20),
 
-            // Takım Seçimi (Rol seçimine göre gösterilir)
-            if (_selectedRole != 'admin')
-              _buildTeamSelector(),
-            
-            const SizedBox(height: 32),
+            // Kaptan Seçimi (sadece user rolü için)
+            if (_selectedRole == 'user') ...[
+              _buildCaptainSelector(),
+              const SizedBox(height: 20),
+            ],
 
-            // Bilgi kutusu
+            // Bilgilendirme mesajı
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -290,7 +308,7 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Kullanıcı oluşturulduktan sonra email adresine doğrulama maili gönderilecektir.',
+                      'Kullanıcı oluşturulduktan sonra giriş yapabilecektir.',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.info,
@@ -327,28 +345,28 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
                 ),
                 child: _isLoading
                     ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
                     : const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.check, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(
-                            'Kullanıcıyı Oluştur',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ],
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check, color: Colors.white),
+                    SizedBox(width: 8),
+                    Text(
+                      'Kullanıcıyı Oluştur',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
                       ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -367,28 +385,50 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
     Widget? suffixIcon,
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon, color: AppColors.primary),
-        suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.border),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: const TextStyle(color: AppColors.textHint),
+            prefixIcon: Icon(icon, color: AppColors.primary),
+            suffixIcon: suffixIcon,
+            filled: true,
+            fillColor: AppColors.background,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.border),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.error),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          validator: validator,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
-        ),
-      ),
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      validator: validator,
+      ],
     );
   }
 
@@ -409,21 +449,34 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
           decoration: BoxDecoration(
             border: Border.all(color: AppColors.border),
             borderRadius: BorderRadius.circular(12),
+            color: AppColors.background,
           ),
-          child: DropdownButton<String>(
+          child: DropdownButtonFormField<String>(
             value: _selectedRole,
             isExpanded: true,
-            underline: const SizedBox(),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              prefixIcon: Icon(Icons.admin_panel_settings, color: AppColors.primary),
+            ),
             items: const [
-              DropdownMenuItem(value: 'admin', child: Text('Yönetici')),
-              DropdownMenuItem(value: 'captain', child: Text('Kaptan')),
-              DropdownMenuItem(value: 'user', child: Text('Kullanıcı')),
+              DropdownMenuItem(
+                value: 'admin',
+                child: Text('Yönetici', style: TextStyle(fontWeight: FontWeight.w500)),
+              ),
+              DropdownMenuItem(
+                value: 'captain',
+                child: Text('Kaptan', style: TextStyle(fontWeight: FontWeight.w500)),
+              ),
+              DropdownMenuItem(
+                value: 'user',
+                child: Text('Kullanıcı', style: TextStyle(fontWeight: FontWeight.w500)),
+              ),
             ],
             onChanged: (value) {
               setState(() {
                 _selectedRole = value ?? 'user';
-                _selectedTeamId = null;
+                _selectedCaptainId = null; // Rol değişince kaptan seçimini sıfırla
               });
             },
           ),
@@ -432,12 +485,12 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
     );
   }
 
-  Widget _buildTeamSelector() {
+  Widget _buildCaptainSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Takım Seçimi',
+          'Bağlı Olduğu Kaptan',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -449,11 +502,36 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
           stream: _userService.getUsersByRole('captain'),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.background,
+                ),
+                child: const Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+              );
             }
 
             if (snapshot.hasError) {
-              return Text('Hata: ${snapshot.error}');
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                ),
+                child: Text(
+                  'Hata: ${snapshot.error}',
+                  style: const TextStyle(color: AppColors.error, fontSize: 12),
+                ),
+              );
             }
 
             final captains = snapshot.data ?? [];
@@ -466,9 +544,17 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.warning.withOpacity(0.3)),
                 ),
-                child: const Text(
-                  'Henüz kaptan bulunmamaktadır. Lütfen önce bir kaptan oluşturun.',
-                  style: TextStyle(color: AppColors.warning),
+                child: const Row(
+                  children: [
+                    Icon(Icons.warning_amber, color: AppColors.warning, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Henüz kaptan bulunmamaktadır. Lütfen önce bir kaptan oluşturun.',
+                        style: TextStyle(color: AppColors.warning, fontSize: 12),
+                      ),
+                    ),
+                  ],
                 ),
               );
             }
@@ -477,23 +563,40 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
               decoration: BoxDecoration(
                 border: Border.all(color: AppColors.border),
                 borderRadius: BorderRadius.circular(12),
+                color: AppColors.background,
               ),
-              child: DropdownButton<String>(
-                value: _selectedTeamId,
+              child: DropdownButtonFormField<String>(
+                value: _selectedCaptainId,
                 isExpanded: true,
-                underline: const SizedBox(),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                hint: const Text('Takım seçin'),
-                items: captains.map<DropdownMenuItem<String>>((captain) {
-                  return DropdownMenuItem<String>(
-                    value: captain.uid,
-                    child: Text('${captain.displayName} (${captain.roleDisplayName})'),
-                  );
-                }).toList(),
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  prefixIcon: Icon(Icons.person_outline, color: AppColors.primary),
+                ),
+                hint: const Text('Kaptan Seçin'),
+                items: [
+                  const DropdownMenuItem<String>(
+                    value: null,
+                    child: Text('Kaptansız Üye', style: TextStyle(fontStyle: FontStyle.italic)),
+                  ),
+                  ...captains.map<DropdownMenuItem<String>>((captain) {
+                    return DropdownMenuItem<String>(
+                      value: captain.uid,
+                      child: Text(
+                        '${captain.displayName} (${captain.email})',
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                    );
+                  }).toList(),
+                ],
                 onChanged: (value) {
                   setState(() {
-                    _selectedTeamId = value;
+                    _selectedCaptainId = value;
                   });
+                },
+                validator: (value) {
+                  // Kaptansız üye de olabilir, bu yüzden zorunlu değil
+                  return null;
                 },
               ),
             );
@@ -503,4 +606,3 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
     );
   }
 }
-

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../constants/colors.dart';
 import '../models/user_model.dart';
-import '../services/auth_service.dart';
+import '../services/auth_service_fixed.dart';
 import '../services/user_service.dart';
 
 class ProfileScreen extends StatefulWidget {

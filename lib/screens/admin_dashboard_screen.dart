@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
 import '../constants/colors.dart';
-import 'admin_add_user_screen.dart';
+import 'admin_add_user_screen_fixed.dart';
 import 'admin_manage_users_screen.dart';
 import 'admin_manage_teams_screen.dart';
 

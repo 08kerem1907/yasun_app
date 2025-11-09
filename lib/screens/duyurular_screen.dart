@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/announcement_model.dart';
 import '../models/user_model.dart';
 import '../services/announcement_service.dart';
-import '../services/auth_service.dart';
+import '../services/auth_service_fixed.dart';
 import '../services/user_service.dart';
 
 class DuyurularScreen extends StatefulWidget {

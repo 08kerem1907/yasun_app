@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors.dart';
-import '../services/auth_service.dart';
+import '../services/auth_service_fixed.dart';
 
 class AddUserScreen extends StatefulWidget {
   const AddUserScreen({super.key});

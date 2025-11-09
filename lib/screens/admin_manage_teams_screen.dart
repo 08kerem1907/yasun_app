@@ -341,11 +341,12 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
             }
 
             // Takıma atanmamış kullanıcıları filtrele
-            final availableUsers = (snapshot.data ?? [])
-                .where((user) =>
-            user.isUser &&
-                (user.teamId == null || user.teamId!.isEmpty))
-                .toList();
+	            // Sadece rolü 'user' olan ve henüz bir kaptana bağlı olmayan kullanıcıları filtrele
+	            final availableUsers = (snapshot.data ?? [])
+	                .where((user) =>
+	            user.isUser &&
+	                (user.captainId == null || user.captainId!.isEmpty))
+	                .toList();
 
             if (availableUsers.isEmpty) {
               return const Text(
@@ -362,7 +363,7 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
                     subtitle: Text(user.email),
                     onTap: () async {
                       try {
-                        await _userService.updateUserTeam(user.uid, captain.uid);
+	                        await _userService.updateUserCaptain(user.uid, captain.uid);
                         if (context.mounted) {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -416,7 +417,7 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
           ElevatedButton(
             onPressed: () async {
               try {
-                await _userService.updateUserTeam(member.uid, null);
+	                await _userService.updateUserCaptain(member.uid, null);
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(

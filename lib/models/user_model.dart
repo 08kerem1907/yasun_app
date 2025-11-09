@@ -6,6 +6,7 @@ class UserModel {
   final String displayName;
   final String role;
   final String? teamId;
+  final String? captainId;
   final DateTime createdAt;
   final DateTime? lastLogin;
   final int totalScore;
@@ -17,6 +18,7 @@ class UserModel {
     required this.displayName,
     required this.role,
     this.teamId,
+    this.captainId,
     required this.createdAt,
     this.lastLogin,
     this.totalScore = 0,
@@ -65,6 +67,7 @@ class UserModel {
       displayName: data['displayName'] ?? '',
       role: data['role'] ?? 'user',
       teamId: data['teamId'],
+      captainId: data['captainId'],
       createdAt: createdAt,
       lastLogin: lastLogin,
       totalScore: data["totalScore"] ?? 0,
@@ -79,6 +82,7 @@ class UserModel {
       'displayName': displayName,
       'role': role,
       'teamId': teamId,
+      'captainId': captainId,
       'createdAt': Timestamp.fromDate(createdAt),
       'lastLogin': lastLogin != null ? Timestamp.fromDate(lastLogin!) : null,
       'totalScore': totalScore,
@@ -111,6 +115,7 @@ class UserModel {
     String? displayName,
     String? role,
     String? teamId,
+    String? captainId,
     DateTime? createdAt,
     DateTime? lastLogin,
     int? totalScore,
@@ -122,6 +127,7 @@ class UserModel {
       displayName: displayName ?? this.displayName,
       role: role ?? this.role,
       teamId: teamId ?? this.teamId,
+      captainId: captainId ?? this.captainId,
       createdAt: createdAt ?? this.createdAt,
       lastLogin: lastLogin ?? this.lastLogin,
       totalScore: totalScore ?? this.totalScore,
