@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Announcement {
   final String id;
   final String title;
+  final String subtitle;
   final String content;
   final String creatorUid;
   final String creatorDisplayName;
@@ -14,6 +15,7 @@ class Announcement {
   Announcement({
     required this.id,
     required this.title,
+    required this.subtitle,
     required this.content,
     required this.creatorUid,
     required this.creatorDisplayName,
@@ -28,6 +30,7 @@ class Announcement {
     return Announcement(
       id: doc.id,
       title: data['title'] ?? '',
+      subtitle: data['subtitle'] ?? '',
       content: data['content'] ?? '',
       creatorUid: data['creatorUid'] ?? '',
       creatorDisplayName: data['creatorDisplayName'] ?? '',
@@ -41,6 +44,7 @@ class Announcement {
   Map<String, dynamic> toMap() {
     return {
       'title': title,
+      'subtitle': subtitle,
       'content': content,
       'creatorUid': creatorUid,
       'creatorDisplayName': creatorDisplayName,
@@ -54,6 +58,7 @@ class Announcement {
   Announcement copyWith({
     String? id,
     String? title,
+    String? subtitle,
     String? content,
     String? creatorUid,
     String? creatorDisplayName,
@@ -65,6 +70,7 @@ class Announcement {
     return Announcement(
       id: id ?? this.id,
       title: title ?? this.title,
+      subtitle: subtitle ?? this.subtitle,
       content: content ?? this.content,
       creatorUid: creatorUid ?? this.creatorUid,
       creatorDisplayName: creatorDisplayName ?? this.creatorDisplayName,

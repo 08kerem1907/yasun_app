@@ -1,16 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors.dart';
+import '../models/activity_model.dart';
 import '../models/user_model.dart';
+import '../services/activity_service.dart';
 import '../services/auth_service_fixed.dart';
 import '../services/user_service.dart';
-import 'users_list_screen.dart';
-import 'add_user_screen.dart';
-import 'role_management_screen.dart';
-
 class HomeScreenContent extends StatelessWidget {
   final String role;
   const HomeScreenContent({super.key, required this.role});
+
+  String _timeAgo(DateTime date) {
+    final Duration diff = DateTime.now().difference(date);
+    if (diff.inDays > 365) {
+      return '${(diff.inDays / 365).floor()} yıl önce';
+    } else if (diff.inDays > 30) {
+      return '${(diff.inDays / 30).floor()} ay önce';
+    } else if (diff.inDays > 7) {
+      return '${(diff.inDays / 7).floor()} hafta önce';
+    } else if (diff.inDays > 0) {
+      return '${diff.inDays} gün önce';
+    } else if (diff.inHours > 0) {
+      return '${diff.inHours} saat önce';
+    } else if (diff.inMinutes > 0) {
+      return '${diff.inMinutes} dakika önce';
+    } else {
+      return 'şimdi';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +77,7 @@ class HomeScreenContent extends StatelessWidget {
                         if (userData.isCaptain) _buildCaptainStatsSection(context, userData.uid, authService),
                         if (userData.isUser) _buildUserStatsSection(context, userData.uid, authService),
                         const SizedBox(height: 32),
-                        _buildRecentActivitiesSection(context),
+                        _buildRecentActivitiesSection(context, userData.uid),
                       ],
                     ),
                   ),
@@ -404,7 +421,9 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentActivitiesSection(BuildContext context) {
+  Widget _buildRecentActivitiesSection(BuildContext context, String currentUserId) {
+    final activityService = ActivityService();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -417,27 +436,39 @@ class HomeScreenContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        _buildActivityItem(
-          context,
-          icon: Icons.assignment_turned_in,
-          title: 'Yeni Görev Atandı',
-          subtitle: '"Ana sayfa düzenlemesi" görevi size atandı.',
-          time: '10 dakika önce',
-        ),
-        _buildActivityItem(
-          context,
-          icon: Icons.score,
-          title: 'Puan Güncellendi',
-          subtitle: 'Yeni puanınız: 1250',
-          time: '1 saat önce',
-        ),
-        _buildActivityItem(
-          context,
-          icon: Icons.group_add,
-          title: 'Takıma Yeni Üye',
-          subtitle: 'Ahmet Yılmaz takıma katıldı.',
-          time: '3 saat önce',
-          isLastItem: true,
+        StreamBuilder<List<ActivityModel>>(
+          stream: activityService.getRecentActivities(currentUserId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Aktivite yüklenirken hata oluştu: ${snapshot.error}'));
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('Henüz bir aktivite bulunmamaktadır.'));
+            }
+
+            final activities = snapshot.data!;
+
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: activities.length,
+              itemBuilder: (context, index) {
+                final activity = activities[index];
+                return _buildActivityItem(
+                  context,
+                  icon: activity.icon,
+                  title: activity.title,
+                  subtitle: activity.subtitle,
+                  time: _timeAgo(activity.timestamp),
+                  color: activity.color,
+                  isLastItem: index == activities.length - 1,
+                );
+              },
+            );
+          },
         ),
       ],
     );
@@ -495,7 +526,7 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildActivityItem(BuildContext context, {required IconData icon, required String title, required String subtitle, required String time, bool isLastItem = false}) {
+  Widget _buildActivityItem(BuildContext context, {required IconData icon, required String title, required String subtitle, required String time, required Color color, bool isLastItem = false}) {
     return Container(
       margin: EdgeInsets.only(bottom: isLastItem ? 0 : 16),
       child: Row(
@@ -503,10 +534,10 @@ class HomeScreenContent extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: color.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: AppColors.primary, size: 24),
+            child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(

@@ -101,7 +101,7 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
                     StreamBuilder<List<UserModel>>(
                       stream: _currentUser!.isAdmin
                           ? _userService.getAllUsers()
-                          : _userService.getTeamMembers(_currentUser!.teamId!),
+                          : _userService.getTeamMembers(_currentUser!.uid),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const CircularProgressIndicator();

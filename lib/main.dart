@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+
 import 'constants/colors.dart';
-import '../services/auth_service_fixed.dart';
+import 'services/auth_service_fixed.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/setup_screen.dart';
-import 'firebase_options.dart'; // Import the firebase_options.dart file
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Firebase'i başlat
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform, // Use the DefaultFirebaseOptions
+    options: DefaultFirebaseOptions.currentPlatform,
   );
-  
+
   runApp(const MyApp());
 }
 

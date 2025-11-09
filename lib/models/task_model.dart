@@ -55,16 +55,13 @@ class TaskModel {
       assignedByUid: data['assignedByUid'] ?? '',
       assignedByDisplayName: data['assignedByDisplayName'] ?? '',
       dueDate: (data['dueDate'] as Timestamp).toDate(),
-      status: TaskStatus.values.firstWhere(
-        (e) => e.toString() == 'TaskStatus.' + (data['status'] ?? 'assigned'),
-        orElse: () => TaskStatus.assigned,
-      ),
+      status: _parseTaskStatus(data['status']),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       completedAt: (data['completedAt'] as Timestamp?)?.toDate(),
       userCompletionNote: data['userCompletionNote'],
       captainEvaluation: data['captainEvaluation'],
       captainEvaluatedAt: (data['captainEvaluatedAt'] as Timestamp?)?.toDate(),
-      adminScore: data['adminScore'],
+      adminScore: data['adminScore'] is int ? data['adminScore'] : (data['adminScore'] is String ? int.tryParse(data['adminScore']) : null),
       adminEvaluatedAt: (data['adminEvaluatedAt'] as Timestamp?)?.toDate(),
     );
   }
@@ -125,6 +122,21 @@ class TaskModel {
       adminScore: adminScore ?? this.adminScore,
       adminEvaluatedAt: adminEvaluatedAt ?? this.adminEvaluatedAt,
     );
+  }
+
+  static TaskStatus _parseTaskStatus(dynamic status) {
+    if (status is String) {
+      return TaskStatus.values.firstWhere(
+            (e) => e.name == status,
+        orElse: () => TaskStatus.assigned,
+      );
+    }
+    if (status is int) {
+      if (status >= 0 && status < TaskStatus.values.length) {
+        return TaskStatus.values[status];
+      }
+    }
+    return TaskStatus.assigned;
   }
 }
 

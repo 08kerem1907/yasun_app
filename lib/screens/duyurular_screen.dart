@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/announcement_model.dart';
 import '../models/user_model.dart';
 import '../services/announcement_service.dart';
-import '../services/auth_service_fixed.dart';
 import '../services/user_service.dart';
+import 'duyuru_detay_screen.dart'; // Detay ekranı için import
 
 class DuyurularScreen extends StatefulWidget {
   const DuyurularScreen({super.key});
@@ -17,7 +16,6 @@ class DuyurularScreen extends StatefulWidget {
 
 class _DuyurularScreenState extends State<DuyurularScreen> {
   final AnnouncementService _announcementService = AnnouncementService();
-  final AuthService _authService = AuthService();
   final UserService _userService = UserService();
   UserModel? _currentUser;
 
@@ -30,30 +28,27 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
   Future<void> _getCurrentUser() async {
     User? firebaseUser = FirebaseAuth.instance.currentUser;
     if (firebaseUser != null) {
-      UserModel? user = await _userService.getUser(firebaseUser.uid);
-      setState(() {
-        _currentUser = user;
-      });
+      final user = await _userService.getUser(firebaseUser.uid);
+      if (mounted) {
+        setState(() => _currentUser = user);
+      }
     }
   }
 
   bool get _canManageAnnouncements =>
       _currentUser != null && (_currentUser!.isAdmin || _currentUser!.isCaptain);
 
-  Future<void> _showAnnouncementDialog({
-    Announcement? announcement,
-    bool isEdit = false,
-  }) async {
-    final TextEditingController titleController =
-        TextEditingController(text: announcement?.title ?? '');
-    final TextEditingController contentController =
-        TextEditingController(text: announcement?.content ?? '');
+  // Yeni duyuru oluşturma/düzenleme dialogu (Standart AlertDialog)
+  Future<void> _openAnnouncementEditor({Announcement? announcement}) async {
+    final titleController = TextEditingController(text: announcement?.title);
+    final subtitleController = TextEditingController(text: announcement?.subtitle);
+    final contentController = TextEditingController(text: announcement?.content);
 
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(isEdit ? 'Duyuru Düzenle' : 'Yeni Duyuru Ekle'),
+          title: Text(announcement == null ? 'Yeni Duyuru Oluştur' : 'Duyuruyu Düzenle'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -62,6 +57,12 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                   controller: titleController,
                   decoration: const InputDecoration(labelText: 'Başlık'),
                 ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: subtitleController,
+                  decoration: const InputDecoration(labelText: 'Alt Başlık (Özet)'),
+                ),
+                const SizedBox(height: 8),
                 TextField(
                   controller: contentController,
                   decoration: const InputDecoration(labelText: 'İçerik'),
@@ -77,14 +78,12 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                if (titleController.text.isEmpty ||
-                    contentController.text.isEmpty) {
+                if (titleController.text.trim().isEmpty || contentController.text.trim().isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Başlık ve içerik boş olamaz.')),
                   );
                   return;
                 }
-
                 if (_currentUser == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Kullanıcı bilgisi alınamadı.')),
@@ -92,65 +91,37 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                   return;
                 }
 
-                if (isEdit && announcement != null) {
-                  // Duyuru güncelle
-                  final updatedAnnouncement = announcement.copyWith(
-                    title: titleController.text,
-                    content: contentController.text,
-                    lastEditorUid: _currentUser!.uid,
-                    lastEditorDisplayName: _currentUser!.displayName,
-                    lastEditedAt: DateTime.now(),
-                  );
-                  await _announcementService.updateAnnouncement(updatedAnnouncement);
-                } else {
-                  // Yeni duyuru ekle
-                  final newAnnouncement = Announcement(
+                if (announcement == null) {
+                  final newAnn = Announcement(
                     id: '', // Firestore tarafından atanacak
-                    title: titleController.text,
-                    content: contentController.text,
+                    title: titleController.text.trim(),
+                    subtitle: subtitleController.text.trim(),
+                    content: contentController.text.trim(),
                     creatorUid: _currentUser!.uid,
                     creatorDisplayName: _currentUser!.displayName,
                     createdAt: DateTime.now(),
                   );
-                  await _announcementService.addAnnouncement(newAnnouncement);
+                  await _announcementService.addAnnouncement(newAnn);
+                } else {
+                  final updated = announcement.copyWith(
+                    title: titleController.text.trim(),
+                    subtitle: subtitleController.text.trim(),
+                    content: contentController.text.trim(),
+                    lastEditorUid: _currentUser!.uid,
+                    lastEditorDisplayName: _currentUser!.displayName,
+                    lastEditedAt: DateTime.now(),
+                  );
+                  await _announcementService.updateAnnouncement(updated);
                 }
-                Navigator.pop(context);
+
+                if (mounted) Navigator.pop(context);
               },
-              child: Text(isEdit ? 'Kaydet' : 'Ekle'),
+              child: Text(announcement == null ? 'Yayınla' : 'Kaydet'),
             ),
           ],
         );
       },
     );
-  }
-
-  Future<void> _deleteAnnouncement(String announcementId) async {
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Duyuruyu Sil'),
-          content: const Text('Bu duyuruyu silmek istediğinizden emin misiniz?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('İptal'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                await _announcementService.deleteAnnouncement(announcementId);
-                Navigator.pop(context);
-              },
-              child: const Text('Sil'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return "${date.day}.${date.month}.${date.year} ${date.hour}:${date.minute}";
   }
 
   @override
@@ -159,88 +130,68 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
       appBar: AppBar(
         title: const Text('Duyurular'),
       ),
-      body: StreamBuilder<List<Announcement>>(
-        stream: _announcementService.getAnnouncements(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Hata: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Henüz duyuru yok.'));
-          }
+      body: _currentUser == null
+          ? const Center(child: CircularProgressIndicator())
+          : StreamBuilder<List<Announcement>>(
+              stream: _announcementService.getAnnouncements(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Hata: ${snapshot.error}'));
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('Henüz duyuru bulunmamaktadır.'));
+                }
 
-          final announcements = snapshot.data!;
+                final announcements = snapshot.data!;
 
-          return ListView.builder(
-            itemCount: announcements.length,
-            itemBuilder: (context, index) {
-              final announcement = announcements[index];
-              return Card(
-                margin: const EdgeInsets.all(8.0),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        announcement.title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                return ListView.builder(
+                  itemCount: announcements.length,
+                  itemBuilder: (context, index) {
+                    final announcement = announcements[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      child: ListTile(
+                        title: Text(announcement.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text(
+                          announcement.subtitle.isNotEmpty
+                              ? announcement.subtitle
+                              : (announcement.content.length > 100
+                                  ? '${announcement.content.substring(0, 100)}...'
+                                  : announcement.content),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(announcement.content),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Ekleyen: ${announcement.creatorDisplayName} - ${_formatDate(announcement.createdAt)}',
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                      if (announcement.lastEditorDisplayName != null) ...[
-                        Text(
-                          'Son Düzenleyen: ${announcement.lastEditorDisplayName} - ${_formatDate(announcement.lastEditedAt!)}',
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                      ],
-                      if (_canManageAnnouncements) ...[
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () => _showAnnouncementDialog(
-                                  announcement: announcement,
-                                  isEdit: true,
-                                ),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DuyuruDetayScreen(
+                                announcement: announcement,
+                                canManage: _canManageAnnouncements,
+                                onEdit: () => _openAnnouncementEditor(announcement: announcement),
+                                onDelete: () async {
+                                  await _announcementService.deleteAnnouncement(announcement.id);
+                                },
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _deleteAnnouncement(announcement.id),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
       floatingActionButton: _canManageAnnouncements
           ? FloatingActionButton(
-              onPressed: () => _showAnnouncementDialog(),
+              onPressed: () => _openAnnouncementEditor(),
               child: const Icon(Icons.add),
             )
           : null,
     );
   }
 }
-
