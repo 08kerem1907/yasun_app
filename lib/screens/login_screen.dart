@@ -178,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             // Başlık
             const Text(
-              'Giriş Yap',
+              'by YASUN',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

@@ -364,7 +364,7 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
               value: 'delete',
               child: Row(
                 children: [
-                  Icon(Icons.delete, color: AppColors.error),
+                  Icon(Icons.delete_sweep_rounded, color: AppColors.error),
                   SizedBox(width: 8),
                   Text('Sil'),
                 ],

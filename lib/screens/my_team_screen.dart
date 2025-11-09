@@ -102,7 +102,7 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
               shape: BoxShape.circle,
             ),
             child: const Icon(
-              Icons.people_alt,
+              Icons.groups_rounded,
               color: Colors.white,
               size: 24,
             ),
@@ -199,7 +199,7 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
                 child: _buildStatItem(
                   label: 'Bu Ay\nTamamlanan',
                   value: (stats['completed_tasks'] ?? 0).toString(),
-                  icon: Icons.check_circle,
+                  icon: Icons.task_alt_rounded,
                   color: AppColors.success,
                 ),
               ),
@@ -212,7 +212,7 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
                 child: _buildStatItem(
                   label: 'Toplam Puan',
                   value: (stats['total_score'] ?? 0).toString(),
-                  icon: Icons.score,
+                  icon: Icons.emoji_events_rounded,
                   color: AppColors.warning,
                 ),
               ),

@@ -54,7 +54,16 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Puan Tablosu'),
+        title: Row(
+          children: const [
+            Icon(
+              Icons.leaderboard_rounded,
+              color: Colors.deepPurple, // veya Colors.indigo
+            ),
+            SizedBox(width: 8),
+            Text('Puan Tablosu'),
+          ],
+        ),
         actions: [
           DropdownButton<ScoreSortType>(
             value: _currentSortType,
@@ -62,14 +71,19 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
               if (newValue != null) {
                 setState(() {
                   _currentSortType = newValue;
-                  // Sıralama tipini değiştirince varsayılan olarak azalan sıralama yapabiliriz
                   _sortAscending = false;
                 });
               }
             },
             items: const [
-              DropdownMenuItem(value: ScoreSortType.totalScore, child: Text('Toplam Puana Göre')),
-              DropdownMenuItem(value: ScoreSortType.monthlyScore, child: Text('Aylık Puana Göre')),
+              DropdownMenuItem(
+                value: ScoreSortType.totalScore,
+                child: Text('Toplam Puana Göre'),
+              ),
+              DropdownMenuItem(
+                value: ScoreSortType.monthlyScore,
+                child: Text('Aylık Puana Göre'),
+              ),
             ],
           ),
           IconButton(
@@ -82,6 +96,7 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
           ),
         ],
       ),
+
       body: StreamBuilder<List<UserModel>>(
         stream: _userService.getAllUsers(),
         builder: (context, snapshot) {
@@ -133,11 +148,31 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text('Rol: ${user.roleDisplayName}'),
-                      Text('Toplam Puan: ${user.totalScore}'),
-                      Text('Bu Ayki Puan: $monthlyScore'),
+                      Row(
+                        children: [
+                          const Icon(Icons.workspace_premium_rounded, color: Colors.deepPurple),
+                          const SizedBox(width: 6),
+                          Text('Rol: ${user.roleDisplayName}'),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.military_tech_rounded, color: Colors.amber),
+                          const SizedBox(width: 6),
+                          Text('Toplam Puan: ${user.totalScore}'),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.trending_up_rounded, color: Colors.blueAccent),
+                          const SizedBox(width: 6),
+                          Text('Bu Ayki Puan: $monthlyScore'),
+                        ],
+                      ),
                       // Kaptanlar kendi ekibindeki üyelerin detaylarını görebilir
-                      if (_currentUser!.isCaptain && _currentUser!.teamId == user.teamId && user.uid != _currentUser!.uid) 
+                      if (_currentUser!.isCaptain && _currentUser!.teamId == user.teamId && user.uid != _currentUser!.uid)
                         Align(
                           alignment: Alignment.bottomRight,
                           child: ElevatedButton(
@@ -163,7 +198,18 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
                                 const SnackBar(content: Text('Bu özellik henüz geliştirilmedi.')),
                               );
                             },
-                            child: const Text('Görev Sonuçları'),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(
+                                  Icons.assignment_turned_in_rounded,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 6),
+                                Text('Görev Sonuçları'),
+                              ],
+                            ),
+
                           ),
                         ),
                       // Herkes kendi görev sonuçlarını görebilir

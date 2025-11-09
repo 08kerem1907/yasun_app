@@ -33,7 +33,7 @@ class DuyuruDetayScreen extends StatelessWidget {
             ),
           if (canManage)
             IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
+              icon: const Icon(Icons.delete_sweep_rounded, color: Colors.red),
               onPressed: () async {
                 final confirm = await showDialog<bool>(
                   context: context,

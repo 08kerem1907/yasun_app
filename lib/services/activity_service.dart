@@ -4,8 +4,6 @@ import 'package:rxdart/rxdart.dart';
 
 import '../models/activity_model.dart';
 import '../models/task_model.dart';
-import '../models/user_model.dart';
-import '../models/announcement_model.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';
 import '../services/announcement_service.dart';
@@ -43,7 +41,7 @@ class ActivityService {
           title: 'Görev Puanlandı',
           subtitle: '"${task.title}" görevinizden ${task.adminScore} puan aldınız.',
           timestamp: task.adminEvaluatedAt ?? task.createdAt,
-          icon: Icons.score,
+          icon: Icons.trending_up_rounded,
           color: Colors.green.shade700,
         );
       }).toList();
@@ -73,11 +71,25 @@ class ActivityService {
           title: 'Yeni Üye Katıldı',
           subtitle: '${user.displayName} (${user.roleDisplayName}) ekibe katıldı.',
           timestamp: user.createdAt,
-          icon: Icons.person_add,
+          icon: Icons.person_add_alt_1_rounded,
           color: Colors.purple.shade700,
         );
       }).toList();
     });
+
+    // 5. Puan Yükselişleri (Tüm kullanıcıların puanlarını izle)
+    // Bu, tüm kullanıcıların verilerini sürekli dinleyecektir.
+    // Gerçek bir puan yükselişi aktivitesi için, puanın ne zaman yükseldiğini bilmemiz gerekir.
+    // UserModel'de puanın en son ne zaman güncellendiğini gösteren bir alan yok.
+    // Bu nedenle, sadece görev puanlamalarını (evaluatedTasksStream) ve yeni kullanıcıları (userJoined)
+    // puan yükselişi olarak kabul edeceğiz.
+    // Ancak, kullanıcı isteği üzerine, tüm kullanıcıların toplam puanlarını çekip,
+    // puanı en son güncellenen (createdAt'i en yakın olan) kullanıcıları aktivite olarak ekleyebiliriz.
+    // Bu, bir "puan güncellemesi" aktivitesi yaratmanın en iyi yolu değildir, ancak mevcut veri yapınızla mümkün olan en yakın çözümdür.
+
+    // Puan yükselişi aktivitesi için, evaluatedTasksStream'i kullanmak en doğru yoldur.
+    // Kullanıcı isteği, "puanı yükselende gözüksün" olduğu için, evaluatedTasksStream'i kullanmaya devam edeceğiz.
+    // Eğer kullanıcı manuel puan eklemesi yapıyorsa, bu da evaluatedTasksStream'e düşecektir.
 
     // Tüm akışları birleştir ve zaman damgasına göre sırala
     return Rx.combineLatest4(

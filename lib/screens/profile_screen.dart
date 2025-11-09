@@ -252,7 +252,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const Spacer(),
                 IconButton(
                   icon: Icon(
-                    _isEditing ? Icons.close : Icons.edit,
+                    _isEditing ? Icons.close : Icons.edit_square,
                     color: _isEditing ? AppColors.error : AppColors.primary,
                   ),
                   onPressed: () {
@@ -283,25 +283,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       children: [
         _buildInfoRow(
-          icon: Icons.person,
+          icon: Icons.account_circle_rounded,
           label: 'Ad Soyad',
           value: userData.displayName,
         ),
         const SizedBox(height: 16),
         _buildInfoRow(
-          icon: Icons.email,
+          icon: Icons.alternate_email_rounded,
           label: 'Email',
           value: userData.email,
         ),
         const SizedBox(height: 16),
         _buildInfoRow(
-          icon: Icons.shield,
+          icon: Icons.workspace_premium_rounded,
           label: 'Rol',
           value: userData.roleDisplayName,
         ),
         const SizedBox(height: 16),
         _buildInfoRow(
-          icon: Icons.calendar_today,
+          icon: Icons.event_available_rounded,
           label: 'Kayıt Tarihi',
           value: DateFormat('dd.MM.yyyy').format(userData.createdAt),
         ),
@@ -495,7 +495,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: _buildStatItem(
                       label: 'Aktif Görevler',
                       value: (stats['active_tasks'] ?? 0).toString(),
-                      icon: Icons.assignment,
+                      icon: Icons.assignment_turned_in_rounded,
                       color: AppColors.primary,
                     ),
                   ),
@@ -504,7 +504,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: _buildStatItem(
                       label: 'Tamamlanan',
                       value: (stats['completed_tasks'] ?? 0).toString(),
-                      icon: Icons.check_circle,
+                      icon: Icons.task_alt_rounded,
                       color: AppColors.success,
                     ),
                   ),
@@ -513,7 +513,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: _buildStatItem(
                       label: 'Toplam Puan',
                       value: (stats['total_score'] ?? 0).toString(),
-                      icon: Icons.score,
+                      icon: Icons.emoji_events_rounded,
                       color: AppColors.warning,
                     ),
                   ),
