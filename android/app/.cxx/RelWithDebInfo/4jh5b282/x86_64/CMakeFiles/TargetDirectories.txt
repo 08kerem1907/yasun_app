@@ -1,0 +1,2 @@
+C:/Users/hp/StudioProjects/user_role_management/android/app/.cxx/RelWithDebInfo/4jh5b282/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/hp/StudioProjects/user_role_management/android/app/.cxx/RelWithDebInfo/4jh5b282/x86_64/CMakeFiles/rebuild_cache.dir

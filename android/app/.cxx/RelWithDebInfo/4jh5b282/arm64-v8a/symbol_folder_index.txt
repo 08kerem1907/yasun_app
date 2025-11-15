@@ -1,0 +1,1 @@
+C:\Users\hp\StudioProjects\user_role_management\build\app\intermediates\cxx\RelWithDebInfo\4jh5b282\obj\arm64-v8a
