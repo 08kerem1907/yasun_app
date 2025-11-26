@@ -55,10 +55,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _fillDemoCredentials(String email) {
-    _emailController.text = email;
-    _passwordController.text = '12345678';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,22 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   // Giriş Formu
                   _buildLoginCard(),
                   const SizedBox(height: 32),
-                  
-                  // Demo Hesapları
-                  _buildDemoAccounts(),
-                  const SizedBox(height: 16),
-                  
-                  // Setup butonu
-                  TextButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/setup');
-                    },
-                    icon: const Icon(Icons.settings, size: 18),
-                    label: const Text('Demo Kullanıcıları Oluştur'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                    ),
-                  ),
+
                 ],
               ),
             ),
@@ -113,21 +94,11 @@ class _LoginScreenState extends State<LoginScreen> {
         Container(
           width: 80,
           height: 80,
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.shield,
-            size: 40,
-            color: Colors.white,
+          child: Image.asset(
+            'assets/yasunapp_logo.png',   // kendi resim yolunu yaz
+            width: 50,
+            height: 50,
+            fit: BoxFit.cover,
           ),
         ),
         const SizedBox(height: 24),
@@ -137,6 +108,16 @@ class _LoginScreenState extends State<LoginScreen> {
           'Takım Yönetim Sistemi',
           style: TextStyle(
             fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        const Text(
+          'by YASUN',
+          style: TextStyle(
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
@@ -364,102 +345,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildDemoAccounts() {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 400),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          const Text(
-            'Demo Hesapları',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Test için aşağıdaki hesapları kullanabilirsiniz (şifre: 12345678)',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          _buildDemoAccountButton('kaptan@gmail.com', 'Kaptan'),
-          const SizedBox(height: 8),
-          _buildDemoAccountButton('keremuzuner1907@gmail.com', 'Yönetici'),
-          const SizedBox(height: 8),
-          _buildDemoAccountButton('uye@gmail.com', 'Kullanıcı'),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildDemoAccountButton(String email, String role) {
-    return InkWell(
-      onTap: () => _fillDemoCredentials(email),
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.person,
-                size: 16,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    email,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  Text(
-                    role,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              size: 14,
-              color: AppColors.textSecondary,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
 }
