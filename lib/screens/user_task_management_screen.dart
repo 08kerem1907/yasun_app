@@ -6,8 +6,33 @@ import '../models/user_model.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';
 
+// InheritedWidget ile tab değiştirme fonksiyonunu paylaş
+class TaskManagementNavigator extends InheritedWidget {
+  final Function(int) changeTab;
+
+  const TaskManagementNavigator({
+    super.key,
+    required this.changeTab,
+    required super.child,
+  });
+
+  static TaskManagementNavigator? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<TaskManagementNavigator>();
+  }
+
+  @override
+  bool updateShouldNotify(TaskManagementNavigator oldWidget) {
+    return false;
+  }
+}
+
 class UserTaskManagementScreen extends StatefulWidget {
-  const UserTaskManagementScreen({super.key});
+  final int initialTab;
+
+  const UserTaskManagementScreen({
+    super.key,
+    this.initialTab = 0,
+  });
 
   @override
   State<UserTaskManagementScreen> createState() => _UserTaskManagementScreenState();
@@ -23,6 +48,7 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialTab;
     _getCurrentUser();
   }
 
@@ -42,22 +68,33 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
     }
   }
 
+  void _changeTab(int index) {
+    if (_selectedIndex != index) {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildAppBar(),
-              _buildSegmentedControl(),
-              Expanded(
-                child: _buildCurrentPage(),
-              ),
-            ],
+    return TaskManagementNavigator(
+      changeTab: _changeTab,
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.backgroundGradient,
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildAppBar(),
+                _buildSegmentedControl(),
+                Expanded(
+                  child: _buildCurrentPage(),
+                ),
+              ],
+            ),
           ),
         ),
       ),

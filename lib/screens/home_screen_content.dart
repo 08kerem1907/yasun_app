@@ -6,6 +6,10 @@ import '../models/user_model.dart';
 import '../services/activity_service.dart';
 import '../services/auth_service_fixed.dart';
 import '../services/user_service.dart';
+import 'home_screen.dart';
+import 'user_task_management_screen.dart';
+import 'users_list_screen.dart';
+
 class HomeScreenContent extends StatelessWidget {
   final String role;
   const HomeScreenContent({super.key, required this.role});
@@ -26,6 +30,64 @@ class HomeScreenContent extends StatelessWidget {
       return '${diff.inMinutes} dakika önce';
     } else {
       return 'şimdi';
+    }
+  }
+
+  // Yardımcı metod - HomeScreen'deki bottom navigation ile ScoreTable'a git
+  void _navigateToScoreTable(BuildContext context, UserModel userData) {
+    int scoreTableIndex;
+
+    if (userData.isAdmin) {
+      scoreTableIndex = 5; // Admin için ScoreTableScreen index'i
+    } else if (userData.isCaptain) {
+      scoreTableIndex = 5; // Kaptan için ScoreTableScreen index'i
+    } else {
+      scoreTableIndex = 4; // Normal kullanıcı için ScoreTableScreen index'i
+    }
+
+    // HomeScreenNavigator kullanarak navigasyon yap
+    HomeScreenNavigator.of(context)?.navigateToIndex(scoreTableIndex);
+  }
+
+  // Görev yönetim sayfasına git
+  void _navigateToTaskManagement(BuildContext context, UserModel userData, {int initialTab = 0}) {
+    int taskManagementIndex = 3; // Tüm roller için TaskManagementScreen index'i 3
+
+    // Önce sayfaya git
+    HomeScreenNavigator.of(context)?.navigateToIndex(taskManagementIndex);
+
+    // Eğer belirli bir sekmeye gitmek isteniyorsa
+    if (initialTab != 0) {
+      // Bir sonraki frame'de sekme değişikliğini yap
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (context.mounted) {
+          TaskManagementNavigator.of(context)?.changeTab(initialTab);
+        }
+      });
+    }
+  }
+
+  // Ekibim sayfasına git (Kaptan için)
+  void _navigateToMyTeam(BuildContext context) {
+    int myTeamIndex = 4; // Kaptan için MyTeamScreen index'i 4
+    HomeScreenNavigator.of(context)?.navigateToIndex(myTeamIndex);
+  }
+
+  // Kullanıcı listesi sayfasına git (Admin için)
+  void _navigateToUsersList(BuildContext context, {int initialTab = 0}) {
+    int usersListIndex = 4; // Admin için UsersListScreen index'i 4
+
+    // Önce sayfaya git
+    HomeScreenNavigator.of(context)?.navigateToIndex(usersListIndex);
+
+    // Eğer belirli bir sekmeye gitmek isteniyorsa
+    if (initialTab != 0) {
+      // Bir sonraki frame'de sekme değişikliğini yap
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (context.mounted) {
+          UsersListNavigator.of(context)?.changeTab(initialTab);
+        }
+      });
     }
   }
 
@@ -73,9 +135,9 @@ class HomeScreenContent extends StatelessWidget {
                       children: [
                         _buildWelcomeSection(userData),
                         const SizedBox(height: 32),
-                        if (userData.isAdmin) _buildAdminStatsSection(context, authService),
-                        if (userData.isCaptain) _buildCaptainStatsSection(context, userData.uid, authService),
-                        if (userData.isUser) _buildUserStatsSection(context, userData.uid, authService),
+                        if (userData.isAdmin) _buildAdminStatsSection(context, authService, userData),
+                        if (userData.isCaptain) _buildCaptainStatsSection(context, userData.uid, authService, userData),
+                        if (userData.isUser) _buildUserStatsSection(context, userData.uid, authService, userData),
                         const SizedBox(height: 32),
                         _buildRecentActivitiesSection(context, userData.uid),
                       ],
@@ -206,21 +268,21 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildAdminStatsSection(BuildContext context, AuthService authService) {
+  Widget _buildAdminStatsSection(BuildContext context, AuthService authService, UserModel userData) {
     final userService = UserService();
 
     return FutureBuilder<Map<String, dynamic>>(
       future: Future.wait([
-        userService.getUserCount(), // Toplam kullanıcı sayısını direkt al
+        userService.getUserCount(),
         userService.getActiveTaskCount(authService.currentUser!.uid),
         userService.getSystemScore(),
-        userService.getUserCountByRole(), // Rol bazlı sayıları da al
+        userService.getUserCountByRole(),
       ]).then((responses) {
         return {
-          'total_users': responses[0] as int, // Toplam kullanıcı
+          'total_users': responses[0] as int,
           'active_tasks': responses[1] as int,
           'system_score': responses[2] as int,
-          'captains': (responses[3] as Map<String, int>)['captain'] ?? 0, // Kaptan sayısı
+          'captains': (responses[3] as Map<String, int>)['captain'] ?? 0,
         };
       }),
       builder: (context, snapshot) {
@@ -250,6 +312,7 @@ class HomeScreenContent extends StatelessWidget {
                     (stats['total_users'] ?? 0).toString(),
                     Icons.people,
                     AppColors.primary,
+                    onTap: () => _navigateToUsersList(context),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -259,6 +322,7 @@ class HomeScreenContent extends StatelessWidget {
                     (stats['active_tasks'] ?? 0).toString(),
                     Icons.task,
                     AppColors.error,
+                    onTap: () => _navigateToTaskManagement(context, userData),
                   ),
                 ),
               ],
@@ -272,6 +336,7 @@ class HomeScreenContent extends StatelessWidget {
                     (stats['captains'] ?? 0).toString(),
                     Icons.star,
                     AppColors.warning,
+                    onTap: () => _navigateToUsersList(context, initialTab: 2),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -281,6 +346,7 @@ class HomeScreenContent extends StatelessWidget {
                     (stats['system_score'] ?? 0).toString(),
                     Icons.score,
                     AppColors.success,
+                    onTap: () => _navigateToScoreTable(context, userData),
                   ),
                 ),
               ],
@@ -291,7 +357,7 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildCaptainStatsSection(BuildContext context, String captainUid, AuthService authService) {
+  Widget _buildCaptainStatsSection(BuildContext context, String captainUid, AuthService authService, UserModel userData) {
     final userService = UserService();
     return FutureBuilder<Map<String, int>>(
       future: Future.wait([
@@ -330,6 +396,7 @@ class HomeScreenContent extends StatelessWidget {
                     (teamStats['team_members'] ?? 0).toString(),
                     Icons.people_alt,
                     AppColors.primary,
+                    onTap: () => _navigateToMyTeam(context),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -339,6 +406,7 @@ class HomeScreenContent extends StatelessWidget {
                     (teamStats['completed_tasks_this_month'] ?? 0).toString(),
                     Icons.check_circle,
                     AppColors.error,
+                    onTap: () => _navigateToTaskManagement(context, userData, initialTab: 1),
                   ),
                 ),
               ],
@@ -349,6 +417,7 @@ class HomeScreenContent extends StatelessWidget {
               (teamStats['total_score'] ?? 0).toString(),
               Icons.score,
               AppColors.warning,
+              onTap: () => _navigateToScoreTable(context, userData),
             ),
           ],
         );
@@ -356,7 +425,7 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildUserStatsSection(BuildContext context, String userUid, AuthService authService) {
+  Widget _buildUserStatsSection(BuildContext context, String userUid, AuthService authService, UserModel userData) {
     final userService = UserService();
     return FutureBuilder<Map<String, int>>(
       future: Future.wait([
@@ -395,6 +464,7 @@ class HomeScreenContent extends StatelessWidget {
                     (userStats['active_tasks'] ?? 0).toString(),
                     Icons.assignment,
                     AppColors.primary,
+                    onTap: () => _navigateToTaskManagement(context, userData),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -404,6 +474,7 @@ class HomeScreenContent extends StatelessWidget {
                     (userStats['completed_tasks'] ?? 0).toString(),
                     Icons.check_circle_outline,
                     AppColors.error,
+                    onTap: () => _navigateToTaskManagement(context, userData, initialTab: 1),
                   ),
                 ),
               ],
@@ -414,6 +485,7 @@ class HomeScreenContent extends StatelessWidget {
               (userStats['total_score'] ?? 0).toString(),
               Icons.score,
               AppColors.warning,
+              onTap: () => _navigateToScoreTable(context, userData),
             ),
           ],
         );
@@ -474,54 +546,58 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 20),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+  Widget _buildStatCard(String title, String value, IconData icon, Color color, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
-          ),
-        ],
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color, size: 20),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

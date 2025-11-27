@@ -145,15 +145,31 @@ class UserService {
 
   // Kullanıcı arama
   Future<int> getActiveTaskCount(String uid) async {
-    // Görev koleksiyonunuzun yapısına göre bu metodu uygulayın.
-    // Şimdilik varsayılan bir değer döndürüyorum.
-    return 5;
+    try {
+      final snapshot = await _firestore
+          .collection('tasks')
+          .where('assignedToUid', isEqualTo: uid)
+          .where('status', isEqualTo: 'assigned') // Atanmış görevler
+          .get();
+      return snapshot.docs.length;
+    } catch (e) {
+      print('Aktif görev sayısı alınamadı: $e');
+      return 0;
+    }
   }
 
   Future<int> getCompletedTaskCount(String uid) async {
-    // Görev koleksiyonunuzun yapısına göre bu metodu uygulayın.
-    // Şimdilik varsayılan bir değer döndürüyorum.
-    return 10;
+    try {
+      final snapshot = await _firestore
+          .collection('tasks')
+          .where('assignedToUid', isEqualTo: uid)
+          .where('status', isEqualTo: 'evaluatedByAdmin') // Yönetici tarafından puanlanmış görevler
+          .get();
+      return snapshot.docs.length;
+    } catch (e) {
+      print('Tamamlanmış görev sayısı alınamadı: $e');
+      return 0;
+    }
   }
 
   // Kullanıcının puanlarını güncelle
@@ -170,9 +186,17 @@ class UserService {
   }
 
   Future<int> getTotalScore(String uid) async {
-    // Kullanıcının puanını getiren metodu uygulayın.
-    // Şimdilik varsayılan bir değer döndürüyorum.
-    return 850;
+    try {
+      final doc = await _firestore.collection('users').doc(uid).get();
+      if (doc.exists) {
+        final user = UserModel.fromFirestore(doc);
+        return user.totalScore;
+      }
+      return 0;
+    } catch (e) {
+      print('Toplam puan alınamadı: $e');
+      return 0;
+    }
   }
 
   Future<int> getTeamMemberCount(String captainUid) async {
@@ -189,15 +213,61 @@ class UserService {
   }
 
   Future<int> getCompletedTasksThisMonth(String captainUid) async {
-    // Kaptanın takımının bu ay tamamladığı görev sayısını getiren metodu uygulayın.
-    // Şimdilik varsayılan bir değer döndürüyorum.
-    return 15;
+    try {
+      // 1. Kaptanın takım üyelerini bul
+      final teamMembersSnapshot = await _firestore
+          .collection('users')
+          .where('captainId', isEqualTo: captainUid)
+          .get();
+
+      final teamMemberUids = teamMembersSnapshot.docs.map((e) => e.id).toList();
+
+      if (teamMemberUids.isEmpty) {
+        return 0;
+      }
+
+      // 2. Bu ayın başlangıç ve bitiş tarihlerini bul
+      final now = DateTime.now();
+      final startOfMonth = DateTime(now.year, now.month, 1);
+      final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+      int completedCount = 0;
+
+      // Firestore whereIn limiti 10 olduğu için parçalara ayır
+      for (int i = 0; i < teamMemberUids.length; i += 10) {
+        final batch = teamMemberUids.skip(i).take(10).toList();
+
+        final snapshot = await _firestore
+            .collection('tasks')
+            .where('assignedToUid', whereIn: batch)
+            .where('status', isEqualTo: 'evaluatedByAdmin')
+            .where('adminEvaluatedAt', isGreaterThanOrEqualTo: startOfMonth)
+            .where('adminEvaluatedAt', isLessThanOrEqualTo: endOfMonth)
+            .get();
+
+        completedCount += snapshot.docs.length;
+      }
+
+      return completedCount;
+    } catch (e) {
+      print('Bu ay tamamlanan görev sayısı alınamadı: $e');
+      return 0;
+    }
   }
 
   Future<int> getSystemScore() async {
-    // Sistem genelindeki puanı getiren metodu uygulayın.
-    // Şimdilik varsayılan bir değer döndürüyorum.
-    return 1200;
+    try {
+      final snapshot = await _firestore.collection('users').get();
+      int totalScore = 0;
+      for (var doc in snapshot.docs) {
+        final user = UserModel.fromFirestore(doc);
+        totalScore += user.totalScore;
+      }
+      return totalScore;
+    } catch (e) {
+      print('Sistem puanı alınamadı: $e');
+      return 0;
+    }
   }
 
   // Kullanıcı arama

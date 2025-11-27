@@ -7,6 +7,13 @@ import 'services/auth_service_fixed.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/setup_screen.dart';
+import 'screens/score_table_screen.dart';
+import 'screens/user_task_management_screen.dart';
+import 'screens/captain_task_management_screen.dart';
+import 'screens/admin_task_management_screen.dart';
+import 'screens/admin_manage_users_screen.dart';
+import 'screens/role_management_screen.dart';
+import 'screens/my_team_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -87,6 +94,13 @@ class MyApp extends StatelessWidget {
           '/login': (context) => const LoginScreen(),
           '/home': (context) => const HomeScreen(),
           '/setup': (context) => const SetupScreen(),
+          '/score_table': (context) => const ScoreTableScreen(),
+          '/user_task_management': (context) => const UserTaskManagementScreen(),
+          '/captain_task_management': (context) => const CaptainTaskManagementScreen(),
+          '/admin_task_management': (context) => const AdminTaskManagementScreen(),
+          '/admin_manage_users': (context) => const AdminManageUsersScreen(),
+          '/role_management': (context) => const RoleManagementScreen(),
+          '/my_team': (context) => const MyTeamScreen(),
         },
       ),
     );

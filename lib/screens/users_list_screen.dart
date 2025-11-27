@@ -7,6 +7,26 @@ import '../services/team_service.dart';
 import 'admin_add_user_screen_fixed.dart';
 import 'admin_create_team_screen.dart';
 
+// InheritedWidget ile tab değiştirme fonksiyonunu paylaş
+class UsersListNavigator extends InheritedWidget {
+  final Function(int) changeTab;
+
+  const UsersListNavigator({
+    super.key,
+    required this.changeTab,
+    required super.child,
+  });
+
+  static UsersListNavigator? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<UsersListNavigator>();
+  }
+
+  @override
+  bool updateShouldNotify(UsersListNavigator oldWidget) {
+    return false;
+  }
+}
+
 class UsersListScreen extends StatefulWidget {
   const UsersListScreen({super.key});
 
@@ -39,30 +59,37 @@ class _UsersListScreenState extends State<UsersListScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildAppBar(),
-              _buildTabBar(),
-              _buildSearchBar(),
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildAllUsersList(),
-                    _buildRoleBasedList('admin'),
-                    _buildRoleBasedList('captain'),
-                    _buildRoleBasedList('user'),
-                    _buildTeamsList(),
-                  ],
+    return UsersListNavigator(
+      changeTab: (int index) {
+        if (_tabController.index != index) {
+          _tabController.animateTo(index);
+        }
+      },
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.backgroundGradient,
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildAppBar(),
+                _buildTabBar(),
+                _buildSearchBar(),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildAllUsersList(),
+                      _buildRoleBasedList('admin'),
+                      _buildRoleBasedList('captain'),
+                      _buildRoleBasedList('user'),
+                      _buildTeamsList(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

@@ -14,6 +14,26 @@ import 'users_list_screen.dart';
 import 'my_team_screen.dart';
 import 'score_table_screen.dart';
 
+// InheritedWidget ile navigation state'i paylaşmak için
+class HomeScreenNavigator extends InheritedWidget {
+  final Function(int) navigateToIndex;
+
+  const HomeScreenNavigator({
+    super.key,
+    required this.navigateToIndex,
+    required super.child,
+  });
+
+  static HomeScreenNavigator? of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<HomeScreenNavigator>();
+  }
+
+  @override
+  bool updateShouldNotify(HomeScreenNavigator oldWidget) {
+    return false;
+  }
+}
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -92,6 +112,13 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Bu metod child widget'lardan çağrılabilir
+  void _navigateToIndex(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
@@ -126,17 +153,20 @@ class _HomeScreenState extends State<HomeScreen> {
           _selectedIndex = 0;
         }
 
-        return Scaffold(
-          bottomNavigationBar: CurvedNavigationBar(
-            backgroundColor: AppColors.background,
-            color: AppColors.primary,
-            buttonBackgroundColor: AppColors.primary,
-            height: 50,
-            index: _selectedIndex,
-            items: _getNavigationItems(userData),
-            onTap: _onItemTapped,
+        return HomeScreenNavigator(
+          navigateToIndex: _navigateToIndex,
+          child: Scaffold(
+            bottomNavigationBar: CurvedNavigationBar(
+              backgroundColor: AppColors.background,
+              color: AppColors.primary,
+              buttonBackgroundColor: AppColors.primary,
+              height: 50,
+              index: _selectedIndex,
+              items: _getNavigationItems(userData),
+              onTap: _onItemTapped,
+            ),
+            body: screens[_selectedIndex],
           ),
-          body: screens[_selectedIndex],
         );
       },
     );
