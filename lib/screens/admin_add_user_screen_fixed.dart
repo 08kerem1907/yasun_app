@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../constants/colors.dart';
 import '../services/auth_service_fixed.dart';
 import '../services/user_service.dart';
@@ -17,11 +18,13 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _displayNameController = TextEditingController();
+  final _adminPasswordController = TextEditingController();
 
   String _selectedRole = 'user';
   String? _selectedCaptainId;
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _obscureAdminPassword = true;
 
   final UserService _userService = UserService();
 
@@ -30,11 +33,23 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _displayNameController.dispose();
+    _adminPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _handleAddUser() async {
     if (!_formKey.currentState!.validate()) return;
+
+    // Admin şifresi zorunlu
+    if (_adminPasswordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Oturum açmanız için şifre gerekmektedir'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
 
     // Admin dışındaki roller için kaptan ataması kontrolü
     if (_selectedRole == 'user' && (_selectedCaptainId == null || _selectedCaptainId!.isEmpty)) {
@@ -50,6 +65,10 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Mevcut admin bilgileri
+      final currentAdmin = FirebaseAuth.instance.currentUser;
+      final adminEmail = currentAdmin?.email;
+
       final authService = Provider.of<AuthService>(context, listen: false);
 
       // Rol bazlı teamId ve captainId ayarı
@@ -57,19 +76,17 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
       String? finalCaptainId;
 
       if (_selectedRole == 'captain') {
-        // Kaptan için: teamId ve captainId null (daha sonra _ensureUserDocument tarafından ayarlanacak)
         finalTeamId = null;
         finalCaptainId = null;
       } else if (_selectedRole == 'user') {
-        // Kullanıcı için: captainId seçilen kaptan
         finalTeamId = null;
         finalCaptainId = _selectedCaptainId;
       } else {
-        // Admin için: her ikisi de null
         finalTeamId = null;
         finalCaptainId = null;
       }
 
+      // Yeni kullanıcıyı oluştur ve admin oturumunu koru
       await authService.signUpWithEmailPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
@@ -77,6 +94,9 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
         role: _selectedRole,
         teamId: finalTeamId,
         captainId: finalCaptainId,
+        keepAdminSession: true,
+        adminEmail: adminEmail,
+        adminPassword: _adminPasswordController.text,
       );
 
       if (mounted) {
@@ -91,9 +111,18 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
       }
     } catch (e) {
       if (mounted) {
+        String errorMessage = 'Hata: ${e.toString()}';
+
+        // Hata mesajını daha okunabilir yap
+        if (e.toString().contains('wrong-password')) {
+          errorMessage = 'Hata: Yönetici şifresi yanlış!';
+        } else if (e.toString().contains('user-not-found')) {
+          errorMessage = 'Hata: Yönetici hesabı bulunamadı!';
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata: ${e.toString()}'),
+            content: Text(errorMessage),
             backgroundColor: AppColors.error,
             duration: const Duration(seconds: 3),
           ),
@@ -185,7 +214,6 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Başlık
             const Row(
               children: [
                 Icon(
@@ -214,7 +242,6 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
             ),
             const SizedBox(height: 32),
 
-            // Ad Soyad
             _buildTextField(
               controller: _displayNameController,
               label: 'Ad Soyad',
@@ -232,7 +259,6 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Email
             _buildTextField(
               controller: _emailController,
               label: 'Email Adresi',
@@ -251,7 +277,6 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Şifre
             _buildTextField(
               controller: _passwordController,
               label: 'Şifre',
@@ -279,48 +304,73 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Rol Seçimi
             _buildRoleSelector(),
             const SizedBox(height: 20),
 
-            // Kaptan Seçimi (sadece user rolü için)
             if (_selectedRole == 'user') ...[
               _buildCaptainSelector(),
               const SizedBox(height: 20),
             ],
 
-            // Bilgilendirme mesajı
+            // Yönetici Şifresi Bölümü (zorunlu)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.info.withOpacity(0.1),
+                color: AppColors.warning.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.info.withOpacity(0.3)),
+                border: Border.all(color: AppColors.warning.withOpacity(0.3)),
               ),
-              child: const Row(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: AppColors.info,
-                    size: 20,
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Kullanıcı oluşturulduktan sonra giriş yapabilecektir.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.info,
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.security,
+                        color: AppColors.warning,
+                        size: 20,
                       ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          'Kullanıcı eklemek için şifrenizi girin',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.warning,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _buildTextField(
+                    controller: _adminPasswordController,
+                    label: 'Yönetici Şifresi',
+                    hint: 'Şifrenizi girin',
+                    icon: Icons.vpn_key,
+                    obscureText: _obscureAdminPassword,
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureAdminPassword ? Icons.visibility_off : Icons.visibility,
+                        color: AppColors.textSecondary,
+                      ),
+                      onPressed: () {
+                        setState(() => _obscureAdminPassword = !_obscureAdminPassword);
+                      },
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Yönetici şifresi gerekli';
+                      }
+                      return null;
+                    },
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 32),
 
-            // Kaydet butonu
             Container(
               height: 56,
               decoration: BoxDecoration(
@@ -476,7 +526,7 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
             onChanged: (value) {
               setState(() {
                 _selectedRole = value ?? 'user';
-                _selectedCaptainId = null; // Rol değişince kaptan seçimini sıfırla
+                _selectedCaptainId = null;
               });
             },
           ),
@@ -595,7 +645,6 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
                   });
                 },
                 validator: (value) {
-                  // Kaptansız üye de olabilir, bu yüzden zorunlu değil
                   return null;
                 },
               ),

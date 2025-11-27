@@ -80,7 +80,7 @@ class AuthService {
     }
   }
 
-  // Email/Şifre ile kayıt
+  // Email/Şifre ile kayıt (Admin tarafından)
   Future<UserCredential> signUpWithEmailPassword({
     required String email,
     required String password,
@@ -88,8 +88,19 @@ class AuthService {
     String role = 'user',
     String? teamId,
     String? captainId,
+    bool keepAdminSession = false,
+    String? adminEmail,
+    String? adminPassword,
   }) async {
     try {
+      // Mevcut admin'i sakla (şifre varsa)
+      User? currentAdmin = _auth.currentUser;
+      bool shouldRestoreAdmin = keepAdminSession &&
+          adminEmail != null &&
+          adminPassword != null &&
+          currentAdmin != null;
+
+      // Yeni kullanıcıyı oluştur
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -123,6 +134,29 @@ class AuthService {
       print('   Rol: $role');
       print('   TeamId: $finalTeamId');
       print('   CaptainId: $finalCaptainId');
+
+      // Admin oturumunu geri al (şifre verildiyse)
+      if (shouldRestoreAdmin) {
+        try {
+          // Yeni oluşturulan kullanıcıyı signOut et
+          await _auth.signOut();
+
+          // Admin'i geri oturum aç
+          UserCredential adminCredential = await _auth.signInWithEmailAndPassword(
+            email: adminEmail,
+            password: adminPassword,
+          );
+
+          print('✅ Admin oturumu geri alındı: $adminEmail');
+
+          // Admin'in son giriş zamanını güncelle
+          await _updateLastLogin(adminCredential.user!.uid);
+        } catch (e) {
+          print('⚠️ Admin oturumuna dönüşte hata: $e');
+          // Hata olsa bile devam et
+          rethrow;
+        }
+      }
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
