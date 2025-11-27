@@ -939,11 +939,25 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
             TextField(
               controller: scoreController,
               keyboardType: TextInputType.number,
+              maxLength: 3, // ✅ Maksimum 3 karakter (0-100)
+              onChanged: (value) {
+                // ✅ Anlık kontrol - 100'den büyük değerleri engelle
+                if (value.isNotEmpty) {
+                  final intValue = int.tryParse(value);
+                  if (intValue != null && intValue > 100) {
+                    scoreController.text = '100';
+                    scoreController.selection = TextSelection.fromPosition(
+                      TextPosition(offset: scoreController.text.length),
+                    );
+                  }
+                }
+              },
               decoration: const InputDecoration(
                 labelText: 'Puan (0-100)',
                 hintText: '85',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.stars),
+                helperText: 'Lütfen 0 ile 100 arasında bir değer girin',
               ),
             ),
           ],
@@ -955,27 +969,57 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              final score = int.tryParse(scoreController.text);
-              if (score != null && score >= 0 && score <= 100) {
-                await _taskService.evaluateTaskByAdmin(task.id, score);
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Görev başarıyla puanlandı!'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                }
-              } else {
+              final scoreText = scoreController.text.trim();
+
+              // ✅ Boş kontrol
+              if (scoreText.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Lütfen 0-100 arası geçerli bir puan girin'),
+                    content: Text('Lütfen bir puan girin'),
                     backgroundColor: AppColors.error,
+                  ),
+                );
+                return;
+              }
+
+              final score = int.tryParse(scoreText);
+
+              // ✅ Geçerli sayı ve aralık kontrolü
+              if (score == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Lütfen geçerli bir sayı girin'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+                return;
+              }
+
+              if (score < 0 || score > 100) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Puan 0 ile 100 arasında olmalıdır'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+                return;
+              }
+
+              // ✅ Geçerli puan - işleme devam et
+              await _taskService.evaluateTaskByAdmin(task.id, score);
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Görev başarıyla puanlandı! Verilen puan: $score'),
+                    backgroundColor: AppColors.success,
                   ),
                 );
               }
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+            ),
             child: const Text('Puanla'),
           ),
         ],
