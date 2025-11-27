@@ -448,6 +448,33 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                     ),
                   ),
                 ],
+                // ✅ YENİ: Düzenlenme bilgisi
+                if (task.updatedAt != null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.edit, size: 14, color: AppColors.primary),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Düzenlendi: ${_formatDateTime(task.updatedAt!)}${task.updatedBy != null ? ' - ${task.updatedBy}' : ''}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 if (showActions) ...[
                   const Divider(height: 24),
                   Row(
@@ -473,7 +500,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                         ),
                       const SizedBox(width: 8),
                       TextButton.icon(
-                        onPressed: () => _deleteTask(task.id),
+                        onPressed: () => _deleteTask(task.id, task.title),
                         icon: const Icon(Icons.delete, size: 16),
                         label: const Text('Sil'),
                         style: TextButton.styleFrom(
@@ -835,26 +862,157 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
-  void _showEditTaskDialog(TaskModel task) {
-    showDialog(
+  // admin_task_management_screen.dart içindeki _showEditTaskDialog metodunu değiştirin:
+
+  Future<void> _showEditTaskDialog(TaskModel task) async {
+    final TextEditingController titleController = TextEditingController(text: task.title);
+    final TextEditingController descriptionController = TextEditingController(text: task.description);
+    DateTime selectedDueDate = task.dueDate;
+
+    await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Görevi Düzenle'),
-        content: Text('${task.title} düzenleniyor'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text('Kaydet'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Görevi Düzenle'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Görev Başlığı',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descriptionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Görev Açıklaması',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 12),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        'Son Teslim: ${selectedDueDate.day}.${selectedDueDate.month}.${selectedDueDate.year}',
+                      ),
+                      trailing: const Icon(Icons.calendar_today),
+                      onTap: () async {
+                        final DateTime? picked = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDueDate,
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                        );
+                        if (picked != null && picked != selectedDueDate) {
+                          setState(() {
+                            selectedDueDate = picked;
+                          });
+                        }
+                      },
+                    ),
+                    if (task.updatedAt != null) ...[
+                      const Divider(height: 24),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.info.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.edit, size: 16, color: AppColors.info),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Son Düzenleme:',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.info,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${_formatDateTime(task.updatedAt!)}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            if (task.updatedBy != null)
+                              Text(
+                                'Düzenleyen: ${task.updatedBy}',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('İptal'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (titleController.text.isEmpty || descriptionController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Lütfen tüm alanları doldurun.')),
+                      );
+                      return;
+                    }
+
+                    await _taskService.updateTaskWithInfo(
+                      task.id,
+                      titleController.text,
+                      descriptionController.text,
+                      selectedDueDate,
+                      _currentUser!.displayName,
+                    );
+
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Görev başarıyla güncellendi!'),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                  ),
+                  child: const Text('Güncelle'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
+  }
+
+// Tarih ve saat formatlama helper metodu ekleyin:
+  String _formatDateTime(DateTime dateTime) {
+    return '${dateTime.day}.${dateTime.month}.${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
   void _showCompleteTaskDialog(TaskModel task) {
@@ -1027,12 +1185,21 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
-  Future<void> _deleteTask(String taskId) async {
+  Future<void> _deleteTask(String taskId, String taskTitle) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Görevi Sil'),
-        content: const Text('Bu görevi silmek istediğinizden emin misiniz?'),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 28),
+            SizedBox(width: 12),
+            Text('Görevi Sil'),
+          ],
+        ),
+        content: const Text(
+          'Bu görevi silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz ve görevle ilgili tüm veriler silinecektir.',
+          style: TextStyle(fontSize: 14),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -1042,22 +1209,53 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
             ),
-            child: const Text('Sil'),
+            child: const Text('Evet, Sil'),
           ),
         ],
       ),
     );
 
     if (confirmed == true) {
-      await _taskService.deleteTask(taskId);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Görev başarıyla silindi'),
-            backgroundColor: AppColors.success,
-          ),
+      try {
+        await _taskService.deleteTask(
+          taskId,
+          _currentUser!.displayName,
+          taskTitle,
         );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text('Görev başarıyla silindi'),
+                ],
+              ),
+              backgroundColor: AppColors.success,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text('Hata: $e')),
+                ],
+              ),
+              backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       }
     }
   }

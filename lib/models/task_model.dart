@@ -24,6 +24,8 @@ class TaskModel {
   final DateTime? captainEvaluatedAt;
   final int? adminScore;
   final DateTime? adminEvaluatedAt;
+  final DateTime? updatedAt; // ✅ YENİ: Düzenlenme zamanı
+  final String? updatedBy; // ✅ YENİ: Düzenleyen kişi
 
   TaskModel({
     required this.id,
@@ -42,6 +44,8 @@ class TaskModel {
     this.captainEvaluatedAt,
     this.adminScore,
     this.adminEvaluatedAt,
+    this.updatedAt,
+    this.updatedBy,
   });
 
   factory TaskModel.fromFirestore(DocumentSnapshot doc) {
@@ -63,6 +67,8 @@ class TaskModel {
       captainEvaluatedAt: (data['captainEvaluatedAt'] as Timestamp?)?.toDate(),
       adminScore: data['adminScore'] is int ? data['adminScore'] : (data['adminScore'] is String ? int.tryParse(data['adminScore']) : null),
       adminEvaluatedAt: (data['adminEvaluatedAt'] as Timestamp?)?.toDate(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(), // ✅ YENİ
+      updatedBy: data['updatedBy'], // ✅ YENİ
     );
   }
 
@@ -83,6 +89,8 @@ class TaskModel {
       'captainEvaluatedAt': captainEvaluatedAt != null ? Timestamp.fromDate(captainEvaluatedAt!) : null,
       'adminScore': adminScore,
       'adminEvaluatedAt': adminEvaluatedAt != null ? Timestamp.fromDate(adminEvaluatedAt!) : null,
+      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null, // ✅ YENİ
+      'updatedBy': updatedBy, // ✅ YENİ
     };
   }
 
@@ -103,6 +111,8 @@ class TaskModel {
     DateTime? captainEvaluatedAt,
     int? adminScore,
     DateTime? adminEvaluatedAt,
+    DateTime? updatedAt, // ✅ YENİ
+    String? updatedBy, // ✅ YENİ
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -121,6 +131,8 @@ class TaskModel {
       captainEvaluatedAt: captainEvaluatedAt ?? this.captainEvaluatedAt,
       adminScore: adminScore ?? this.adminScore,
       adminEvaluatedAt: adminEvaluatedAt ?? this.adminEvaluatedAt,
+      updatedAt: updatedAt ?? this.updatedAt, // ✅ YENİ
+      updatedBy: updatedBy ?? this.updatedBy, // ✅ YENİ
     );
   }
 
@@ -139,4 +151,3 @@ class TaskModel {
     return TaskStatus.assigned;
   }
 }
-

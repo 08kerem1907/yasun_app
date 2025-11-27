@@ -314,7 +314,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
-  Widget _buildTaskCard(TaskModel task) {
+  Widget _buildTaskCard(TaskModel task, {bool showEditButton = true}) {
     Color statusColor = _getStatusColor(task.status);
     String statusText = _getStatusText(task.status);
     bool canComplete = task.status == TaskStatus.assigned;
@@ -405,6 +405,63 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                     ),
                   ],
                 ),
+                // ✅ Düzenlenme bilgisi
+                if (task.updatedAt != null) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.edit, size: 14, color: Colors.blue),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'Düzenlendi: ${_formatDateTime(task.updatedAt!)}${task.updatedBy != null ? ' - ${task.updatedBy}' : ''}',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.blue,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                // ✅ Düzenleme ve Tamamlama butonları
+                if (showEditButton && task.assignedByUid == _currentUser?.uid && task.status == TaskStatus.assigned) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _showEditTaskDialog(task),
+                          icon: const Icon(Icons.edit, size: 18),
+                          label: const Text('Düzenle'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.blue,
+                            side: const BorderSide(color: Colors.blue),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton(
+                        onPressed: () => _deleteTask(task.id, task.title),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.error,
+                          side: const BorderSide(color: AppColors.error),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                        child: const Icon(Icons.delete_outline, size: 20),
+                      ),
+                    ],
+                  ),
+                ],
                 if (canComplete) ...[
                   const SizedBox(height: 12),
                   SizedBox(
@@ -425,6 +482,76 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
             ),
           ),
         ),
+      ),
+    );
+  }
+  void _showEvaluationDialog(TaskModel task) {
+    final evaluationController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Görevi Değerlendir'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              task.title,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: evaluationController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Değerlendirme',
+                hintText: 'Görev hakkındaki değerlendirmenizi yazın...',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (evaluationController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Lütfen bir değerlendirme yazın'),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+                return;
+              }
+
+              await _taskService.evaluateTaskByCaptain(
+                task.id,
+                evaluationController.text,
+              );
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Görev yönetime iletildi!'),
+                    backgroundColor: AppColors.success,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+            ),
+            child: const Text('Onayla'),
+          ),
+        ],
       ),
     );
   }
@@ -664,6 +791,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
+  // captain_task_management_screen.dart dosyasındaki _buildMemberTasks metodunu güncelleyin:
+
   Widget _buildMemberTasks(UserModel member) {
     return StreamBuilder<List<TaskModel>>(
       stream: _taskService.getTasksAssignedToUser(member.uid),
@@ -703,6 +832,10 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
 
         return Column(
           children: tasks.map((task) {
+            // ✅ Kaptanın oluşturduğu görevleri kontrol et
+            bool isCreatedByCaptain = task.assignedByUid == _currentUser?.uid;
+            bool canEdit = isCreatedByCaptain && task.status == TaskStatus.assigned;
+
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.all(12),
@@ -752,6 +885,47 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.calendar_today, size: 12, color: AppColors.textSecondary),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Bitiş: ${_formatDate(task.dueDate)}',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  // ✅ Düzenlenme bilgisi
+                  if (task.updatedAt != null) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.edit, size: 12, color: Colors.blue),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'Düzenlendi: ${_formatDateTime(task.updatedAt!)}${task.updatedBy != null ? ' - ${task.updatedBy}' : ''}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   if (task.adminScore != null) ...[
                     const SizedBox(height: 4),
                     Row(
@@ -764,6 +938,52 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: AppColors.success,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (canEdit || task.status != TaskStatus.assigned) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        if (canEdit) ...[
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => _showEditTaskDialog(task),
+                              icon: const Icon(Icons.edit, size: 14),
+                              label: const Text('Düzenle', style: TextStyle(fontSize: 11)),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.blue,
+                                side: const BorderSide(color: Colors.blue),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          // ✅ Sil butonu
+                          OutlinedButton(
+                            onPressed: () => _deleteTask(task.id, task.title),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.error,
+                              side: const BorderSide(color: AppColors.error),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              minimumSize: const Size(0, 0),
+                            ),
+                            child: const Icon(Icons.delete_outline, size: 16),
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _showTaskDetails(task),
+                            icon: const Icon(Icons.info_outline, size: 14),
+                            label: const Text('Detay', style: TextStyle(fontSize: 11)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.textPrimary,
+                              side: const BorderSide(color: AppColors.border),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                            ),
                           ),
                         ),
                       ],
@@ -1049,72 +1269,155 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
-  void _showEvaluationDialog(TaskModel task) {
-    final evaluationController = TextEditingController();
+  Future<void> _showEditTaskDialog(TaskModel task) async {
+    final TextEditingController titleController = TextEditingController(text: task.title);
+    final TextEditingController descriptionController = TextEditingController(text: task.description);
+    DateTime selectedDueDate = task.dueDate;
 
-    showDialog(
+    await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Görevi Değerlendir'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              task.title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Görevi Düzenle'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: titleController,
+                      decoration: const InputDecoration(
+                        labelText: 'Görev Başlığı',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: descriptionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Görev Açıklaması',
+                        border: OutlineInputBorder(),
+                      ),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 12),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        'Son Teslim: ${selectedDueDate.day}.${selectedDueDate.month}.${selectedDueDate.year}',
+                      ),
+                      trailing: const Icon(Icons.calendar_today),
+                      onTap: () async {
+                        final DateTime? picked = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDueDate,
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                        );
+                        if (picked != null && picked != selectedDueDate) {
+                          setState(() {
+                            selectedDueDate = picked;
+                          });
+                        }
+                      },
+                    ),
+                    if (task.updatedAt != null) ...[
+                      const Divider(height: 24),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.edit, size: 16, color: Colors.blue),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Son Düzenleme:',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${_formatDateTime(task.updatedAt!)}',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                            if (task.updatedBy != null)
+                              Text(
+                                'Düzenleyen: ${task.updatedBy}',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: evaluationController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Değerlendirme',
-                hintText: 'Görev hakkındaki değerlendirmenizi yazın...',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (evaluationController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Lütfen bir değerlendirme yazın'),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-                return;
-              }
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('İptal'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (titleController.text.isEmpty || descriptionController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Lütfen tüm alanları doldurun.')),
+                      );
+                      return;
+                    }
 
-              await _taskService.evaluateTaskByCaptain(
-                task.id,
-                evaluationController.text,
-              );
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Görev yönetime iletildi!'),
-                    backgroundColor: AppColors.success,
+                    await _taskService.updateTaskWithInfo(
+                      task.id,
+                      titleController.text,
+                      descriptionController.text,
+                      selectedDueDate,
+                      _currentUser!.displayName,
+                    );
+
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Görev başarıyla güncellendi!'),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
                   ),
-                );
-              }
-            },
-            child: const Text('Onayla'),
-          ),
-        ],
-      ),
+                  child: const Text('Güncelle'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
+  }
+
+// 2. Tarih ve saat formatlama
+  String _formatDateTime(DateTime dateTime) {
+    return '${dateTime.day}.${dateTime.month}.${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
   void _rejectTask(TaskModel task) {
@@ -1153,6 +1456,80 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
         ],
       ),
     );
+  }
+  Future<void> _deleteTask(String taskId, String taskTitle) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 28),
+            SizedBox(width: 12),
+            Text('Görevi Sil'),
+          ],
+        ),
+        content: const Text(
+          'Bu görevi silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz ve görevle ilgili tüm veriler silinecektir.',
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('İptal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Evet, Sil'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await _taskService.deleteTask(
+          taskId,
+          _currentUser!.displayName,
+          taskTitle,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 12),
+                  Text('Görev başarıyla silindi'),
+                ],
+              ),
+              backgroundColor: AppColors.success,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text('Hata: $e')),
+                ],
+              ),
+              backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    }
   }
 
   void _showTaskDetails(TaskModel task) {

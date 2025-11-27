@@ -4,15 +4,11 @@ enum ActivityType {
   taskAssigned,
   taskCompleted,
   taskEvaluated,
-  scoreUpdated, // Görev puanlaması veya manuel puan güncellemesi
-  // Puan yükselmesi için ayrı bir tip eklemeye gerek yok, scoreUpdated yeterli.
-  // Ancak, puanın yükseldiğini daha spesifik belirtmek için gerekirse eklenebilir.
-  // Mevcut yapıda scoreUpdated'ı kullanmak daha mantıklı.
-  // Eğer scoreUpdated sadece görev puanlaması için kullanılıyorsa, yeni bir tip ekleyelim.
-  // Mevcut kodda scoreUpdated hem görev puanlaması hem de manuel puan güncellemesi için kullanılıyor.
-  // Bu nedenle, yeni bir tip eklemeye gerek yok, sadece ActivityService'i güncelleyeceğiz.
+  scoreUpdated,
   userJoined,
   announcementPublished,
+  taskDeleted,      // ✅ YENİ: Görev silme
+  taskEdited,       // ✅ YENİ: Görev düzenleme
 }
 
 class ActivityModel {

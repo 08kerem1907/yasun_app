@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/activity_model.dart';
 import '../models/task_model.dart';
@@ -12,8 +13,8 @@ class ActivityService {
   final TaskService _taskService = TaskService();
   final UserService _userService = UserService();
   final AnnouncementService _announcementService = AnnouncementService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Tüm aktivite akışlarını birleştirip sıralayan ana Stream
   Stream<List<ActivityModel>> getRecentActivities(String currentUserId) {
     // 1. Kullanıcıya atanan görevler
     final assignedTasksStream = _taskService.getTasksAssignedToUser(currentUserId).map((tasks) {
@@ -29,9 +30,7 @@ class ActivityService {
       }).toList();
     });
 
-    // 2. Kullanıcının tamamladığı ve puanlanan görevler (Puan Güncellemesi olarak ele alalım)
-    // Bu, daha karmaşık bir mantık gerektirir. Şimdilik sadece admin tarafından puanlanan görevleri alalım.
-    // Ancak TaskService'de tüm görevleri çeken bir metod yok. Bu yüzden, kullanıcının atandığı görevler üzerinden filtreleme yapalım.
+    // 2. Kullanıcının tamamladığı ve puanlanan görevler
     final evaluatedTasksStream = _taskService.getTasksAssignedToUser(currentUserId).map((tasks) {
       return tasks
           .where((task) => task.status == TaskStatus.evaluatedByAdmin && task.adminScore != null)
@@ -61,11 +60,9 @@ class ActivityService {
       }).toList();
     });
 
-    // 4. Yeni Kullanıcılar (Sadece son 10 kullanıcıyı çekiyoruz, gerçek zamanlı akış zor)
-    // UserService'de getAllUsers Stream'i var, onu kullanabiliriz.
+    // 4. Yeni Kullanıcılar
     final newUsersStream = _userService.getAllUsers().map((users) {
-      // Kullanıcıları createdAt'e göre sırala (getAllUsers zaten sıralıyor)
-      return users.take(5).map((user) { // Son 5 kullanıcıyı al
+      return users.take(5).map((user) {
         return ActivityModel(
           type: ActivityType.userJoined,
           title: 'Yeni Üye Katıldı',
@@ -77,30 +74,74 @@ class ActivityService {
       }).toList();
     });
 
-    // 5. Puan Yükselişleri (Tüm kullanıcıların puanlarını izle)
-    // Bu, tüm kullanıcıların verilerini sürekli dinleyecektir.
-    // Gerçek bir puan yükselişi aktivitesi için, puanın ne zaman yükseldiğini bilmemiz gerekir.
-    // UserModel'de puanın en son ne zaman güncellendiğini gösteren bir alan yok.
-    // Bu nedenle, sadece görev puanlamalarını (evaluatedTasksStream) ve yeni kullanıcıları (userJoined)
-    // puan yükselişi olarak kabul edeceğiz.
-    // Ancak, kullanıcı isteği üzerine, tüm kullanıcıların toplam puanlarını çekip,
-    // puanı en son güncellenen (createdAt'i en yakın olan) kullanıcıları aktivite olarak ekleyebiliriz.
-    // Bu, bir "puan güncellemesi" aktivitesi yaratmanın en iyi yolu değildir, ancak mevcut veri yapınızla mümkün olan en yakın çözümdür.
+    // ✅ 5. Görev Silme Aktiviteleri
+    final taskDeletionsStream = _firestore
+        .collection('task_activities')
+        .where('type', isEqualTo: 'taskDeleted')
+        .orderBy('timestamp', descending: true)
+        .limit(10)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return ActivityModel(
+          type: ActivityType.taskDeleted,
+          title: 'Görev Silindi',
+          subtitle: '${data['deletedBy']} tarafından "${data['taskTitle']}" görevi silindi.',
+          timestamp: (data['timestamp'] as Timestamp).toDate(),
+          icon: Icons.delete_forever,
+          color: Colors.red.shade700,
+        );
+      }).toList();
+    });
 
-    // Puan yükselişi aktivitesi için, evaluatedTasksStream'i kullanmak en doğru yoldur.
-    // Kullanıcı isteği, "puanı yükselende gözüksün" olduğu için, evaluatedTasksStream'i kullanmaya devam edeceğiz.
-    // Eğer kullanıcı manuel puan eklemesi yapıyorsa, bu da evaluatedTasksStream'e düşecektir.
+    // ✅ 6. Görev Düzenleme Aktiviteleri
+    final taskEditsStream = _firestore
+        .collection('task_activities')
+        .where('type', isEqualTo: 'taskEdited')
+        .orderBy('timestamp', descending: true)
+        .limit(10)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        return ActivityModel(
+          type: ActivityType.taskEdited,
+          title: 'Görev Düzenlendi',
+          subtitle: '${data['editedBy']} tarafından "${data['taskTitle']}" görevi düzenlendi.',
+          timestamp: (data['timestamp'] as Timestamp).toDate(),
+          icon: Icons.edit_note,
+          color: Colors.indigo.shade700,
+        );
+      }).toList();
+    });
 
-    // Tüm akışları birleştir ve zaman damgasına göre sırala
-    return Rx.combineLatest4(
+    // Tüm akışları birleştir
+    return Rx.combineLatest6(
       assignedTasksStream,
       evaluatedTasksStream,
       announcementsStream,
       newUsersStream,
-          (List<ActivityModel> assigned, List<ActivityModel> evaluated, List<ActivityModel> announcements, List<ActivityModel> newUsers) {
-        final allActivities = [...assigned, ...evaluated, ...announcements, ...newUsers];
+      taskDeletionsStream,
+      taskEditsStream,
+          (
+          List<ActivityModel> assigned,
+          List<ActivityModel> evaluated,
+          List<ActivityModel> announcements,
+          List<ActivityModel> newUsers,
+          List<ActivityModel> deletions,
+          List<ActivityModel> edits,
+          ) {
+        final allActivities = [
+          ...assigned,
+          ...evaluated,
+          ...announcements,
+          ...newUsers,
+          ...deletions,
+          ...edits,
+        ];
         allActivities.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-        return allActivities.take(10).toList(); // Son 10 aktiviteyi al
+        return allActivities.take(10).toList();
       },
     );
   }

@@ -7,12 +7,6 @@ class TaskService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final UserService _userService = UserService();
 
-  // ... diğer metodlar aynı kalacak ...
-
-  // ✅ INDEX GEREKTİRMEYEN VERSİYON
-  // Admin için değerlendirme bekleyen görevler - İki farklı yaklaşım
-
-  // YAKLAŞIM 1: Sadece status'e göre filtrele, client-side sorting
   Stream<List<TaskModel>> getTasksForAdminEvaluation() {
     return _firestore
         .collection('tasks')
@@ -83,7 +77,24 @@ class TaskService {
     });
   }
 
-  // Yeni görev oluştur
+  Future<void> _logTaskDeletion(String taskId, String deletedByName, String taskTitle) async {
+    await _firestore.collection('task_activities').add({
+      'type': 'taskDeleted',
+      'taskId': taskId,
+      'taskTitle': taskTitle,
+      'deletedBy': deletedByName,
+      'timestamp': Timestamp.now(),
+    });
+  }
+  Future<void> _logTaskEdit(String taskId, String editedByName, String taskTitle) async {
+    await _firestore.collection('task_activities').add({
+      'type': 'taskEdited',
+      'taskId': taskId,
+      'taskTitle': taskTitle,
+      'editedBy': editedByName,
+      'timestamp': Timestamp.now(),
+    });
+  }
   Future<void> createTask(TaskModel task) async {
     await _firestore.collection('tasks').add(task.toMap());
   }
@@ -325,7 +336,11 @@ class TaskService {
   }
 
   // Görevi sil
-  Future<void> deleteTask(String taskId) async {
+  Future<void> deleteTask(String taskId, String deletedByName, String taskTitle) async {
+    // Önce aktiviteyi kaydet
+    await _logTaskDeletion(taskId, deletedByName, taskTitle);
+
+    // Sonra görevi sil
     await _firestore.collection('tasks').doc(taskId).delete();
   }
 
@@ -383,4 +398,27 @@ class TaskService {
     }
     return totalScores;
   }
+  // TaskService sınıfına eklenecek yeni metod:
+
+// ✅ Görevi güncelle (düzenleme bilgileriyle)
+  Future<void> updateTaskWithInfo(
+      String taskId,
+      String title,
+      String description,
+      DateTime dueDate,
+      String updatedByName,
+      ) async {
+    // Görevi güncelle
+    await _firestore.collection('tasks').doc(taskId).update({
+      'title': title,
+      'description': description,
+      'dueDate': Timestamp.fromDate(dueDate),
+      'updatedAt': Timestamp.now(),
+      'updatedBy': updatedByName,
+    });
+
+    // Aktiviteyi kaydet
+    await _logTaskEdit(taskId, updatedByName, title);
+  }
 }
+
