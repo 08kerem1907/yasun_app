@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../constants/colors.dart';
 import '../models/user_model.dart';
 import '../models/team_model.dart';
@@ -95,6 +96,8 @@ class _UsersListScreenState extends State<UsersListScreen>
       ),
     );
   }
+
+
 
   Widget _buildAppBar() {
     return Container(
@@ -787,23 +790,27 @@ class _UsersListScreenState extends State<UsersListScreen>
 
     switch (user.role) {
       case 'admin':
-        roleColor = AppColors.error;
-        roleIcon = Icons.admin_panel_settings;
-        roleText = 'YÖNETİCİ';
+        roleColor = AppColors.primary;
+        roleIcon = Icons.shield;
+        roleText = "Yönetici";
         break;
+
       case 'captain':
         roleColor = AppColors.warning;
         roleIcon = Icons.star;
-        roleText = 'KAPTAN';
+        roleText = "Kaptan";
         break;
+
       default:
         roleColor = AppColors.success;
         roleIcon = Icons.person;
-        roleText = 'KULLANICI';
+        roleText = "Kullanıcı";
+        break;
     }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -815,93 +822,186 @@ class _UsersListScreenState extends State<UsersListScreen>
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            // Avatar
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: roleColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                roleIcon,
-                color: roleColor,
-                size: 30,
-              ),
+      child: Row(
+        children: [
+          // Rol ikonu
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: roleColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(width: 16),
+            child: Icon(roleIcon, color: roleColor, size: 26),
+          ),
+          const SizedBox(width: 16),
 
-            // Kullanıcı bilgileri
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          // Kullanıcı bilgileri
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.displayName,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  user.email,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Rol etiketi
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: roleColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  roleText,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: roleColor,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Silme butonu
+              IconButton(
+                icon: const Icon(Icons.delete_forever, color: AppColors.error),
+                onPressed: () => _showDeleteConfirmation(user),
+                tooltip: 'Kullanıcıyı Sil',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
+
+
+  // Silme onay pop-up'ı
+  void _showDeleteConfirmation(UserModel user) async {
+    // Mevcut kullanıcıyı al (silme işlemini yapan yönetici)
+    final currentUser = await _userService.getCurrentUser();
+
+    if (currentUser == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Hata: Yönetici bilgisi alınamadı.'),
+            backgroundColor: AppColors.error,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Kullanıcıyı Sil'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${user.displayName} adlı kullanıcıyı silmek istediğinize emin misiniz?'),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.error.withOpacity(0.3)),
+              ),
+              child: const Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          user.displayName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: roleColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          roleText,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: roleColor,
-                          ),
-                        ),
-                      ),
-                    ],
+                  Icon(
+                    Icons.warning_amber,
+                    color: AppColors.error,
+                    size: 20,
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    user.email,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.textSecondary,
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Bu işlem geri alınamaz ve kullanıcının tüm verileri silinir!',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _buildUserInfoChip(
-                        Icons.emoji_events,
-                        '${user.totalScore} puan',
-                        AppColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      if (user.teamId != null)
-                        _buildUserInfoChip(
-                          Icons.group,
-                          'Takımda',
-                          AppColors.success,
-                        ),
-                    ],
                   ),
                 ],
               ),
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('İptal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                // Silme işlemini yönetici bilgisi ile yap
+                await _userService.deleteUser(
+                  user.uid,
+                  deletedByAdminUid: currentUser.uid,
+                  deletedByAdminName: currentUser.displayName,
+                );
+
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${user.displayName} başarıyla silindi'),
+                      backgroundColor: AppColors.success,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                  // Listeyi yenilemek için StreamBuilder zaten yenileyecektir.
+                }
+              } catch (e) {
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Hata: $e'),
+                      backgroundColor: AppColors.error,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+            ),
+            child: const Text('Sil', style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }

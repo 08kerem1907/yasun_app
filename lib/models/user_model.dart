@@ -25,40 +25,24 @@ class UserModel {
     this.monthlyScores = const {},
   });
 
+  // Override: UID bazlı eşleştirme
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is UserModel && runtimeType == other.runtimeType && uid == other.uid;
+          other is UserModel && other.uid == uid;
 
   @override
   int get hashCode => uid.hashCode;
 
-  // Firestore'dan veri çekme
+  // ------------------------------------------------------------
+  // Firestore → UserModel
+  // ------------------------------------------------------------
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
 
-    // createdAt için güvenli dönüşüm
-    DateTime createdAt;
-    try {
-      if (data['createdAt'] != null) {
-        createdAt = (data['createdAt'] as Timestamp).toDate();
-      } else {
-        createdAt = DateTime.now();
-      }
-    } catch (e) {
-      createdAt = DateTime.now();
-    }
-
-    // lastLogin için güvenli dönüşüm
-    DateTime? lastLogin;
-    try {
-      if (data['lastLogin'] != null) {
-        lastLogin = (data['lastLogin'] as Timestamp).toDate();
-      } else {
-        lastLogin = null;
-      }
-    } catch (e) {
-      lastLogin = null;
+    DateTime? _toDate(dynamic value) {
+      if (value is Timestamp) return value.toDate();
+      return null;
     }
 
     return UserModel(
@@ -68,14 +52,16 @@ class UserModel {
       role: data['role'] ?? 'user',
       teamId: data['teamId'],
       captainId: data['captainId'],
-      createdAt: createdAt,
-      lastLogin: lastLogin,
-      totalScore: data["totalScore"] ?? 0,
-      monthlyScores: Map<String, int>.from(data["monthlyScores"] ?? {}),
+      createdAt: _toDate(data['createdAt']) ?? DateTime.now(),
+      lastLogin: _toDate(data['lastLogin']),
+      totalScore: data['totalScore'] ?? 0,
+      monthlyScores: Map<String, int>.from(data['monthlyScores'] ?? {}),
     );
   }
 
-  // Firestore'a veri gönderme
+  // ------------------------------------------------------------
+  // UserModel → Firestore Map
+  // ------------------------------------------------------------
   Map<String, dynamic> toMap() {
     return {
       'email': email,
@@ -90,12 +76,13 @@ class UserModel {
     };
   }
 
-  // Rol kontrolü yardımcı metodları
+  // ------------------------------------------------------------
+  // ROLE HELPERS
+  // ------------------------------------------------------------
   bool get isAdmin => role == 'admin';
   bool get isCaptain => role == 'captain';
   bool get isUser => role == 'user';
 
-  // Rol görüntüleme adı
   String get roleDisplayName {
     switch (role) {
       case 'admin':
@@ -105,10 +92,13 @@ class UserModel {
       case 'user':
         return 'Kullanıcı';
       default:
-        return 'Bilinmeyen';
+        return 'Bilinmeyen Rol';
     }
   }
 
+  // ------------------------------------------------------------
+  // COPY WITH
+  // ------------------------------------------------------------
   UserModel copyWith({
     String? uid,
     String? email,
@@ -135,4 +125,3 @@ class UserModel {
     );
   }
 }
-

@@ -341,37 +341,25 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
             ),
           ],
         ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) {
-            if (value == 'edit') {
-              _showEditUserDialog(user);
-            } else if (value == 'delete') {
-              _showDeleteConfirmation(user);
-            }
-          },
-          itemBuilder: (BuildContext context) => [
-            const PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit, color: AppColors.primary),
-                  SizedBox(width: 8),
-                  Text('Düzenle'),
-                ],
-              ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit, color: AppColors.primary),
+              onPressed: () => _showEditUserDialog(user),
+              tooltip: 'Kullanıcıyı Düzenle',
             ),
-            const PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete_sweep_rounded, color: AppColors.error),
-                  SizedBox(width: 8),
-                  Text('Sil'),
-                ],
+
+            // 🔥 Sadece yöneticilere görünen silme butonu
+            if (_currentUser?.role == 'admin')
+              IconButton(
+                icon: const Icon(Icons.delete_forever, color: AppColors.error),
+                onPressed: () => _showDeleteConfirmation(user),
+                tooltip: 'Kullanıcıyı Sil',
               ),
-            ),
           ],
         ),
+
       ),
     );
   }
@@ -392,7 +380,42 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Kullanıcıyı Sil'),
-        content: Text('${user.displayName} adlı kullanıcıyı silmek istediğinize emin misiniz?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${user.displayName} adlı kullanıcıyı silmek istediğinize emin misiniz?'),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.error.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber,
+                    color: AppColors.error,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Bu işlem geri alınamaz!',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.error,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -401,23 +424,32 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
           ElevatedButton(
             onPressed: () async {
               try {
-                await _userService.deleteUser(user.uid);
+                // Silme işlemini yönetici bilgisi ile yap
+                await _userService.deleteUser(
+                  user.uid,
+                  deletedByAdminUid: _currentUser?.uid,
+                  deletedByAdminName: _currentUser?.displayName,
+                );
+
                 if (mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Kullanıcı başarıyla silindi'),
+                    SnackBar(
+                      content: Text('${user.displayName} başarıyla silindi'),
                       backgroundColor: AppColors.success,
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                   setState(() {});
                 }
               } catch (e) {
                 if (mounted) {
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Hata: $e'),
                       backgroundColor: AppColors.error,
+                      duration: const Duration(seconds: 3),
                     ),
                   );
                 }

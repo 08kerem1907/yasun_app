@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
 
 class UserService {
@@ -88,12 +89,54 @@ class UserService {
     }
   }
 
-  // Kullanıcıyı sil
-  Future<void> deleteUser(String uid) async {
+  // Mevcut kullanıcıyı getir
+  Future<UserModel?> getCurrentUser() async {
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    if (firebaseUser != null) {
+      return getUser(firebaseUser.uid);
+    }
+    return null;
+  }
+
+  // Kullanıcıyı sil (aktivite kaydı ile)
+  Future<void> deleteUser(String uid, {String? deletedByAdminUid, String? deletedByAdminName}) async {
     try {
+      // Silinecek kullanıcının verilerini al
+      final userDoc = await _firestore.collection('users').doc(uid).get();
+
+      // Belge yoksa hata fırlat
+      if (!userDoc.exists) {
+        throw 'Silinecek kullanıcı bulunamadı.';
+      }
+
+      final deletedUser = UserModel.fromFirestore(userDoc);
+
+      // Kullanıcıyı sil
       await _firestore.collection('users').doc(uid).delete();
+
+      // Aktivite kaydı oluştur
+      if (deletedByAdminUid != null && deletedByAdminName != null) {
+        await _firestore.collection('activities').add({
+          'type': 'userDeleted',
+          'title': 'Kullanıcı Silindi',
+          'subtitle': '${deletedUser.displayName} (${deletedUser.email}) kullanıcısı ${deletedByAdminName} tarafından silindi',
+          'timestamp': Timestamp.now(),
+          'performedByUid': deletedByAdminUid,
+          'performedByName': deletedByAdminName,
+          'deletedUserUid': uid,
+          'deletedUserName': deletedUser.displayName,
+          'deletedUserEmail': deletedUser.email,
+          'deletedUserRole': deletedUser.role,
+        });
+
+        print('✅ Aktivite kaydı oluşturuldu: ${deletedUser.displayName} silindi');
+      }
     } catch (e) {
-      throw 'Kullanıcı silinirken hata oluştu: $e';
+      // Hata mesajını daha anlaşılır hale getir
+      String errorMessage = e.toString().contains('PlatformException')
+          ? 'Firestore işlemi sırasında bir hata oluştu.'
+          : e.toString();
+      throw 'Kullanıcı silinirken hata oluştu: $errorMessage';
     }
   }
 
