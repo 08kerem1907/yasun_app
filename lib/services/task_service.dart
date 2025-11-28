@@ -31,6 +31,33 @@ class TaskService {
   }
 
   // YAKLAŞIM 2: Limit kullanarak
+
+  // ✅ YENİ: Tüm değerlendirilmiş görevleri çeken fonksiyon
+  Stream<List<TaskModel>> getAllEvaluatedTasks() {
+    // Firestore'da tek bir sorguda iki farklı 'where' koşulu (evaluatedByAdmin VEYA evaluatedByCaptain)
+    // kullanamayız. Bu nedenle, ya iki ayrı sorgu yapıp sonuçları birleştirmeliyiz ya da
+    // sadece 'evaluatedByAdmin' olanları çekip, arayüzde filtreleme yapmalıyız.
+    // Kullanıcının isteği "en baştan şimdiye kadar yapılan görevler ve değerlendirmeler" olduğu için,
+    // en nihai değerlendirme olan 'evaluatedByAdmin' durumundaki görevleri çekmek daha mantıklıdır.
+    // Kaptan değerlendirmesi tamamlanmış ancak Admin değerlendirmesi yapılmamış görevler,
+    // nihai sonuç olarak kabul edilmeyebilir.
+    // Ancak, gereksinime tam uymak için, her iki durumu da kapsayacak şekilde
+    // 'status' alanı için 'in' sorgusu kullanmak en iyisidir.
+
+    return _firestore
+        .collection('tasks')
+        .where('status', whereIn: [
+      TaskStatus.evaluatedByAdmin.name,
+      TaskStatus.evaluatedByCaptain.name,
+    ])
+        .orderBy('adminEvaluatedAt', descending: true) // En son değerlendirilenler üstte
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => TaskModel.fromFirestore(doc))
+          .toList();
+    });
+  }
   Stream<List<TaskModel>> getTasksForAdminEvaluationLimited({int limit = 50}) {
     return _firestore
         .collection('tasks')
@@ -149,6 +176,17 @@ class TaskService {
       tasks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
       return tasks;
+    });
+  }
+
+  // Kullanıcı görevi gördüğünü ve başladığını bildirir
+  Future<void> startTask(
+      String taskId,
+      ) async {
+    await _firestore.collection('tasks').doc(taskId).update({
+      'status': TaskStatus.inProgress.name,
+      'updatedAt': Timestamp.now(),
+      // İsteğe bağlı: 'startedAt' alanı eklenebilir
     });
   }
 

@@ -148,7 +148,6 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
               child: Row(
                 children: [
                   const Icon(Icons.stars, size: 16, color: AppColors.success),
-                  const SizedBox(width: 4),
                   Text(
                     '${_currentUser!.totalScore}',
                     style: const TextStyle(
@@ -264,6 +263,7 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
         final activeTasks = allTasks
             .where((task) =>
         task.status == TaskStatus.assigned ||
+            task.status == TaskStatus.inProgress || // Yeni eklenen durum
             task.status == TaskStatus.completedByUser ||
             task.status == TaskStatus.evaluatedByCaptain)
             .toList();
@@ -408,7 +408,7 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
   Widget _buildActiveTaskCard(TaskModel task) {
     Color statusColor = _getStatusColor(task.status);
     String statusText = _getStatusText(task.status);
-    bool canComplete = task.status == TaskStatus.assigned;
+    bool canStart = task.status == TaskStatus.assigned;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -505,7 +505,23 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
                     ),
                   ],
                 ),
-                if (canComplete) ...[
+                if (canStart) ...[
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _startTask(task),
+                      icon: const Icon(Icons.play_arrow, size: 18),
+                      label: const Text('Görevi Gördüm, Başlıyorum'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.info,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
+                if (task.status == TaskStatus.inProgress) ...[
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
@@ -668,54 +684,6 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  task.description,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (task.captainEvaluation != null) ...[
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.withOpacity(0.2)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
-                          children: [
-                            Icon(Icons.comment, size: 14, color: Colors.blue),
-                            SizedBox(width: 6),
-                            Text(
-                              'Kaptan Yorumu:',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.blue,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          task.captainEvaluation!,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -733,17 +701,13 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 80,
-            color: AppColors.textSecondary.withOpacity(0.3),
-          ),
+          Icon(icon, size: 64, color: AppColors.textSecondary.withOpacity(0.5)),
           const SizedBox(height: 16),
           Text(
             title,
             style: const TextStyle(
               fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
           ),
@@ -761,158 +725,105 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
     );
   }
 
+  void _showTaskDetails(TaskModel task) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(task.title, style: Theme.of(context).textTheme.headlineSmall),
+                    const SizedBox(height: 16),
+                    Text(task.description),
+                    const SizedBox(height: 16),
+                    if (task.userCompletionNote != null)
+                      Text('Tamamlama Notu: ${task.userCompletionNote}'),
+                    if (task.captainEvaluation != null)
+                      Text('Kaptan Değerlendirmesi: ${task.captainEvaluation}'),
+                    if (task.adminScore != null)
+                      Text('Puan: ${task.adminScore}'),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ✅ YENİ: Göreve başlama fonksiyonu
+  Future<void> _startTask(TaskModel task) async {
+    try {
+      await _taskService.startTask(task.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Görev durumu "Çalışılıyor" olarak güncellendi.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Görev başlatılırken hata oluştu: $e')),
+        );
+      }
+    }
+  }
+
   void _showCompleteTaskDialog(TaskModel task) {
     final noteController = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Görevi Tamamla'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              task.title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Görevi Tamamla'),
+          content: TextField(
+            controller: noteController,
+            decoration: const InputDecoration(labelText: 'Tamamlama Notu'),
+            maxLines: 3,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('İptal'),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Görevinizi tamamladınız mı? Lütfen tamamlama notunuzu ekleyin:',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: noteController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Tamamlanma Notu',
-                hintText: 'Görevi nasıl tamamladığınızı açıklayın...',
-                border: OutlineInputBorder(),
-                alignLabelWithHint: true,
-              ),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  await _taskService.completeTask(task.id, noteController.text);
+                  if (mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Görev tamamlandı olarak işaretlendi.')),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Hata: $e')),
+                    );
+                  }
+                }
+              },
+              child: const Text('Tamamla'),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (noteController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Lütfen bir not girin'),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-                return;
-              }
-
-              await _taskService.completeTask(task.id, noteController.text);
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Görev başarıyla tamamlandı!'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-            ),
-            child: const Text('Tamamla'),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  void _showTaskDetails(TaskModel task) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(task.title),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildDetailRow('Açıklama', task.description),
-              const Divider(height: 20),
-              _buildDetailRow('Atayan', task.assignedByDisplayName),
-              _buildDetailRow('Bitiş Tarihi', _formatDate(task.dueDate)),
-              _buildDetailRow('Durum', _getStatusText(task.status)),
-              if (task.userCompletionNote != null) ...[
-                const Divider(height: 20),
-                _buildDetailRow('Tamamlanma Notum', task.userCompletionNote!),
-              ],
-              if (task.captainEvaluation != null) ...[
-                const Divider(height: 20),
-                _buildDetailRow('Kaptan Değerlendirmesi', task.captainEvaluation!),
-              ],
-              if (task.adminScore != null) ...[
-                const Divider(height: 20),
-                Row(
-                  children: [
-                    const Icon(Icons.stars, color: AppColors.success),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Aldığınız Puan: ${task.adminScore}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.success,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Kapat'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ],
-      ),
-    );
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 
   bool _isOverdue(DateTime dueDate) {
@@ -922,30 +833,34 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
   Color _getStatusColor(TaskStatus status) {
     switch (status) {
       case TaskStatus.assigned:
-        return AppColors.info;
+        return AppColors.primary;
+      case TaskStatus.inProgress: // Yeni eklenen durum
+        return AppColors.textSecondary;
       case TaskStatus.completedByUser:
-        return AppColors.warning;
+        return AppColors.info;
       case TaskStatus.evaluatedByCaptain:
         return Colors.orange;
       case TaskStatus.evaluatedByAdmin:
         return AppColors.success;
+      default:
+        return AppColors.textSecondary;
     }
   }
 
   String _getStatusText(TaskStatus status) {
     switch (status) {
       case TaskStatus.assigned:
-        return 'Bekliyor';
+        return 'Atandı';
+      case TaskStatus.inProgress: // Yeni eklenen durum
+        return 'Çalışılıyor';
       case TaskStatus.completedByUser:
-        return 'Tamamlandı';
+        return 'Tamamlandı (Kaptan Bekliyor)';
       case TaskStatus.evaluatedByCaptain:
-        return 'Kaptan Onayladı';
+        return 'Kaptan Değerlendirdi (Admin Bekliyor)';
       case TaskStatus.evaluatedByAdmin:
         return 'Puanlandı';
+      default:
+        return 'Bilinmiyor';
     }
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}.${date.month}.${date.year}';
   }
 }

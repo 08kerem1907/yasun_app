@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum TaskStatus {
   assigned,
+  inProgress,
   completedByUser,
   evaluatedByCaptain,
   evaluatedByAdmin,

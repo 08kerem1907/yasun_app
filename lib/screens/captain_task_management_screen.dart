@@ -1573,6 +1573,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     switch (status) {
       case TaskStatus.assigned:
         return AppColors.info;
+      case TaskStatus.inProgress:
+        return AppColors.primary; // Veya uygun bir renk
       case TaskStatus.completedByUser:
         return AppColors.warning;
       case TaskStatus.evaluatedByCaptain:
@@ -1586,6 +1588,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     switch (status) {
       case TaskStatus.assigned:
         return 'Bekliyor';
+      case TaskStatus.inProgress:
+        return 'Devam Ediyor';
       case TaskStatus.completedByUser:
         return 'Tamamlandı';
       case TaskStatus.evaluatedByCaptain:

@@ -1264,6 +1264,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     switch (status) {
       case TaskStatus.assigned:
         return AppColors.info;
+      case TaskStatus.inProgress:
+        return AppColors.primary; // Veya uygun bir renk
       case TaskStatus.completedByUser:
         return AppColors.warning;
       case TaskStatus.evaluatedByCaptain:
@@ -1277,6 +1279,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     switch (status) {
       case TaskStatus.assigned:
         return 'Atandı';
+      case TaskStatus.inProgress:
+        return 'Devam Ediyor';
       case TaskStatus.completedByUser:
         return 'Tamamlandı';
       case TaskStatus.evaluatedByCaptain:
