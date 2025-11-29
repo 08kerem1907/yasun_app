@@ -599,25 +599,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const Divider(height: 1),
 
-          // Bildirimler Switch Butonu
-          _buildNotificationSwitch(
-            icon: Icons.notifications,
-            title: 'Bildirimleri Aç/Kapat',
-            subtitle: 'Tüm uygulama bildirimlerini yönetin',
-            value: _notificationsEnabled, // State değişkeni kullanılacak
-            onChanged: (value) {
-              setState(() {
-                _notificationsEnabled = value;
-                // TODO: Bildirim ayarlarını kaydetme fonksiyonu buraya gelecek
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Bildirimler ${value ? 'açıldı' : 'kapatıldı'}'),
-                    backgroundColor: value ? AppColors.success : AppColors.error,
-                  ),
-                );
-              });
-            },
-          ),
+          // // Bildirimler Switch Butonu
+          // _buildNotificationSwitch(
+          //   icon: Icons.notifications,
+          //   title: 'Bildirimleri Aç/Kapat',
+          //   subtitle: 'Tüm uygulama bildirimlerini yönetin',
+          //   value: _notificationsEnabled, // State değişkeni kullanılacak
+          //   onChanged: (value) {
+          //     setState(() {
+          //       _notificationsEnabled = value;
+          //       // TODO: Bildirim ayarlarını kaydetme fonksiyonu buraya gelecek
+          //       ScaffoldMessenger.of(context).showSnackBar(
+          //         SnackBar(
+          //           content: Text('Bildirimler ${value ? 'açıldı' : 'kapatıldı'}'),
+          //           backgroundColor: value ? AppColors.success : AppColors.error,
+          //         ),
+          //       );
+          //     });
+          //   },
+          // ),
           _buildSettingItem(
             icon: Icons.help,
             title: 'Yardım & Destek',
