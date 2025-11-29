@@ -225,10 +225,12 @@ class TaskService {
   Future<void> evaluateTaskByCaptain(
       String taskId,
       String captainEvaluation,
+      CaptainRating captainRating, // ✅ YENİ: Derece eklendi
       ) async {
     await _firestore.collection('tasks').doc(taskId).update({
       'status': TaskStatus.evaluatedByCaptain.name,
       'captainEvaluation': captainEvaluation,
+      'captainRating': captainRating.name, // ✅ YENİ: Derece kaydedildi
       'captainEvaluatedAt': Timestamp.now(),
     });
   }

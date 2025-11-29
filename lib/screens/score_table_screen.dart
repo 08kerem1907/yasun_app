@@ -370,6 +370,7 @@ class _TaskCard extends StatelessWidget {
                 title: 'Kaptan Değerlendirmesi',
                 content: task.captainEvaluation!,
                 color: Colors.purple,
+                rating: task.captainRating, // ✅ YENİ: Dereceyi gönder
               ),
             ],
           ],
@@ -464,12 +465,14 @@ class _NoteSection extends StatelessWidget {
   final String title;
   final String content;
   final Color color;
+  final CaptainRating? rating; // ✅ YENİ
 
   const _NoteSection({
     required this.icon,
     required this.title,
     required this.content,
     required this.color,
+    this.rating, // ✅ YENİ
   });
 
   @override
@@ -499,6 +502,24 @@ class _NoteSection extends StatelessWidget {
                   color: color,
                 ),
               ),
+              if (rating != null) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _getRatingColor(rating!).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    _getRatingText(rating!),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: _getRatingColor(rating!),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 8),
@@ -513,6 +534,28 @@ class _NoteSection extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+Color _getRatingColor(CaptainRating rating) {
+  switch (rating) {
+    case CaptainRating.good:
+      return Colors.green;
+    case CaptainRating.medium:
+      return Colors.orange;
+    case CaptainRating.bad:
+      return Colors.red;
+  }
+}
+
+String _getRatingText(CaptainRating rating) {
+  switch (rating) {
+    case CaptainRating.good:
+      return 'İyi';
+    case CaptainRating.medium:
+      return 'Orta';
+    case CaptainRating.bad:
+      return 'Kötü';
   }
 }
 

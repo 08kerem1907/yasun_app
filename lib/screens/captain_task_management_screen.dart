@@ -5,6 +5,7 @@ import '../models/task_model.dart';
 import '../models/user_model.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';
+import 'package:intl/intl.dart';
 
 class CaptainTaskManagementScreen extends StatefulWidget {
   const CaptainTaskManagementScreen({super.key});
@@ -15,6 +16,7 @@ class CaptainTaskManagementScreen extends StatefulWidget {
 
 class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScreen> {
   final TaskService _taskService = TaskService();
+  CaptainRating? _selectedRating; // ✅ YENİ: Seçilen dereceyi tutmak için
   final UserService _userService = UserService();
   UserModel? _currentUser;
 
@@ -487,71 +489,153 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
   }
   void _showEvaluationDialog(TaskModel task) {
     final evaluationController = TextEditingController();
+    _selectedRating = null; // Diyalog açıldığında seçimi sıfırla
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Görevi Değerlendir'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              task.title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Görevi Değerlendir'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      task.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Derece Seçin:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: CaptainRating.values.map((rating) {
+                        return Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            child: _buildRatingButton(rating, setState),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: evaluationController,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        labelText: 'Değerlendirme Notu',
+                        hintText: 'Görev hakkındaki değerlendirmenizi yazın...',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: evaluationController,
-              maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Değerlendirme',
-                hintText: 'Görev hakkındaki değerlendirmenizi yazın...',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (evaluationController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Lütfen bir değerlendirme yazın'),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-                return;
-              }
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('İptal'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_selectedRating == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Lütfen bir derece seçin (İyi, Orta, Kötü)'),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                      return;
+                    }
+                    if (evaluationController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Lütfen bir değerlendirme notu yazın'),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                      return;
+                    }
 
-              await _taskService.evaluateTaskByCaptain(
-                task.id,
-                evaluationController.text,
-              );
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Görev yönetime iletildi!'),
-                    backgroundColor: AppColors.success,
+                    await _taskService.evaluateTaskByCaptain(
+                      task.id,
+                      evaluationController.text,
+                      _selectedRating!, // Seçilen dereceyi gönder
+                    );
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Görev değerlendirildi ve yönetime iletildi!'),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
                   ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-            ),
-            child: const Text('Onayla'),
-          ),
-        ],
+                  child: const Text('Onayla'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildRatingButton(CaptainRating rating, StateSetter setState) {
+    final isSelected = _selectedRating == rating;
+    Color color;
+    String text;
+
+    switch (rating) {
+      case CaptainRating.good:
+        color = Colors.green;
+        text = 'İyi';
+        break;
+      case CaptainRating.medium:
+        color = Colors.orange;
+        text = 'Orta';
+        break;
+      case CaptainRating.bad:
+        color = Colors.red;
+        text = 'Kötü';
+        break;
+    }
+
+    return ElevatedButton(
+      onPressed: () {
+        setState(() {
+          _selectedRating = rating;
+        });
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isSelected ? color : color.withOpacity(0.1),
+        foregroundColor: isSelected ? Colors.white : color,
+        elevation: isSelected ? 4 : 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: color, width: isSelected ? 2 : 1),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -1098,6 +1182,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                           initialDate: DateTime.now().add(const Duration(days: 7)),
                           firstDate: DateTime.now(),
                           lastDate: DateTime.now().add(const Duration(days: 365)),
+                          locale: const Locale('tr', 'TR'), // Türkçe yerel ayar ekle
                         );
                         if (picked != null && picked != selectedDueDate) {
                           setState(() {
@@ -1551,9 +1636,44 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                 const SizedBox(height: 8),
                 Text('Tamamlanma Notu: ${task.userCompletionNote}'),
               ],
-              if (task.captainEvaluation != null) ...[
+              if (task.captainEvaluation != null && task.captainRating != null) ...[
                 const SizedBox(height: 8),
-                Text('Kaptan Değerlendirmesi: ${task.captainEvaluation}'),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Text(
+                          'Kaptan Değerlendirmesi: ',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: _getRatingColor(task.captainRating!).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            _getRatingText(task.captainRating!),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: _getRatingColor(task.captainRating!),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4.0),
+                      child: Text(
+                        task.captainEvaluation!,
+                        style: const TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
               ],
               if (task.adminScore != null) Text('Puan: ${task.adminScore}'),
             ],
@@ -1596,6 +1716,28 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
         return 'Onaylandı';
       case TaskStatus.evaluatedByAdmin:
         return 'Puanlandı';
+    }
+  }
+
+  Color _getRatingColor(CaptainRating rating) {
+    switch (rating) {
+      case CaptainRating.good:
+        return AppColors.success;
+      case CaptainRating.medium:
+        return AppColors.warning;
+      case CaptainRating.bad:
+        return AppColors.error;
+    }
+  }
+
+  String _getRatingText(CaptainRating rating) {
+    switch (rating) {
+      case CaptainRating.good:
+        return 'İyi';
+      case CaptainRating.medium:
+        return 'Orta';
+      case CaptainRating.bad:
+        return 'Kötü';
     }
   }
 

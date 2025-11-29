@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'constants/colors.dart';
 import 'services/auth_service_fixed.dart';
@@ -39,6 +40,16 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('tr', 'TR'), // Türkçe
+          Locale('en', 'US'), // İngilizce (Varsayılan)
+        ],
+        locale: const Locale('tr', 'TR'), // Uygulamanın varsayılan dilini Türkçe yap
         title: 'Takım Yönetim Sistemi',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(

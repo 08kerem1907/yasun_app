@@ -623,18 +623,35 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(Icons.star, size: 16, color: Colors.blue),
-                        SizedBox(width: 4),
-                        Text(
+                        const Icon(Icons.star, size: 16, color: Colors.blue),
+                        const SizedBox(width: 4),
+                        const Text(
                           'Kaptan Değerlendirmesi:',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Colors.blue,
+                            color: AppColors.textPrimary,
                           ),
                         ),
+                        const SizedBox(width: 8),
+                        if (task.captainRating != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: _getRatingColor(task.captainRating!).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              _getRatingText(task.captainRating!),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: _getRatingColor(task.captainRating!),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -1272,6 +1289,28 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
         return Colors.orange;
       case TaskStatus.evaluatedByAdmin:
         return AppColors.success;
+    }
+  }
+
+  Color _getRatingColor(CaptainRating rating) {
+    switch (rating) {
+      case CaptainRating.good:
+        return AppColors.success;
+      case CaptainRating.medium:
+        return AppColors.warning;
+      case CaptainRating.bad:
+        return AppColors.error;
+    }
+  }
+
+  String _getRatingText(CaptainRating rating) {
+    switch (rating) {
+      case CaptainRating.good:
+        return 'İyi';
+      case CaptainRating.medium:
+        return 'Orta';
+      case CaptainRating.bad:
+        return 'Kötü';
     }
   }
 

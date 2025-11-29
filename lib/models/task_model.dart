@@ -8,6 +8,12 @@ enum TaskStatus {
   evaluatedByAdmin,
 }
 
+enum CaptainRating {
+  good, // İyi
+  medium, // Orta
+  bad, // Kötü
+}
+
 class TaskModel {
   final String id;
   final String title;
@@ -22,6 +28,7 @@ class TaskModel {
   final DateTime? completedAt;
   final String? userCompletionNote;
   final String? captainEvaluation;
+  final CaptainRating? captainRating; // ✅ YENİ: Kaptan değerlendirme derecesi
   final DateTime? captainEvaluatedAt;
   final int? adminScore;
   final DateTime? adminEvaluatedAt;
@@ -42,6 +49,7 @@ class TaskModel {
     this.completedAt,
     this.userCompletionNote,
     this.captainEvaluation,
+    this.captainRating, // ✅ YENİ
     this.captainEvaluatedAt,
     this.adminScore,
     this.adminEvaluatedAt,
@@ -65,6 +73,7 @@ class TaskModel {
       completedAt: (data['completedAt'] as Timestamp?)?.toDate(),
       userCompletionNote: data['userCompletionNote'],
       captainEvaluation: data['captainEvaluation'],
+      captainRating: _parseCaptainRating(data['captainRating']), // ✅ YENİ
       captainEvaluatedAt: (data['captainEvaluatedAt'] as Timestamp?)?.toDate(),
       adminScore: data['adminScore'] is int ? data['adminScore'] : (data['adminScore'] is String ? int.tryParse(data['adminScore']) : null),
       adminEvaluatedAt: (data['adminEvaluatedAt'] as Timestamp?)?.toDate(),
@@ -87,6 +96,7 @@ class TaskModel {
       'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,
       'userCompletionNote': userCompletionNote,
       'captainEvaluation': captainEvaluation,
+      'captainRating': captainRating?.name, // ✅ YENİ
       'captainEvaluatedAt': captainEvaluatedAt != null ? Timestamp.fromDate(captainEvaluatedAt!) : null,
       'adminScore': adminScore,
       'adminEvaluatedAt': adminEvaluatedAt != null ? Timestamp.fromDate(adminEvaluatedAt!) : null,
@@ -109,6 +119,7 @@ class TaskModel {
     DateTime? completedAt,
     String? userCompletionNote,
     String? captainEvaluation,
+    CaptainRating? captainRating, // ✅ YENİ
     DateTime? captainEvaluatedAt,
     int? adminScore,
     DateTime? adminEvaluatedAt,
@@ -129,6 +140,7 @@ class TaskModel {
       completedAt: completedAt ?? this.completedAt,
       userCompletionNote: userCompletionNote ?? this.userCompletionNote,
       captainEvaluation: captainEvaluation ?? this.captainEvaluation,
+      captainRating: captainRating ?? this.captainRating, // ✅ YENİ
       captainEvaluatedAt: captainEvaluatedAt ?? this.captainEvaluatedAt,
       adminScore: adminScore ?? this.adminScore,
       adminEvaluatedAt: adminEvaluatedAt ?? this.adminEvaluatedAt,
@@ -150,5 +162,18 @@ class TaskModel {
       }
     }
     return TaskStatus.assigned;
+  }
+
+  static CaptainRating? _parseCaptainRating(dynamic rating) {
+    if (rating is String) {
+      try {
+        return CaptainRating.values.firstWhere(
+              (e) => e.name == rating,
+        );
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   }
 }

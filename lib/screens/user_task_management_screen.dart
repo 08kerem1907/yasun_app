@@ -746,8 +746,43 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
                     const SizedBox(height: 16),
                     if (task.userCompletionNote != null)
                       Text('Tamamlama Notu: ${task.userCompletionNote}'),
-                    if (task.captainEvaluation != null)
-                      Text('Kaptan Değerlendirmesi: ${task.captainEvaluation}'),
+                    if (task.captainEvaluation != null && task.captainRating != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Text(
+                                'Kaptan Değerlendirmesi: ',
+                                style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: _getRatingColor(task.captainRating!).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  _getRatingText(task.captainRating!),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: _getRatingColor(task.captainRating!),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4.0),
+                            child: Text(
+                              task.captainEvaluation!,
+                              style: const TextStyle(color: AppColors.textSecondary),
+                            ),
+                          ),
+                        ],
+                      ),
                     if (task.adminScore != null)
                       Text('Puan: ${task.adminScore}'),
                   ],
@@ -844,6 +879,28 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
         return AppColors.success;
       default:
         return AppColors.textSecondary;
+    }
+  }
+
+  Color _getRatingColor(CaptainRating rating) {
+    switch (rating) {
+      case CaptainRating.good:
+        return AppColors.success;
+      case CaptainRating.medium:
+        return AppColors.warning;
+      case CaptainRating.bad:
+        return AppColors.error;
+    }
+  }
+
+  String _getRatingText(CaptainRating rating) {
+    switch (rating) {
+      case CaptainRating.good:
+        return 'İyi';
+      case CaptainRating.medium:
+        return 'Orta';
+      case CaptainRating.bad:
+        return 'Kötü';
     }
   }
 
