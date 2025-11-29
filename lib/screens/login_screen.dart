@@ -92,20 +92,19 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         // Logo
         Container(
-          width: 80,
-          height: 80,
+          width: 150,
+          height: 150,
           child: Image.asset(
-            'assets/yasunapp_logo.png',   // kendi resim yolunu yaz
-            width: 50,
-            height: 50,
-            fit: BoxFit.cover,
+            'assets/logo_yasunapp.png',
+            fit: BoxFit.contain,
           ),
         ),
-        const SizedBox(height: 24),
+
+        const SizedBox(height: 12),
         
         // Başlık
         const Text(
-          'Takım Yönetim Sistemi',
+          'Ekip Yönetim Sistemi',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
@@ -211,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
-            hintText: 'email@example.com',
+            hintText: 'email@yasun.com',
             hintStyle: const TextStyle(color: AppColors.textHint),
             filled: true,
             fillColor: AppColors.background,

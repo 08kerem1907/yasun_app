@@ -168,25 +168,26 @@ class HomeScreenContent extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              shape: BoxShape.circle,
+            width: 84,
+            height: 84,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle, // istersen bunu da kaldırabiliriz
             ),
-            child: const Icon(
-              Icons.shield,
-              color: Colors.white,
-              size: 24,
+            clipBehavior: Clip.antiAlias, // fotoğraf taşmasın diye
+            child: Image.asset(
+              'assets/logo_yasunapp.png', // kendi fotoğraf yolun
+              fit: BoxFit.cover,
             ),
           ),
+
+
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Takım Yönetim Sistemi',
+                  'Ekip Yönetim Sistemi',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

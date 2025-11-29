@@ -1197,7 +1197,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Takım Yönetim Sistemi',
+              'Ekip Yönetim Sistemi',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

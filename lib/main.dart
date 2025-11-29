@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
           Locale('en', 'US'), // İngilizce (Varsayılan)
         ],
         locale: const Locale('tr', 'TR'), // Uygulamanın varsayılan dilini Türkçe yap
-        title: 'Takım Yönetim Sistemi',
+        title: 'Ekip Yönetim Sistemi',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
