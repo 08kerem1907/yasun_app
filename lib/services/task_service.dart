@@ -1,11 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/task_model.dart';
 import '../models/user_model.dart';
-import 'user_service.dart';
+import 'user_service.dart'; // UserService'i kullanmak için
 
 class TaskService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final UserService _userService = UserService();
+  final UserService _userService = UserService(); // Kullanıcı rolünü kontrol etmek için
+
+  // Görev atanan kullanıcının rolünü kontrol etmek için yardımcı fonksiyon
+  Future<String?> _getUserRole(String userId) async {
+    final userDoc = await _firestore.collection('users').doc(userId).get();
+    if (userDoc.exists) {
+      return userDoc.data()?['role'];
+    }
+    return null;
+  }
 
   Stream<List<TaskModel>> getTasksForAdminEvaluation() {
     return _firestore
@@ -196,8 +205,27 @@ class TaskService {
       String taskId,
       String userCompletionNote,
       ) async {
+    // 1. Görevi al
+    final taskDoc = await _firestore.collection('tasks').doc(taskId).get();
+    if (!taskDoc.exists) return;
+    final task = TaskModel.fromFirestore(taskDoc);
+
+    // 2. Atanan kullanıcının rolünü kontrol et
+    final assignedUserRole = await _getUserRole(task.assignedToUid);
+
+    // 3. Yeni durumu belirle
+    TaskStatus newStatus;
+    if (assignedUserRole == 'admin' || assignedUserRole == 'captain') {
+      // Eğer görev Admin veya Kaptana atanmışsa, Kaptan değerlendirmesini atla
+      newStatus = TaskStatus.evaluatedByCaptain; // Admin değerlendirmesine geçiş için
+    } else {
+      // Normal kullanıcı ise, Kaptan değerlendirmesine gönder
+      newStatus = TaskStatus.completedByUser;
+    }
+
+    // 4. Görevi güncelle
     await _firestore.collection('tasks').doc(taskId).update({
-      'status': TaskStatus.completedByUser.name,
+      'status': newStatus.name,
       'completedAt': Timestamp.now(),
       'userCompletionNote': userCompletionNote,
     });
