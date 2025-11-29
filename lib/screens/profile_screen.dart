@@ -5,6 +5,7 @@ import '../constants/colors.dart';
 import '../models/user_model.dart';
 import '../services/auth_service_fixed.dart';
 import '../services/user_service.dart';
+// import 'duyurular_screen.dart'; // Bildirimler butonu kaldırıldığı için artık gerek yok
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,6 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditing = false;
   final _displayNameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _notificationsEnabled = true; // Varsayılan olarak açık kabul edelim
 
   @override
   void dispose() {
@@ -597,11 +599,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const Divider(height: 1),
 
-          _buildSettingItem(
+          // Bildirimler Switch Butonu
+          _buildNotificationSwitch(
             icon: Icons.notifications,
-            title: 'Bildirimler',
-            subtitle: 'Bildirim tercihlerinizi yönetin',
-            onTap: () => _showNotificationSettings(context),
+            title: 'Bildirimleri Aç/Kapat',
+            subtitle: 'Tüm uygulama bildirimlerini yönetin',
+            value: _notificationsEnabled, // State değişkeni kullanılacak
+            onChanged: (value) {
+              setState(() {
+                _notificationsEnabled = value;
+                // TODO: Bildirim ayarlarını kaydetme fonksiyonu buraya gelecek
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Bildirimler ${value ? 'açıldı' : 'kapatıldı'}'),
+                    backgroundColor: value ? AppColors.success : AppColors.error,
+                  ),
+                );
+              });
+            },
           ),
           _buildSettingItem(
             icon: Icons.help,
@@ -659,6 +674,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onTap: onTap,
     );
   }
+
+
 
   Future<void> _saveChanges(UserModel userData) async {
     if (!_formKey.currentState!.validate()) return;
@@ -725,164 +742,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _showNotificationSettings(BuildContext context) {
-    // Bildirim ayarları için state'ler
-    bool pushNotifications = true;
-    bool emailNotifications = true;
-    bool taskNotifications = true;
-    bool teamNotifications = true;
-    bool scoreNotifications = false;
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: const Row(
-            children: [
-              Icon(Icons.notifications_active, color: AppColors.primary),
-              SizedBox(width: 12),
-              Text('Bildirim Ayarları'),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Almak istediğiniz bildirimleri seçin',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                _buildNotificationSwitch(
-                  title: 'Push Bildirimleri',
-                  subtitle: 'Uygulama bildirimleri',
-                  value: pushNotifications,
-                  icon: Icons.notifications,
-                  onChanged: (value) {
-                    setState(() => pushNotifications = value);
-                  },
-                ),
-                const Divider(height: 32),
-                _buildNotificationSwitch(
-                  title: 'Email Bildirimleri',
-                  subtitle: 'Email ile bildirim al',
-                  value: emailNotifications,
-                  icon: Icons.email,
-                  onChanged: (value) {
-                    setState(() => emailNotifications = value);
-                  },
-                ),
-                const Divider(height: 32),
-                _buildNotificationSwitch(
-                  title: 'Görev Bildirimleri',
-                  subtitle: 'Yeni görev atandığında',
-                  value: taskNotifications,
-                  icon: Icons.assignment,
-                  onChanged: (value) {
-                    setState(() => taskNotifications = value);
-                  },
-                ),
-                const Divider(height: 32),
-                _buildNotificationSwitch(
-                  title: 'Takım Bildirimleri',
-                  subtitle: 'Takım aktiviteleri',
-                  value: teamNotifications,
-                  icon: Icons.people,
-                  onChanged: (value) {
-                    setState(() => teamNotifications = value);
-                  },
-                ),
-                const Divider(height: 32),
-                _buildNotificationSwitch(
-                  title: 'Puan Bildirimleri',
-                  subtitle: 'Puan değişikliklerinde',
-                  value: scoreNotifications,
-                  icon: Icons.score,
-                  onChanged: (value) {
-                    setState(() => scoreNotifications = value);
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('İptal'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Bildirim ayarları kaydedildi'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-              },
-              child: const Text('Kaydet'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Eski _showNotificationSettings fonksiyonu kaldırıldı.
+  // Kullanıcı artık doğrudan Duyurular ekranına yönlendiriliyor.
 
   Widget _buildNotificationSwitch({
+    required IconData icon,
     required String title,
     required String subtitle,
     required bool value,
-    required IconData icon,
     required ValueChanged<bool> onChanged,
   }) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: AppColors.primary, size: 20),
+    return ListTile(
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.1),
+          shape: BoxShape.circle,
         ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
+        child: Icon(icon, color: AppColors.primary, size: 20),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
         ),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-          activeColor: AppColors.primary,
+      ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(
+          fontSize: 12,
+          color: AppColors.textSecondary,
         ),
-      ],
+      ),
+      trailing: Switch(
+        value: value,
+        onChanged: onChanged,
+        activeColor: AppColors.success,
+      ),
+      onTap: () => onChanged(!value), // ListTile'a tıklayınca da switch'i değiştir
     );
   }
 
