@@ -36,6 +36,7 @@ class TaskModel {
   final DateTime? adminEvaluatedAt;
   final DateTime? updatedAt; // ✅ YENİ: Düzenlenme zamanı
   final String? updatedBy; // ✅ YENİ: Düzenleyen kişi
+  final int difficultyLevel; // ✅ YENİ: Zorluk derecesi (1, 2 veya 3)
 
   TaskModel({
     required this.id,
@@ -59,6 +60,7 @@ class TaskModel {
     this.adminEvaluatedAt,
     this.updatedAt,
     this.updatedBy,
+    this.difficultyLevel = 1, // ✅ YENİ: Varsayılan zorluk derecesi 1
   });
 
   factory TaskModel.fromFirestore(DocumentSnapshot doc) {
@@ -85,6 +87,7 @@ class TaskModel {
       adminEvaluatedAt: (data['adminEvaluatedAt'] as Timestamp?)?.toDate(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(), // ✅ YENİ
       updatedBy: data['updatedBy'], // ✅ YENİ
+      difficultyLevel: data['difficultyLevel'] ?? 1, // ✅ YENİ: Zorluk derecesi
     );
   }
 
@@ -110,6 +113,7 @@ class TaskModel {
       'adminEvaluatedAt': adminEvaluatedAt != null ? Timestamp.fromDate(adminEvaluatedAt!) : null,
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null, // ✅ YENİ
       'updatedBy': updatedBy, // ✅ YENİ
+      'difficultyLevel': difficultyLevel, // ✅ YENİ: Zorluk derecesi
     };
   }
 
@@ -135,6 +139,7 @@ class TaskModel {
     DateTime? adminEvaluatedAt,
     DateTime? updatedAt, // ✅ YENİ
     String? updatedBy, // ✅ YENİ
+    int? difficultyLevel, // ✅ YENİ: Zorluk derecesi
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -158,6 +163,7 @@ class TaskModel {
       adminEvaluatedAt: adminEvaluatedAt ?? this.adminEvaluatedAt,
       updatedAt: updatedAt ?? this.updatedAt, // ✅ YENİ
       updatedBy: updatedBy ?? this.updatedBy, // ✅ YENİ
+      difficultyLevel: difficultyLevel ?? this.difficultyLevel, // ✅ YENİ: Zorluk derecesi
     );
   }
 

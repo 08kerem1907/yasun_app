@@ -743,6 +743,8 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
                     Text(task.title, style: Theme.of(context).textTheme.headlineSmall),
                     const SizedBox(height: 16),
                     Text(task.description),
+                    const SizedBox(height: 8),
+                    Text('Zorluk Derecesi: ${task.difficultyLevel} (${_getDifficultyText(task.difficultyLevel)})', style: const TextStyle(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 16),
                     if (task.userCompletionNote != null)
                       Text('Tamamlama Notu: ${task.userCompletionNote}'),
@@ -783,8 +785,10 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
                           ),
                         ],
                       ),
-                    if (task.adminScore != null)
-                      Text('Puan: ${task.adminScore}'),
+                    if (task.adminScore != null) ...[
+                      Text('Verilen Puan: ${task.adminScore}'),
+                      Text('Nihai Puan: ${task.adminScore! * task.difficultyLevel} (${task.adminScore} x ${task.difficultyLevel})'),
+                    ],
                   ],
                 ),
               ),
@@ -916,6 +920,19 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
         return 'Kaptan Değerlendirdi (Admin Bekliyor)';
       case TaskStatus.evaluatedByAdmin:
         return 'Puanlandı';
+      default:
+        return 'Bilinmiyor';
+    }
+  }
+
+  String _getDifficultyText(int level) {
+    switch (level) {
+      case 1:
+        return 'Kolay';
+      case 2:
+        return 'Orta';
+      case 3:
+        return 'Zor';
       default:
         return 'Bilinmiyor';
     }

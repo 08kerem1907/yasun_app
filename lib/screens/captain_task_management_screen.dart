@@ -491,7 +491,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
   }
   void _showEvaluationDialog(TaskModel task) {
     final evaluationController = TextEditingController();
-    _selectedRating = null; // Diyalog açıldığında seçimi sıfırla
+    _selectedRating = task.captainRating; // Mevcut değerlendirmeyi yükle
 
     showDialog(
       context: context,
@@ -606,15 +606,15 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
 
     switch (rating) {
       case CaptainRating.good:
-        color = Colors.green;
+        color = AppColors.success; // Yeşil
         text = 'İyi';
         break;
       case CaptainRating.medium:
-        color = Colors.orange;
+        color = AppColors.warning; // Turuncu
         text = 'Orta';
         break;
       case CaptainRating.bad:
-        color = Colors.red;
+        color = AppColors.error; // Kırmızı
         text = 'Kötü';
         break;
     }
@@ -1141,6 +1141,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     final TextEditingController descriptionController = TextEditingController();
     DateTime? selectedDueDate;
     UserModel? selectedUser;
+    int selectedDifficulty = 1; // ✅ YENİ: Varsayılan zorluk derecesi
 
     await showDialog(
       context: context,
@@ -1193,6 +1194,35 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                         }
                       },
                     ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      decoration: const InputDecoration(
+                        labelText: 'Zorluk Derecesi',
+                        border: OutlineInputBorder(),
+                        helperText: 'Puan bu değerle çarpılacaktır',
+                      ),
+                      value: selectedDifficulty,
+                      onChanged: (int? newValue) {
+                        setState(() {
+                          selectedDifficulty = newValue ?? 1;
+                        });
+                      },
+                      items: const [
+                        DropdownMenuItem<int>(
+                          value: 1,
+                          child: Text('1 - Kolay'),
+                        ),
+                        DropdownMenuItem<int>(
+                          value: 2,
+                          child: Text('2 - Orta'),
+                        ),
+                        DropdownMenuItem<int>(
+                          value: 3,
+                          child: Text('3 - Zor'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
                     StreamBuilder<List<UserModel>>(
                       stream: _userService.getTeamMembers(_currentUser!.uid),
                       builder: (context, snapshot) {
@@ -1276,6 +1306,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                       dueDate: selectedDueDate!,
                       createdAt: DateTime.now(),
                       status: TaskStatus.assigned,
+                      difficultyLevel: selectedDifficulty, // ✅ YENİ: Zorluk derecesi
                     );
 
                     await _taskService.createTask(newTask);
@@ -1645,6 +1676,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
               Text('Atayan: ${task.assignedByDisplayName}'),
               Text('Bitiş Tarihi: ${_formatDate(task.dueDate)}'),
               Text('Durum: ${_getStatusText(task.status)}'),
+              Text('Zorluk Derecesi: ${task.difficultyLevel} (${_getDifficultyText(task.difficultyLevel)})'),
               if (task.userCompletionNote != null) ...[
                 const SizedBox(height: 8),
                 Text('Tamamlanma Notu: ${task.userCompletionNote}'),
@@ -1756,5 +1788,18 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
 
   String _formatDate(DateTime date) {
     return '${date.day}.${date.month}.${date.year}';
+  }
+
+  String _getDifficultyText(int level) {
+    switch (level) {
+      case 1:
+        return 'Kolay';
+      case 2:
+        return 'Orta';
+      case 3:
+        return 'Zor';
+      default:
+        return 'Bilinmiyor';
+    }
   }
 }

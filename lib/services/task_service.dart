@@ -208,6 +208,10 @@ class TaskService {
       String taskId,
       String userCompletionNote,
       ) async {
+    // ✅ YENİ: Önce görevi al ki zorluk derecesine erişebilelim
+    final taskDoc = await _firestore.collection('tasks').doc(taskId).get();
+    final task = TaskModel.fromFirestore(taskDoc);
+
     await _firestore.collection('tasks').doc(taskId).update({
       'status': TaskStatus.evaluatedByAdmin.name, // Doğrudan Admin tarafından tamamlanmış sayılır
       'completedAt': Timestamp.now(),
@@ -216,10 +220,11 @@ class TaskService {
       'adminEvaluatedAt': Timestamp.now(),
     });
 
-    // Puanı güncelleme
-    final taskDoc = await _firestore.collection('tasks').doc(taskId).get();
-    final task = TaskModel.fromFirestore(taskDoc);
-    await _updateUserScore(task.assignedToUid, 100);
+    // ✅ YENİ: Zorluk derecesini çarpan olarak kullanıp nihai puanı hesapla
+    final finalScore = 100 * task.difficultyLevel;
+
+    // Puanı güncelleme (zorluk derecesi ile çarpılmış puan)
+    await _updateUserScore(task.assignedToUid, finalScore);
   }
 
   // Kaptan değerlendirir
@@ -251,8 +256,11 @@ class TaskService {
       'adminEvaluatedAt': Timestamp.now(),
     });
 
-    // Kullanıcının puanını güncelle
-    await _updateUserScore(task.assignedToUid, adminScore);
+    // ✅ YENİ: Zorluk derecesini çarpan olarak kullanıp nihai puanı hesapla
+    final finalScore = adminScore * task.difficultyLevel;
+
+    // Kullanıcının puanını güncelle (zorluk derecesi ile çarpılmış puan)
+    await _updateUserScore(task.assignedToUid, finalScore);
   }
 
   // Kullanıcı puanını güncelle (aylık ve toplam)

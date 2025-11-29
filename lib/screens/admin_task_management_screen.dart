@@ -736,6 +736,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     final TextEditingController descriptionController = TextEditingController();
     DateTime? selectedDueDate;
     UserModel? selectedUser;
+    int selectedDifficulty = 1; // ✅ YENİ: Varsayılan zorluk derecesi
 
     await showDialog(
       context: context,
@@ -787,6 +788,35 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                         }
                       },
                     ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      decoration: const InputDecoration(
+                        labelText: 'Zorluk Derecesi',
+                        border: OutlineInputBorder(),
+                        helperText: 'Puan bu değerle çarpılacaktır',
+                      ),
+                      value: selectedDifficulty,
+                      onChanged: (int? newValue) {
+                        setState(() {
+                          selectedDifficulty = newValue ?? 1;
+                        });
+                      },
+                      items: const [
+                        DropdownMenuItem<int>(
+                          value: 1,
+                          child: Text('1 - Kolay'),
+                        ),
+                        DropdownMenuItem<int>(
+                          value: 2,
+                          child: Text('2 - Orta'),
+                        ),
+                        DropdownMenuItem<int>(
+                          value: 3,
+                          child: Text('3 - Zor'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
                     StreamBuilder<List<UserModel>>(
                       stream: _userService.getAllUsers(),
                       builder: (context, snapshot) {
@@ -853,6 +883,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       dueDate: selectedDueDate!,
                       createdAt: DateTime.now(),
                       status: TaskStatus.assigned,
+                      difficultyLevel: selectedDifficulty, // ✅ YENİ: Zorluk derecesi
                     );
 
                     await _taskService.createTask(newTask);
@@ -1078,7 +1109,9 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
               Text('Atanan: ${task.assignedToDisplayName}'),
               Text('Bitiş Tarihi: ${_formatDate(task.dueDate)}'),
               Text('Durum: ${_getStatusText(task.status)}'),
-              if (task.adminScore != null) Text('Puan: ${task.adminScore}'),
+              Text('Zorluk Derecesi: ${task.difficultyLevel} (${_getDifficultyText(task.difficultyLevel)})'),
+              if (task.adminScore != null) Text('Verilen Puan: ${task.adminScore}'),
+              if (task.adminScore != null) Text('Nihai Puan: ${task.adminScore! * task.difficultyLevel} (${task.adminScore} x ${task.difficultyLevel})'),
             ],
           ),
         ),
@@ -1108,6 +1141,33 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Zorluk Derecesi: ${task.difficultyLevel} (${_getDifficultyText(task.difficultyLevel)})',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Nihai puan = Verilen puan x ${task.difficultyLevel}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -1182,11 +1242,12 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
 
               // ✅ Geçerli puan - işleme devam et
               await _taskService.evaluateTaskByAdmin(task.id, score);
+              final finalScore = score * task.difficultyLevel;
               if (context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Görev başarıyla puanlandı! Verilen puan: $score'),
+                    content: Text('Görev başarıyla puanlandı! Verilen puan: $score, Nihai puan: $finalScore'),
                     backgroundColor: AppColors.success,
                   ),
                 );
@@ -1331,5 +1392,18 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
 
   String _formatDate(DateTime date) {
     return '${date.day}.${date.month}.${date.year}';
+  }
+
+  String _getDifficultyText(int level) {
+    switch (level) {
+      case 1:
+        return 'Kolay';
+      case 2:
+        return 'Orta';
+      case 3:
+        return 'Zor';
+      default:
+        return 'Bilinmiyor';
+    }
   }
 }
