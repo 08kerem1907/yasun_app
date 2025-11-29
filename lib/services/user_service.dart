@@ -19,6 +19,21 @@ class UserService {
     });
   }
 
+  // ✅ YENİ: Tüm kullanıcıları toplam puana göre sıralı getir
+  Stream<List<UserModel>> getAllUsersSortedByScore() {
+    return _firestore
+        .collection('users')
+        .orderBy('totalScore', descending: true) // Firestore'da sıralama
+        .snapshots()
+        .map((snapshot) {
+      // Firestore'dan gelen verileri al
+      var users =
+      snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList();
+
+      return users;
+    });
+  }
+
   // Belirli bir role sahip kullanıcıları getir
   Stream<List<UserModel>> getUsersByRole(String role) {
     return _firestore

@@ -612,7 +612,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildSettingItem(
             icon: Icons.info,
             title: 'Uygulama Hakkında',
-            subtitle: 'Versiyon 1.0.0',
+            subtitle: 'Versiyon 1.0.1',
             onTap: () => _showAboutDialog(context),
           ),
         ],
@@ -987,81 +987,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      _buildContactOption(
-                        icon: Icons.email,
-                        title: 'Email',
-                        subtitle: 'destek@takimyonetim.com',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Email uygulaması açılıyor...'),
-                              backgroundColor: AppColors.info,
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      _buildContactOption(
-                        icon: Icons.phone,
-                        title: 'Telefon',
-                        subtitle: '+90 (555) 123 45 67',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Telefon uygulaması açılıyor...'),
-                              backgroundColor: AppColors.info,
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      _buildContactOption(
-                        icon: Icons.chat,
-                        title: 'Canlı Destek',
-                        subtitle: 'Hemen sohbet başlat',
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Canlı destek yakında aktif olacak'),
-                              backgroundColor: AppColors.info,
-                            ),
-                          );
-                        },
+                      Row(
+                        children: [
+                          const Icon(Icons.email, color: Colors.grey),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'Email',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'destek@takimyonetim.com',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
 
-                      const SizedBox(height: 24),
 
-                      // Geri Bildirim Butonu
-                      Container(
-                        width: double.infinity,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            _showFeedbackDialog(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          icon: const Icon(Icons.feedback, color: Colors.white),
-                          label: const Text(
-                            'Geri Bildirim Gönder',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -1353,7 +1306,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             SizedBox(height: 8),
             Text(
-              'Versiyon: 1.0.0',
+              'Versiyon: 1.0.1',
               style: TextStyle(
                 fontSize: 14,
                 color: AppColors.textSecondary,

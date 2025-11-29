@@ -20,6 +20,8 @@ class TaskModel {
   final String description;
   final String assignedToUid;
   final String assignedToDisplayName;
+  final String? assignedToTeamId; // ✅ YENİ: Atanan kullanıcının takım ID'si
+  final String? assignedToTeamName; // ✅ YENİ: Atanan kullanıcının takım adı
   final String assignedByUid;
   final String assignedByDisplayName;
   final DateTime dueDate;
@@ -41,6 +43,8 @@ class TaskModel {
     required this.description,
     required this.assignedToUid,
     required this.assignedToDisplayName,
+    this.assignedToTeamId, // ✅ YENİ
+    this.assignedToTeamName, // ✅ YENİ
     required this.assignedByUid,
     required this.assignedByDisplayName,
     required this.dueDate,
@@ -65,6 +69,8 @@ class TaskModel {
       description: data['description'] ?? '',
       assignedToUid: data['assignedToUid'] ?? '',
       assignedToDisplayName: data['assignedToDisplayName'] ?? '',
+      assignedToTeamId: data['assignedToTeamId'], // ✅ YENİ
+      assignedToTeamName: data['assignedToTeamName'], // ✅ YENİ
       assignedByUid: data['assignedByUid'] ?? '',
       assignedByDisplayName: data['assignedByDisplayName'] ?? '',
       dueDate: (data['dueDate'] as Timestamp).toDate(),
@@ -88,6 +94,8 @@ class TaskModel {
       'description': description,
       'assignedToUid': assignedToUid,
       'assignedToDisplayName': assignedToDisplayName,
+      'assignedToTeamId': assignedToTeamId, // ✅ YENİ
+      'assignedToTeamName': assignedToTeamName, // ✅ YENİ
       'assignedByUid': assignedByUid,
       'assignedByDisplayName': assignedByDisplayName,
       'dueDate': Timestamp.fromDate(dueDate),
@@ -111,6 +119,8 @@ class TaskModel {
     String? description,
     String? assignedToUid,
     String? assignedToDisplayName,
+    String? assignedToTeamId, // ✅ YENİ
+    String? assignedToTeamName, // ✅ YENİ
     String? assignedByUid,
     String? assignedByDisplayName,
     DateTime? dueDate,
@@ -132,6 +142,8 @@ class TaskModel {
       description: description ?? this.description,
       assignedToUid: assignedToUid ?? this.assignedToUid,
       assignedToDisplayName: assignedToDisplayName ?? this.assignedToDisplayName,
+      assignedToTeamId: assignedToTeamId ?? this.assignedToTeamId, // ✅ YENİ
+      assignedToTeamName: assignedToTeamName ?? this.assignedToTeamName, // ✅ YENİ
       assignedByUid: assignedByUid ?? this.assignedByUid,
       assignedByDisplayName: assignedByDisplayName ?? this.assignedByDisplayName,
       dueDate: dueDate ?? this.dueDate,

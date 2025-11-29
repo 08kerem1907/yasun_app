@@ -123,6 +123,7 @@ class TaskService {
     });
   }
   Future<void> createTask(TaskModel task) async {
+    // TaskModel'de teamId ve teamName bilgileri zaten var (varsayarak)
     await _firestore.collection('tasks').add(task.toMap());
   }
 
@@ -455,6 +456,7 @@ class TaskService {
       'dueDate': Timestamp.fromDate(dueDate),
       'updatedAt': Timestamp.now(),
       'updatedBy': updatedByName,
+      // Takım bilgileri bu fonksiyonla güncellenmez, sadece görev oluşturulurken atanır.
     });
 
     // Aktiviteyi kaydet

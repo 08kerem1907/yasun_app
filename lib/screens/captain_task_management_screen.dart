@@ -5,6 +5,7 @@ import '../models/task_model.dart';
 import '../models/user_model.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';
+import '../services/team_service.dart'; // ✅ YENİ: TeamService eklendi
 import 'package:intl/intl.dart';
 
 class CaptainTaskManagementScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class CaptainTaskManagementScreen extends StatefulWidget {
 
 class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScreen> {
   final TaskService _taskService = TaskService();
+  final TeamService _teamService = TeamService(); // ✅ YENİ: TeamService eklendi
   CaptainRating? _selectedRating; // ✅ YENİ: Seçilen dereceyi tutmak için
   final UserService _userService = UserService();
   UserModel? _currentUser;
@@ -1252,12 +1254,23 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                       return;
                     }
 
+                    // Atanan kullanıcının takım bilgilerini çek
+                    final assignedUserTeamId = selectedUser!.teamId;
+                    String? assignedUserTeamName;
+
+                    if (assignedUserTeamId != null) {
+                      final team = await _teamService.getTeam(assignedUserTeamId);
+                      assignedUserTeamName = team?.name;
+                    }
+
                     final newTask = TaskModel(
                       id: '',
                       title: titleController.text,
                       description: descriptionController.text,
                       assignedToUid: selectedUser!.uid,
                       assignedToDisplayName: selectedUser!.displayName,
+                      assignedToTeamId: assignedUserTeamId, // ✅ YENİ: Takım ID'si eklendi
+                      assignedToTeamName: assignedUserTeamName, // ✅ YENİ: Takım Adı eklendi
                       assignedByUid: _currentUser!.uid,
                       assignedByDisplayName: _currentUser!.displayName,
                       dueDate: selectedDueDate!,
