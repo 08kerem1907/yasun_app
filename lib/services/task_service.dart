@@ -157,17 +157,36 @@ class TaskService {
     });
   }
 
-  // Bir kullanıcıya atanmış tüm görevleri getir
+  // ✅ DÜZELTME: Bir kullanıcıya atanmış tüm görevleri getir - DEBUG LOGGING EKLENDI
   Stream<List<TaskModel>> getTasksAssignedToUser(String userId) {
+    // ✅ DEBUG: Hangi kullanıcı için görev çekildiğini logla
+    print('🔍 DEBUG [TaskService]: Görevler çekiliyor - userId: $userId');
+
     return _firestore
         .collection('tasks')
         .where('assignedToUid', isEqualTo: userId)
         .snapshots()
         .map((snapshot) {
-      var tasks = snapshot.docs.map((doc) => TaskModel.fromFirestore(doc)).toList();
+      // ✅ DEBUG: Kaç görev bulunduğunu logla
+      print('📊 DEBUG [TaskService]: Firestore\'dan ${snapshot.docs.length} görev bulundu');
+
+      var tasks = snapshot.docs.map((doc) {
+        // ✅ DEBUG: Her görevin detaylarını logla
+        final data = doc.data() as Map<String, dynamic>;
+        print('📝 DEBUG [TaskService]: Görev ID: ${doc.id}');
+        print('   - Başlık: ${data['title']}');
+        print('   - assignedToUid: ${data['assignedToUid']}');
+        print('   - assignedToDisplayName: ${data['assignedToDisplayName']}');
+        print('   - status: ${data['status']}');
+
+        return TaskModel.fromFirestore(doc);
+      }).toList();
 
       // Client-side sorting
       tasks.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      // ✅ DEBUG: Sıralama sonrası görev sayısını logla
+      print('✅ DEBUG [TaskService]: Toplam ${tasks.length} görev döndürülüyor');
 
       return tasks;
     });
@@ -499,4 +518,3 @@ class TaskService {
     await _logTaskEdit(taskId, updatedByName, title);
   }
 }
-

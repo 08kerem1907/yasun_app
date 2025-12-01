@@ -201,17 +201,34 @@ class UserService {
     }
   }
 
-  // Kullanıcı arama
+  // ✅ DÜZELTME: Aktif görev sayısını getir (assigned, inProgress, completedByUser, evaluatedByCaptain)
   Future<int> getActiveTaskCount(String uid) async {
     try {
+      // Tüm görevleri çek
       final snapshot = await _firestore
           .collection('tasks')
           .where('assignedToUid', isEqualTo: uid)
-          .where('status', isEqualTo: 'assigned') // Atanmış görevler
           .get();
-      return snapshot.docs.length;
+
+      // ✅ Client-side filtreleme: Aktif görev durumlarını say
+      int activeCount = 0;
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final status = data['status'];
+
+        // Aktif görev durumları: assigned, inProgress, completedByUser, evaluatedByCaptain
+        if (status == 'assigned' ||
+            status == 'inProgress' ||
+            status == 'completedByUser' ||
+            status == 'evaluatedByCaptain') {
+          activeCount++;
+        }
+      }
+
+      print('🔍 DEBUG [UserService]: Kullanıcı $uid için $activeCount aktif görev bulundu');
+      return activeCount;
     } catch (e) {
-      print('Aktif görev sayısı alınamadı: $e');
+      print('❌ ERROR [UserService]: Aktif görev sayısı alınamadı: $e');
       return 0;
     }
   }

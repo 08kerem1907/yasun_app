@@ -52,19 +52,41 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
     _getCurrentUser();
   }
 
+  // ✅ DÜZELTME: Kullanıcı bilgilerini al - DEBUG LOGGING EKLENDI
   Future<void> _getCurrentUser() async {
     try {
       User? firebaseUser = FirebaseAuth.instance.currentUser;
+
+      // ✅ DEBUG: Firebase kullanıcı bilgilerini logla
       if (firebaseUser != null) {
+        print('🔐 DEBUG [UserTaskManagement]: Firebase User bulundu');
+        print('   - UID: ${firebaseUser.uid}');
+        print('   - Email: ${firebaseUser.email}');
+        print('   - DisplayName: ${firebaseUser.displayName}');
+
         UserModel? user = await _userService.getUser(firebaseUser.uid);
+
+        // ✅ DEBUG: UserModel bilgilerini logla
+        if (user != null) {
+          print('👤 DEBUG [UserTaskManagement]: UserModel bulundu');
+          print('   - UID: ${user.uid}');
+          print('   - DisplayName: ${user.displayName}');
+          print('   - Role: ${user.role}');
+          print('   - Total Score: ${user.totalScore}');
+        } else {
+          print('⚠️ WARNING [UserTaskManagement]: UserModel bulunamadı!');
+        }
+
         if (mounted) {
           setState(() {
             _currentUser = user;
           });
         }
+      } else {
+        print('⚠️ WARNING [UserTaskManagement]: Firebase User bulunamadı!');
       }
     } catch (e) {
-      print('Hata: $e');
+      print('❌ ERROR [UserTaskManagement]: Kullanıcı bilgileri alınırken hata: $e');
     }
   }
 
@@ -242,33 +264,49 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
     }
   }
 
+  // ✅ DÜZELTME: Aktif görevler sayfası - DEBUG LOGGING EKLENDI
   Widget _buildActiveTasksPage() {
     if (_currentUser == null) {
+      print('⏳ DEBUG [ActiveTasksPage]: Kullanıcı bilgisi bekleniyor...');
       return const Center(child: CircularProgressIndicator());
     }
+
+    print('📋 DEBUG [ActiveTasksPage]: Aktif görevler sayfası yükleniyor');
+    print('   - Kullanıcı UID: ${_currentUser!.uid}');
 
     return StreamBuilder<List<TaskModel>>(
       stream: _taskService.getTasksAssignedToUser(_currentUser!.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
+          print('⏳ DEBUG [ActiveTasksPage]: Stream bağlantısı bekleniyor...');
           return const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.hasError) {
+          print('❌ ERROR [ActiveTasksPage]: Stream hatası: ${snapshot.error}');
           return Center(child: Text('Hata: ${snapshot.error}'));
         }
 
         final allTasks = snapshot.data ?? [];
+        print('📊 DEBUG [ActiveTasksPage]: Stream\'dan ${allTasks.length} görev alındı');
+
+        // ✅ DEBUG: Tüm görevlerin durumlarını logla
+        for (var task in allTasks) {
+          print('   - Görev: ${task.title} | Durum: ${task.status.name}');
+        }
 
         final activeTasks = allTasks
             .where((task) =>
         task.status == TaskStatus.assigned ||
-            task.status == TaskStatus.inProgress || // Yeni eklenen durum
+            task.status == TaskStatus.inProgress ||
             task.status == TaskStatus.completedByUser ||
             task.status == TaskStatus.evaluatedByCaptain)
             .toList();
 
+        print('✅ DEBUG [ActiveTasksPage]: ${activeTasks.length} aktif görev filtrelendi');
+
         if (activeTasks.isEmpty) {
+          print('ℹ️ DEBUG [ActiveTasksPage]: Aktif görev bulunamadı');
           return _buildEmptyState(
             icon: Icons.task_alt,
             title: 'Aktif görev yok',
@@ -344,27 +382,15 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildStatItem(
-                    icon: Icons.assignment_turned_in,
-                    label: 'Tamamlanan',
-                    value: '${completedTasks.length}',
-                  ),
-                  Container(
-                    width: 1,
-                    height: 40,
-                    color: Colors.white.withOpacity(0.3),
-                  ),
-                  _buildStatItem(
-                    icon: Icons.stars,
-                    label: 'Toplam Puan',
-                    value: '$totalScore',
-                  ),
+                  _buildStatItem('Tamamlanan', '${completedTasks.length}', Icons.check_circle),
+                  Container(width: 1, height: 40, color: Colors.white.withOpacity(0.3)),
+                  _buildStatItem('Toplam Puan', '$totalScore', Icons.stars),
                 ],
               ),
             ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: completedTasks.length,
                 itemBuilder: (context, index) {
                   return _buildCompletedTaskCard(completedTasks[index]);
@@ -377,11 +403,7 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
     );
   }
 
-  Widget _buildStatItem({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
+  Widget _buildStatItem(String label, String value, IconData icon) {
     return Column(
       children: [
         Icon(icon, color: Colors.white, size: 28),
@@ -603,10 +625,9 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.success.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.success.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -624,62 +645,64 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(
-                      Icons.check_circle,
-                      color: AppColors.success,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            task.title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          Text(
-                            'Tamamlandı: ${_formatDate(task.adminEvaluatedAt ?? DateTime.now())}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        task.title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.amber.shade400, Colors.amber.shade600],
+                    if (task.adminScore != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.amber.withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.stars, color: Colors.white, size: 16),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${task.adminScore ?? 0}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.stars, size: 14, color: AppColors.success),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${task.adminScore! * task.difficultyLevel}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.success,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  task.description,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Tamamlandı: ${task.completedAt != null ? _formatDate(task.completedAt!) : "Bilinmiyor"}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
