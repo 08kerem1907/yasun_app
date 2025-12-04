@@ -137,12 +137,12 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
         ),
         trailing: evaluated
             ? Text(
-                'Puan: ${task.adminScore ?? '-'}',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: task.adminScore != null && task.adminScore! >= 80 ? AppColors.success : Colors.red,
-                ),
-              )
+          'Puan: ${task.adminScore ?? '-'}',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: task.adminScore != null && task.adminScore! >= 80 ? AppColors.success : Colors.red,
+          ),
+        )
             : const Icon(Icons.keyboard_arrow_down),
         children: [
           Padding(

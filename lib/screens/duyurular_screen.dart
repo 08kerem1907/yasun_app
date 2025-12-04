@@ -44,6 +44,8 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
     final subtitleController = TextEditingController(text: announcement?.subtitle);
     final contentController = TextEditingController(text: announcement?.content);
 
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     await showDialog(
       context: context,
       builder: (context) {
@@ -53,7 +55,7 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
             constraints: const BoxConstraints(maxWidth: 500),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              gradient: AppColors.backgroundGradient,
+              gradient: AppColors.backgroundGradient, // Gradient aynı kalacak
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -108,6 +110,7 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                           label: 'Başlık',
                           icon: Icons.title_rounded,
                           hint: 'Duyuru başlığını girin',
+                          isDarkMode: isDarkMode,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
@@ -115,6 +118,7 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                           label: 'Alt Başlık',
                           icon: Icons.subtitles_rounded,
                           hint: 'Kısa bir özet ekleyin',
+                          isDarkMode: isDarkMode,
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
@@ -123,6 +127,7 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                           icon: Icons.description_rounded,
                           hint: 'Duyuru içeriğini yazın',
                           maxLines: 5,
+                          isDarkMode: isDarkMode,
                         ),
                       ],
                     ),
@@ -132,7 +137,7 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: isDarkMode ? Colors.grey[850] : Colors.white,
                     borderRadius: const BorderRadius.only(
                       bottomLeft: Radius.circular(20),
                       bottomRight: Radius.circular(20),
@@ -145,17 +150,17 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                           onPressed: () => Navigator.pop(context),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            side: const BorderSide(color: AppColors.border),
+                            side: BorderSide(color: isDarkMode ? Colors.white24 : AppColors.border),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
+                          child: Text(
                             'İptal',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.textSecondary,
+                              color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
                             ),
                           ),
                         ),
@@ -251,6 +256,7 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
     required IconData icon,
     required String hint,
     int maxLines = 1,
+    bool isDarkMode = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -261,10 +267,10 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: isDarkMode ? Colors.white70 : AppColors.textPrimary,
               ),
             ),
           ],
@@ -273,23 +279,23 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
         TextField(
           controller: controller,
           maxLines: maxLines,
-          style: const TextStyle(fontSize: 15),
+          style: TextStyle(fontSize: 15, color: isDarkMode ? Colors.white : Colors.black),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: AppColors.textHint),
+            hintStyle: TextStyle(color: isDarkMode ? Colors.white38 : AppColors.textHint),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: isDarkMode ? Colors.grey[800] : Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: isDarkMode ? Colors.white24 : AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: isDarkMode ? Colors.white24 : AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              borderSide: BorderSide(color: AppColors.primary, width: 2),
             ),
             contentPadding: const EdgeInsets.all(16),
           ),
@@ -300,21 +306,24 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDarkMode ? Colors.grey[900] : AppColors.background,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
-            gradient: AppColors.primaryGradient,
+            gradient: AppColors.primaryGradient, // gradient aynı
           ),
         ),
-        title: const Text(
+        title: Text(
           'Duyurular',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20,
+            color: isDarkMode ? Colors.white : Colors.black,
           ),
         ),
         centerTitle: true,
@@ -340,7 +349,7 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                   const SizedBox(height: 16),
                   Text(
                     'Hata: ${snapshot.error}',
-                    style: const TextStyle(color: AppColors.textSecondary),
+                    style: TextStyle(color: isDarkMode ? Colors.white70 : AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -364,20 +373,20 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Henüz duyuru bulunmamaktadır',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: isDarkMode ? Colors.white70 : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'İlk duyuruyu siz oluşturun',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: isDarkMode ? Colors.white54 : AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -392,7 +401,7 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
             itemCount: announcements.length,
             itemBuilder: (context, index) {
               final announcement = announcements[index];
-              return _buildAnnouncementCard(announcement);
+              return _buildAnnouncementCard(announcement, isDarkMode);
             },
           );
         },
@@ -425,15 +434,15 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
     );
   }
 
-  Widget _buildAnnouncementCard(Announcement announcement) {
+  Widget _buildAnnouncementCard(Announcement announcement, bool isDarkMode) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: isDarkMode ? Colors.black54 : Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -481,10 +490,10 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                     children: [
                       Text(
                         announcement.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: isDarkMode ? Colors.white : AppColors.textPrimary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -496,9 +505,9 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                             : (announcement.content.length > 100
                             ? '${announcement.content.substring(0, 100)}...'
                             : announcement.content),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: AppColors.textSecondary,
+                          color: isDarkMode ? Colors.white60 : AppColors.textSecondary,
                           height: 1.4,
                         ),
                         maxLines: 2,
@@ -510,28 +519,28 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                           Icon(
                             Icons.person_outline_rounded,
                             size: 14,
-                            color: AppColors.textHint,
+                            color: isDarkMode ? Colors.white54 : AppColors.textHint,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             announcement.creatorDisplayName,
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textHint,
+                              color: isDarkMode ? Colors.white54 : AppColors.textHint,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Icon(
                             Icons.access_time_rounded,
                             size: 14,
-                            color: AppColors.textHint,
+                            color: isDarkMode ? Colors.white54 : AppColors.textHint,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             _formatDate(announcement.createdAt),
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textHint,
+                              color: isDarkMode ? Colors.white54 : AppColors.textHint,
                             ),
                           ),
                         ],
@@ -542,7 +551,7 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: isDarkMode ? Colors.white12 : AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(

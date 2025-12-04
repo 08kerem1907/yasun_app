@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../constants/colors.dart';
+import '../constants/colors.dart'; // Eğer AppColors içerisindeki özel renkler farklı bir yerde kullanılmıyorsa bu import kaldırılabilir. Tema renkleri için gerek kalmadı.
 import '../models/user_model.dart';
 import '../models/team_model.dart';
 import '../services/user_service.dart';
 import '../services/team_service.dart';
 import 'admin_add_user_screen_fixed.dart';
 import 'admin_create_team_screen.dart';
+
+// Dark Mode'da da sabit kalması gereken özel durum renkleri.
+// (Uygulamanın tema dışı renkleri olarak kabul edilmiştir)
+const Color _primaryColor = Color(0xFF4A148C); // AppColors.primary
+const Color _successColor = Color(0xFF4CAF50); // AppColors.success
+const Color _warningColor = Color(0xFFFFC107); // AppColors.warning
+const Color _errorColor = Color(0xFFF44336); // AppColors.error
+const Color _infoColor = Color(0xFF2196F3); // Ek Bilgi rengi
 
 // InheritedWidget ile tab değiştirme fonksiyonunu paylaş
 class UsersListNavigator extends InheritedWidget {
@@ -60,6 +68,8 @@ class _UsersListScreenState extends State<UsersListScreen>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return UsersListNavigator(
       changeTab: (int index) {
         if (_tabController.index != index) {
@@ -68,24 +78,23 @@ class _UsersListScreenState extends State<UsersListScreen>
       },
       child: Scaffold(
         body: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.backgroundGradient,
-          ),
+          // Gradient yerine tema background rengi
+          color: colorScheme.background,
           child: SafeArea(
             child: Column(
               children: [
-                _buildAppBar(),
-                _buildTabBar(),
-                _buildSearchBar(),
+                _buildAppBar(colorScheme),
+                _buildTabBar(colorScheme),
+                _buildSearchBar(colorScheme),
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildAllUsersList(),
-                      _buildRoleBasedList('admin'),
-                      _buildRoleBasedList('captain'),
-                      _buildRoleBasedList('user'),
-                      _buildTeamsList(),
+                      _buildAllUsersList(colorScheme),
+                      _buildRoleBasedList('admin', colorScheme),
+                      _buildRoleBasedList('captain', colorScheme),
+                      _buildRoleBasedList('user', colorScheme),
+                      _buildTeamsList(colorScheme),
                     ],
                   ),
                 ),
@@ -99,14 +108,16 @@ class _UsersListScreenState extends State<UsersListScreen>
 
 
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // Colors.white yerine tema surface rengi
+        color: colorScheme.surface,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            // Colors.black yerine tema shadow rengi
+            color: colorScheme.shadow.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -122,19 +133,22 @@ class _UsersListScreenState extends State<UsersListScreen>
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
+                  // Gradient yerine tema primary rengi
+                  color: colorScheme.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.people, color: Colors.white, size: 24),
+                // Colors.white yerine tema onPrimary rengi
+                child: Icon(Icons.people, color: colorScheme.onPrimary, size: 24),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Text(
                   'Kullanıcı Listesi',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    // AppColors.textPrimary yerine tema onSurface rengi
+                    color: colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -150,11 +164,13 @@ class _UsersListScreenState extends State<UsersListScreen>
                 child: Container(
                   height: 44,
                   decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
+                    // Gradient yerine tema primary rengi
+                    color: colorScheme.primary,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
+                        // AppColors.primary yerine tema primary rengi
+                        color: colorScheme.primary.withOpacity(0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -181,13 +197,14 @@ class _UsersListScreenState extends State<UsersListScreen>
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                     ),
-                    icon: const Icon(Icons.person_add, size: 20, color: Colors.white),
-                    label: const Text(
+                    icon: Icon(Icons.person_add, size: 20, color: colorScheme.onPrimary),
+                    label: Text(
                       'Kullanıcı Ekle',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        // Colors.white yerine tema onPrimary rengi
+                        color: colorScheme.onPrimary,
                       ),
                     ),
                   ),
@@ -200,13 +217,14 @@ class _UsersListScreenState extends State<UsersListScreen>
                 child: Container(
                   height: 44,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF10B981), Color(0xFF059669)],
-                    ),
+                    // Sabit yeşil renk kullanılıyor, tema ile değiştirilebilir veya sabit kalabilir.
+                    // Dark mode'da da sabit kalması için _successColor kullanalım.
+                    color: _successColor,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.success.withOpacity(0.3),
+                        // AppColors.success yerine sabit success rengi
+                        color: _successColor.withOpacity(0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -233,13 +251,14 @@ class _UsersListScreenState extends State<UsersListScreen>
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                     ),
-                    icon: const Icon(Icons.group_add, size: 20, color: Colors.white),
-                    label: const Text(
+                    icon: Icon(Icons.group_add, size: 20, color: colorScheme.onPrimary),
+                    label: Text(
                       'Takım Oluştur',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        // Colors.white yerine tema onPrimary rengi
+                        color: colorScheme.onPrimary,
                       ),
                     ),
                   ),
@@ -252,15 +271,19 @@ class _UsersListScreenState extends State<UsersListScreen>
     );
   }
 
-  Widget _buildTabBar() {
+  Widget _buildTabBar(ColorScheme colorScheme) {
     return Container(
-      color: Colors.white,
+      // Colors.white yerine tema surface rengi
+      color: colorScheme.surface,
       child: TabBar(
         controller: _tabController,
         isScrollable: true,
-        indicatorColor: AppColors.primary,
-        labelColor: AppColors.primary,
-        unselectedLabelColor: AppColors.textSecondary,
+        // AppColors.primary yerine tema primary rengi
+        indicatorColor: colorScheme.primary,
+        // AppColors.primary yerine tema primary rengi
+        labelColor: colorScheme.primary,
+        // AppColors.textSecondary yerine tema onSurfaceVariant rengi
+        unselectedLabelColor: colorScheme.onSurfaceVariant,
         labelStyle: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -280,40 +303,44 @@ class _UsersListScreenState extends State<UsersListScreen>
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      // Colors.white yerine tema surface rengi
+      color: colorScheme.surface,
       child: TextField(
         onChanged: (value) {
           setState(() => _searchQuery = value.toLowerCase());
         },
         decoration: InputDecoration(
           hintText: 'İsim veya email ile ara...',
-          hintStyle: const TextStyle(color: AppColors.textHint),
-          prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
+          // AppColors.textHint/AppColors.textSecondary yerine tema onSurfaceVariant rengi
+          hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+          prefixIcon: Icon(Icons.search, color: colorScheme.onSurfaceVariant),
           filled: true,
-          fillColor: AppColors.background,
+          // AppColors.background yerine hafif bir Surface rengi tonu
+          fillColor: colorScheme.surfaceContainerHighest,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
+        style: TextStyle(color: colorScheme.onSurface),
       ),
     );
   }
 
-  Widget _buildAllUsersList() {
+  Widget _buildAllUsersList(ColorScheme colorScheme) {
     return StreamBuilder<List<UserModel>>(
       stream: _userService.getAllUsers(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('Hata: ${snapshot.error}'));
+          return Center(child: Text('Hata: ${snapshot.error}', style: TextStyle(color: colorScheme.error)));
         }
 
         var users = snapshot.data ?? [];
@@ -327,30 +354,30 @@ class _UsersListScreenState extends State<UsersListScreen>
         }
 
         if (users.isEmpty) {
-          return _buildEmptyState('Kullanıcı bulunamadı');
+          return _buildEmptyState('Kullanıcı bulunamadı', colorScheme);
         }
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: users.length,
           itemBuilder: (context, index) {
-            return _buildUserCard(users[index]);
+            return _buildUserCard(users[index], colorScheme);
           },
         );
       },
     );
   }
 
-  Widget _buildRoleBasedList(String role) {
+  Widget _buildRoleBasedList(String role, ColorScheme colorScheme) {
     return StreamBuilder<List<UserModel>>(
       stream: _userService.getUsersByRole(role),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('Hata: ${snapshot.error}'));
+          return Center(child: Text('Hata: ${snapshot.error}', style: TextStyle(color: colorScheme.error)));
         }
 
         var users = snapshot.data ?? [];
@@ -370,30 +397,30 @@ class _UsersListScreenState extends State<UsersListScreen>
           else emptyMessage += 'kullanıcı';
           emptyMessage += ' bulunmamaktadır.';
 
-          return _buildEmptyState(emptyMessage);
+          return _buildEmptyState(emptyMessage, colorScheme);
         }
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: users.length,
           itemBuilder: (context, index) {
-            return _buildUserCard(users[index]);
+            return _buildUserCard(users[index], colorScheme);
           },
         );
       },
     );
   }
 
-  Widget _buildTeamsList() {
+  Widget _buildTeamsList(ColorScheme colorScheme) {
     return StreamBuilder<List<TeamModel>>(
       stream: _teamService.getAllTeams(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('Hata: ${snapshot.error}'));
+          return Center(child: Text('Hata: ${snapshot.error}', style: TextStyle(color: colorScheme.error)));
         }
 
         var teams = snapshot.data ?? [];
@@ -406,31 +433,33 @@ class _UsersListScreenState extends State<UsersListScreen>
         }
 
         if (teams.isEmpty) {
-          return _buildEmptyState('Henüz takım oluşturulmamış.');
+          return _buildEmptyState('Henüz takım oluşturulmamış.', colorScheme);
         }
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: teams.length,
           itemBuilder: (context, index) {
-            return _buildTeamCard(teams[index]);
+            return _buildTeamCard(teams[index], colorScheme);
           },
         );
       },
     );
   }
 
-  Widget _buildTeamCard(TeamModel team) {
+  Widget _buildTeamCard(TeamModel team, ColorScheme colorScheme) {
     final isExpanded = _expandedTeams.contains(team.id);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // Colors.white yerine tema surface rengi
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            // Colors.black yerine tema shadow rengi
+            color: colorScheme.shadow.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -460,7 +489,8 @@ class _UsersListScreenState extends State<UsersListScreen>
                     turns: isExpanded ? 0.25 : 0,
                     child: Icon(
                       Icons.chevron_right,
-                      color: AppColors.primary,
+                      // AppColors.primary yerine tema primary rengi
+                      color: colorScheme.primary,
                       size: 28,
                     ),
                   ),
@@ -471,12 +501,14 @@ class _UsersListScreenState extends State<UsersListScreen>
                     width: 50,
                     height: 50,
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
+                      // Gradient yerine tema primary rengi
+                      color: colorScheme.primary,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    // Colors.white yerine tema onPrimary rengi
+                    child: Icon(
                       Icons.groups,
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       size: 26,
                     ),
                   ),
@@ -489,18 +521,20 @@ class _UsersListScreenState extends State<UsersListScreen>
                       children: [
                         Text(
                           team.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
+                            // AppColors.textPrimary yerine tema onSurface rengi
+                            color: colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${team.memberIds.length} üye',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: AppColors.textSecondary,
+                            // AppColors.textSecondary yerine tema onSurfaceVariant rengi
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -511,15 +545,17 @@ class _UsersListScreenState extends State<UsersListScreen>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
+                      // AppColors.primary yerine tema primary rengi
+                      color: colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       isExpanded ? 'Kapat' : 'Aç',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
+                        // AppColors.primary yerine tema primary rengi
+                        color: colorScheme.primary,
                       ),
                     ),
                   ),
@@ -530,22 +566,23 @@ class _UsersListScreenState extends State<UsersListScreen>
 
           // Takım üyeleri (genişletildiğinde)
           if (isExpanded) ...[
-            const Divider(height: 1),
-            _buildTeamMembers(team),
+            // Divider yerine tema outline rengi
+            Divider(height: 1, color: colorScheme.outline),
+            _buildTeamMembers(team, colorScheme),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildTeamMembers(TeamModel team) {
+  Widget _buildTeamMembers(TeamModel team, ColorScheme colorScheme) {
     return FutureBuilder<UserModel?>(
       future: _userService.getUser(team.captainId),
       builder: (context, captainSnapshot) {
         if (captainSnapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(20),
-            child: Center(child: CircularProgressIndicator()),
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Center(child: CircularProgressIndicator(color: colorScheme.primary)),
           );
         }
 
@@ -555,9 +592,9 @@ class _UsersListScreenState extends State<UsersListScreen>
           stream: _userService.getTeamMembers(team.captainId),
           builder: (context, membersSnapshot) {
             if (membersSnapshot.connectionState == ConnectionState.waiting) {
-              return const Padding(
-                padding: EdgeInsets.all(20),
-                child: Center(child: CircularProgressIndicator()),
+              return Padding(
+                padding: const EdgeInsets.all(20),
+                child: Center(child: CircularProgressIndicator(color: colorScheme.primary)),
               );
             }
 
@@ -576,7 +613,8 @@ class _UsersListScreenState extends State<UsersListScreen>
                           width: 4,
                           height: 50,
                           decoration: BoxDecoration(
-                            color: AppColors.warning,
+                            // AppColors.warning yerine sabit _warningColor
+                            color: _warningColor,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -584,9 +622,10 @@ class _UsersListScreenState extends State<UsersListScreen>
                         Expanded(
                           child: _buildTeamMemberItem(
                             captain,
+                            colorScheme,
                             isLeader: true,
                             icon: Icons.star,
-                            iconColor: AppColors.warning,
+                            iconColor: _warningColor,
                           ),
                         ),
                       ],
@@ -595,14 +634,15 @@ class _UsersListScreenState extends State<UsersListScreen>
 
                   if (members.isNotEmpty) ...[
                     const SizedBox(height: 16),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 16),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16),
                       child: Text(
                         'Takım Üyeleri',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
+                          // AppColors.textSecondary yerine tema onSurfaceVariant rengi
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ),
@@ -618,7 +658,8 @@ class _UsersListScreenState extends State<UsersListScreen>
                               width: 4,
                               height: 50,
                               decoration: BoxDecoration(
-                                color: AppColors.success,
+                                // AppColors.success yerine sabit _successColor
+                                color: _successColor,
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),
@@ -626,9 +667,10 @@ class _UsersListScreenState extends State<UsersListScreen>
                             Expanded(
                               child: _buildTeamMemberItem(
                                 member,
+                                colorScheme,
                                 isLeader: false,
                                 icon: Icons.person,
-                                iconColor: AppColors.success,
+                                iconColor: _successColor,
                               ),
                             ),
                           ],
@@ -643,26 +685,30 @@ class _UsersListScreenState extends State<UsersListScreen>
                       padding: const EdgeInsets.all(16),
                       margin: const EdgeInsets.only(left: 16),
                       decoration: BoxDecoration(
-                        color: AppColors.background,
+                        // AppColors.background yerine tema surfaceContainer rengi
+                        color: colorScheme.surfaceContainer,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.border,
+                          // AppColors.border yerine tema outline rengi
+                          color: colorScheme.outline,
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
                         children: [
                           Icon(
                             Icons.info_outline,
                             size: 20,
-                            color: AppColors.textSecondary,
+                            // AppColors.textSecondary yerine tema onSurfaceVariant rengi
+                            color: colorScheme.onSurfaceVariant,
                           ),
-                          SizedBox(width: 12),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               'Bu takımda henüz üye bulunmamaktadır.',
                               style: TextStyle(
                                 fontSize: 13,
-                                color: AppColors.textSecondary,
+                                // AppColors.textSecondary yerine tema onSurfaceVariant rengi
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ),
@@ -680,7 +726,8 @@ class _UsersListScreenState extends State<UsersListScreen>
   }
 
   Widget _buildTeamMemberItem(
-      UserModel user, {
+      UserModel user,
+      ColorScheme colorScheme, {
         required bool isLeader,
         required IconData icon,
         required Color iconColor,
@@ -688,12 +735,14 @@ class _UsersListScreenState extends State<UsersListScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        // AppColors.background yerine tema surfaceContainerLow rengi
+        color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
+          // AppColors.warning/AppColors.border yerine sabit _warningColor/tema outline rengi
           color: isLeader
-              ? AppColors.warning.withOpacity(0.3)
-              : AppColors.border,
+              ? _warningColor.withOpacity(0.3)
+              : colorScheme.outline,
         ),
       ),
       child: Row(
@@ -721,10 +770,11 @@ class _UsersListScreenState extends State<UsersListScreen>
                     Expanded(
                       child: Text(
                         user.displayName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          // AppColors.textPrimary yerine tema onSurface rengi
+                          color: colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -735,7 +785,8 @@ class _UsersListScreenState extends State<UsersListScreen>
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.warning.withOpacity(0.1),
+                          // AppColors.warning yerine sabit _warningColor
+                          color: _warningColor.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: const Text(
@@ -743,7 +794,8 @@ class _UsersListScreenState extends State<UsersListScreen>
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.warning,
+                            // AppColors.warning yerine sabit _warningColor
+                            color: _warningColor,
                           ),
                         ),
                       ),
@@ -752,9 +804,10 @@ class _UsersListScreenState extends State<UsersListScreen>
                 const SizedBox(height: 4),
                 Text(
                   user.email,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textSecondary,
+                    // AppColors.textSecondary yerine tema onSurfaceVariant rengi
+                    color: colorScheme.onSurfaceVariant,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -766,15 +819,17 @@ class _UsersListScreenState extends State<UsersListScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              // AppColors.primary yerine tema primary rengi
+              color: colorScheme.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               '${user.totalScore} puan',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: AppColors.primary,
+                // AppColors.primary yerine tema primary rengi
+                color: colorScheme.primary,
               ),
             ),
           ),
@@ -783,26 +838,29 @@ class _UsersListScreenState extends State<UsersListScreen>
     );
   }
 
-  Widget _buildUserCard(UserModel user) {
+  Widget _buildUserCard(UserModel user, ColorScheme colorScheme) {
     Color roleColor;
     IconData roleIcon;
     String roleText;
 
     switch (user.role) {
       case 'admin':
-        roleColor = AppColors.primary;
+      // AppColors.primary yerine sabit _primaryColor (veya colorScheme.primary)
+        roleColor = colorScheme.primary;
         roleIcon = Icons.shield;
         roleText = "Yönetici";
         break;
 
       case 'captain':
-        roleColor = AppColors.warning;
+      // AppColors.warning yerine sabit _warningColor
+        roleColor = _warningColor;
         roleIcon = Icons.star;
         roleText = "Kaptan";
         break;
 
       default:
-        roleColor = AppColors.success;
+      // AppColors.success yerine sabit _successColor
+        roleColor = _successColor;
         roleIcon = Icons.person;
         roleText = "Kullanıcı";
         break;
@@ -812,11 +870,13 @@ class _UsersListScreenState extends State<UsersListScreen>
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // Colors.white yerine tema surface rengi
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            // Colors.black yerine tema shadow rengi
+            color: colorScheme.shadow.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -843,18 +903,20 @@ class _UsersListScreenState extends State<UsersListScreen>
               children: [
                 Text(
                   user.displayName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    // AppColors.textPrimary yerine tema onSurface rengi
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   user.email,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.textSecondary,
+                    // AppColors.textSecondary yerine tema onSurfaceVariant rengi
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -885,8 +947,9 @@ class _UsersListScreenState extends State<UsersListScreen>
 
               // Silme butonu
               IconButton(
-                icon: const Icon(Icons.delete_forever, color: AppColors.error),
-                onPressed: () => _showDeleteConfirmation(user),
+                // AppColors.error yerine sabit _errorColor
+                icon: const Icon(Icons.delete_forever, color: _errorColor),
+                onPressed: () => _showDeleteConfirmation(user, colorScheme),
                 tooltip: 'Kullanıcıyı Sil',
               ),
             ],
@@ -900,17 +963,18 @@ class _UsersListScreenState extends State<UsersListScreen>
 
 
   // Silme onay pop-up'ı
-  void _showDeleteConfirmation(UserModel user) async {
+  void _showDeleteConfirmation(UserModel user, ColorScheme colorScheme) async {
     // Mevcut kullanıcıyı al (silme işlemini yapan yönetici)
     final currentUser = await _userService.getCurrentUser();
 
     if (currentUser == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Hata: Yönetici bilgisi alınamadı.'),
-            backgroundColor: AppColors.error,
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: const Text('Hata: Yönetici bilgisi alınamadı.'),
+            // AppColors.error yerine sabit _errorColor
+            backgroundColor: _errorColor,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -920,34 +984,42 @@ class _UsersListScreenState extends State<UsersListScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Kullanıcıyı Sil'),
+        // AlertDialog arka planı
+        backgroundColor: colorScheme.surface,
+        title: Text('Kullanıcıyı Sil', style: TextStyle(color: colorScheme.onSurface)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${user.displayName} adlı kullanıcıyı silmek istediğinize emin misiniz?'),
+            Text(
+              '${user.displayName} adlı kullanıcıyı silmek istediğinize emin misiniz?',
+              style: TextStyle(color: colorScheme.onSurfaceVariant),
+            ),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                // AppColors.error yerine sabit _errorColor
+                color: _errorColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                border: Border.all(color: _errorColor.withOpacity(0.3)),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.warning_amber,
-                    color: AppColors.error,
+                    // AppColors.error yerine sabit _errorColor
+                    color: _errorColor,
                     size: 20,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Bu işlem geri alınamaz ve kullanıcının tüm verileri silinir!',
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.error,
+                        // AppColors.error yerine sabit _errorColor
+                        color: _errorColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -960,7 +1032,7 @@ class _UsersListScreenState extends State<UsersListScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
+            child: Text('İptal', style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -977,7 +1049,8 @@ class _UsersListScreenState extends State<UsersListScreen>
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('${user.displayName} başarıyla silindi'),
-                      backgroundColor: AppColors.success,
+                      // AppColors.success yerine sabit _successColor
+                      backgroundColor: _successColor,
                       duration: const Duration(seconds: 2),
                     ),
                   );
@@ -989,7 +1062,8 @@ class _UsersListScreenState extends State<UsersListScreen>
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Hata: $e'),
-                      backgroundColor: AppColors.error,
+                      // AppColors.error yerine sabit _errorColor
+                      backgroundColor: _errorColor,
                       duration: const Duration(seconds: 3),
                     ),
                   );
@@ -997,9 +1071,11 @@ class _UsersListScreenState extends State<UsersListScreen>
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
+              // AppColors.error yerine sabit _errorColor
+              backgroundColor: _errorColor,
             ),
-            child: const Text('Sil', style: TextStyle(color: Colors.white)),
+            // Colors.white yerine tema onPrimary rengi
+            child: Text('Sil', style: TextStyle(color: colorScheme.onError)),
           ),
         ],
       ),
@@ -1031,7 +1107,7 @@ class _UsersListScreenState extends State<UsersListScreen>
     );
   }
 
-  Widget _buildEmptyState(String message) {
+  Widget _buildEmptyState(String message, ColorScheme colorScheme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1039,14 +1115,16 @@ class _UsersListScreenState extends State<UsersListScreen>
           Icon(
             Icons.people_outline,
             size: 80,
-            color: Colors.grey.withOpacity(0.3),
+            // Colors.grey.withOpacity(0.3) yerine tema outline rengi
+            color: colorScheme.outline,
           ),
           const SizedBox(height: 16),
           Text(
             message,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
-              color: AppColors.textSecondary,
+              // AppColors.textSecondary yerine tema onSurfaceVariant rengi
+              color: colorScheme.onSurfaceVariant,
             ),
             textAlign: TextAlign.center,
           ),

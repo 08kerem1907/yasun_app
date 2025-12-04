@@ -47,22 +47,33 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     if (_currentUser == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: colorScheme.primary,
+          ),
+        ),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: colorScheme.surface,
         title: Row(
-          children: const [
+          children: [
             Icon(
               Icons.leaderboard_rounded,
-              color: Colors.deepPurple, // veya Colors.indigo
+              color: colorScheme.primary,
             ),
-            SizedBox(width: 8),
-            Text('Puan Tablosu'),
+            const SizedBox(width: 8),
+            Text(
+              'Puan Tablosu',
+              style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+            ),
           ],
         ),
         actions: [
@@ -76,6 +87,8 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
                 });
               }
             },
+            dropdownColor: colorScheme.surface,
+            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
             items: const [
               DropdownMenuItem(
                 value: ScoreSortType.totalScore,
@@ -88,7 +101,10 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
             ],
           ),
           IconButton(
-            icon: Icon(_sortAscending ? Icons.arrow_upward : Icons.arrow_downward),
+            icon: Icon(
+              _sortAscending ? Icons.arrow_upward : Icons.arrow_downward,
+              color: colorScheme.onSurface,
+            ),
             onPressed: () {
               setState(() {
                 _sortAscending = !_sortAscending;
@@ -97,18 +113,29 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
           ),
         ],
       ),
-
       body: StreamBuilder<List<UserModel>>(
         stream: _userService.getAllUsers(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary),
+            );
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Hata: ${snapshot.error}'));
+            return Center(
+              child: Text(
+                'Hata: ${snapshot.error}',
+                style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
+              ),
+            );
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Henüz kullanıcı bulunmamaktadır.'));
+            return Center(
+              child: Text(
+                'Henüz kullanıcı bulunmamaktadır.',
+                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+              ),
+            );
           }
 
           List<UserModel> users = snapshot.data!;
@@ -134,13 +161,14 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
               final currentMonthKey = _getCurrentMonthKey();
               final monthlyScore = user.monthlyScores[currentMonthKey] ?? 0;
 
-              // Görev Sonuçları Butonunun Görünürlük Mantığı için değişkenler
+              // Görev Sonuçları Butonunun Görünürlük Mantığı
               final bool isOwnProfile = _currentUser!.uid == user.uid;
               final bool isTeamMember = _currentUser!.teamId != null && _currentUser!.teamId == user.teamId;
-              final bool canSeeOthersResults = _currentUser!.isAdmin || // Yönetici herkesi görür
-                  (isTeamMember && !isOwnProfile); // Kaptan/Üye kendi takım arkadaşını görür
+              final bool canSeeOthersResults = _currentUser!.isAdmin ||
+                  (isTeamMember && !isOwnProfile);
 
               return Card(
+                color: colorScheme.surface,
                 margin: const EdgeInsets.all(8.0),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -149,78 +177,72 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
                     children: [
                       Text(
                         user.displayName,
-                        style: const TextStyle(
-                          fontSize: 18,
+                        style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.workspace_premium_rounded, color: Colors.deepPurple),
+                          Icon(Icons.workspace_premium_rounded, color: colorScheme.primary),
                           const SizedBox(width: 6),
-                          Text('Rol: ${user.roleDisplayName}'),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.military_tech_rounded, color: Colors.amber),
-                          const SizedBox(width: 6),
-                          Text('Toplam Puan: ${user.totalScore}'),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.trending_up_rounded, color: Colors.blueAccent),
-                          const SizedBox(width: 6),
-                          Text('Bu Ayki Puan: $monthlyScore'),
-                        ],
-                      ),
-
-
-                      if (isOwnProfile)
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => GorevSonuclariScreen(user: user),
-                                ),
-                              );
-                            },
-                            child: const Text('Kendi Görev Sonuçlarım'),
+                          Text(
+                            'Rol: ${user.roleDisplayName}',
+                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
-                        )
-                      else if (canSeeOthersResults)
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => GorevSonuclariScreen(user: user),
-                                ),
-                              );
-                            },
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: const [
-                                Icon(
-                                  Icons.assignment_turned_in_rounded,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
-                                SizedBox(width: 6),
-                                Text('Görev Sonuçları'),
-                              ],
-                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.military_tech_rounded, color: colorScheme.secondary),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Toplam Puan: ${user.totalScore}',
+                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.trending_up_rounded, color: colorScheme.tertiary ?? colorScheme.primary),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Bu Ayki Puan: $monthlyScore',
+                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => GorevSonuclariScreen(user: user),
+                              ),
+                            );
+                          },
+                          child: isOwnProfile
+                              ? const Text('Kendi Görev Sonuçlarım')
+                              : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.assignment_turned_in_rounded, size: 18),
+                              SizedBox(width: 6),
+                              Text('Görev Sonuçları'),
+                            ],
                           ),
                         ),
+                      ),
                     ],
                   ),
                 ),

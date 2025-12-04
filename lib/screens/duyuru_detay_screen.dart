@@ -24,7 +24,7 @@ class DuyuruDetayScreen extends StatelessWidget {
     return "${date.day} ${months[date.month - 1]} ${date.year}, ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
   }
 
-  Future<void> _showDeleteDialog(BuildContext context) async {
+  Future<void> _showDeleteDialog(BuildContext context, bool isDarkMode) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => Dialog(
@@ -32,6 +32,10 @@ class DuyuruDetayScreen extends StatelessWidget {
         child: Container(
           constraints: const BoxConstraints(maxWidth: 400),
           padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: isDarkMode ? Colors.grey[900] : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -48,21 +52,21 @@ class DuyuruDetayScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'Duyuruyu Sil',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: isDarkMode ? Colors.white : AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Bu duyuruyu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
                   height: 1.5,
                 ),
               ),
@@ -74,17 +78,18 @@ class DuyuruDetayScreen extends StatelessWidget {
                       onPressed: () => Navigator.pop(context, false),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: const BorderSide(color: AppColors.border),
+                        side: BorderSide(
+                            color: isDarkMode ? Colors.white24 : AppColors.border),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'İptal',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
+                          color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
                         ),
                       ),
                     ),
@@ -127,8 +132,10 @@ class DuyuruDetayScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: isDarkMode ? Colors.grey[900] : AppColors.background,
       body: CustomScrollView(
         slivers: [
           // Modern SliverAppBar
@@ -136,7 +143,7 @@ class DuyuruDetayScreen extends StatelessWidget {
             expandedHeight: 120,
             pinned: true,
             elevation: 0,
-            backgroundColor: AppColors.primary,
+            backgroundColor: Colors.transparent,
             flexibleSpace: Container(
               decoration: const BoxDecoration(
                 gradient: AppColors.primaryGradient,
@@ -185,7 +192,7 @@ class DuyuruDetayScreen extends StatelessWidget {
                     ),
                     child: const Icon(Icons.delete_rounded, size: 20),
                   ),
-                  onPressed: () => _showDeleteDialog(context),
+                  onPressed: () => _showDeleteDialog(context, isDarkMode),
                 ),
                 const SizedBox(width: 8),
               ],
@@ -282,11 +289,13 @@ class DuyuruDetayScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: isDarkMode ? Colors.grey[850] : Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: isDarkMode
+                              ? Colors.black54
+                              : Colors.black.withOpacity(0.05),
                           blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
@@ -310,12 +319,12 @@ class DuyuruDetayScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 10),
-                            const Text(
+                            Text(
                               'İçerik',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+                                color: isDarkMode ? Colors.white70 : AppColors.textPrimary,
                               ),
                             ),
                           ],
@@ -323,9 +332,9 @@ class DuyuruDetayScreen extends StatelessWidget {
                         const SizedBox(height: 16),
                         Text(
                           announcement.content,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 15,
-                            color: AppColors.textPrimary,
+                            color: isDarkMode ? Colors.white : AppColors.textPrimary,
                             height: 1.6,
                           ),
                         ),
@@ -340,6 +349,7 @@ class DuyuruDetayScreen extends StatelessWidget {
                     subtitle: announcement.creatorDisplayName,
                     date: _formatDate(announcement.createdAt),
                     color: AppColors.info,
+                    isDarkMode: isDarkMode,
                   ),
                   if (announcement.lastEditorDisplayName != null) ...[
                     const SizedBox(height: 12),
@@ -349,6 +359,7 @@ class DuyuruDetayScreen extends StatelessWidget {
                       subtitle: announcement.lastEditorDisplayName!,
                       date: _formatDate(announcement.lastEditedAt!),
                       color: AppColors.warning,
+                      isDarkMode: isDarkMode,
                     ),
                   ],
                   const SizedBox(height: 40),
@@ -367,16 +378,17 @@ class DuyuruDetayScreen extends StatelessWidget {
     required String subtitle,
     required String date,
     required Color color,
+    required bool isDarkMode,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? Colors.grey[850] : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: isDarkMode ? Colors.black54 : Colors.black.withOpacity(0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -405,17 +417,17 @@ class DuyuruDetayScreen extends StatelessWidget {
                   title,
                   style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textHint,
+                    color: isDarkMode ? Colors.white54 : AppColors.textHint,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: isDarkMode ? Colors.white : AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -424,7 +436,7 @@ class DuyuruDetayScreen extends StatelessWidget {
                     Icon(
                       Icons.access_time_rounded,
                       size: 12,
-                      color: AppColors.textHint,
+                      color: isDarkMode ? Colors.white54 : AppColors.textHint,
                     ),
                     const SizedBox(width: 4),
                     Expanded(
@@ -432,7 +444,7 @@ class DuyuruDetayScreen extends StatelessWidget {
                         date,
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textHint,
+                          color: isDarkMode ? Colors.white54 : AppColors.textHint,
                         ),
                       ),
                     ),
