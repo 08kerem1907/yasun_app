@@ -16,6 +16,8 @@ import 'screens/admin_manage_users_screen.dart';
 import 'screens/role_management_screen.dart';
 import 'screens/my_team_screen.dart';
 import 'firebase_options.dart';
+import 'theme_provider.dart';
+import 'app_themes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,80 +40,42 @@ class MyApp extends StatelessWidget {
         Provider<AuthService>(
           create: (_) => AuthService(),
         ),
-      ],
-      child: MaterialApp(
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('tr', 'TR'), // Türkçe
-          Locale('en', 'US'), // İngilizce (Varsayılan)
-        ],
-        locale: const Locale('tr', 'TR'), // Uygulamanın varsayılan dilini Türkçe yap
-        title: 'Ekip Yönetim Sistemi',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.primary,
-            primary: AppColors.primary,
-            secondary: AppColors.primaryLight,
-          ),
-          scaffoldBackgroundColor: AppColors.background,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.white,
-            foregroundColor: AppColors.textPrimary,
-            elevation: 0,
-          ),
-          cardTheme: CardThemeData(
-            color: AppColors.cardBackground,
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: AppColors.background,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.borderFocused, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
+        ChangeNotifierProvider<ThemeProvider>(
+          create: (_) => ThemeProvider(),
         ),
-        home: const AuthWrapper(),
-        routes: {
-          '/login': (context) => const LoginScreen(),
-          '/home': (context) => const HomeScreen(),
-          '/setup': (context) => const SetupScreen(),
-          '/score_table': (context) => const ScoreTableScreen(),
-          '/user_task_management': (context) => const UserTaskManagementScreen(),
-          '/captain_task_management': (context) => const CaptainTaskManagementScreen(),
-          '/admin_task_management': (context) => const AdminTaskManagementScreen(),
-          '/admin_manage_users': (context) => const AdminManageUsersScreen(),
-          '/role_management': (context) => const RoleManagementScreen(),
-          '/my_team': (context) => const MyTeamScreen(),
+      ],
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('tr', 'TR'), // Türkçe
+              Locale('en', 'US'), // İngilizce (Varsayılan)
+            ],
+            locale: const Locale('tr', 'TR'), // Uygulamanın varsayılan dilini Türkçe yap
+            title: 'Ekip Yönetim Sistemi',
+            debugShowCheckedModeBanner: false,
+            themeMode: themeProvider.themeMode,
+            theme: buildLightTheme(),
+            darkTheme: buildDarkTheme(),
+            home: const AuthWrapper(),
+            routes: {
+              '/login': (context) => const LoginScreen(),
+              '/home': (context) => const HomeScreen(),
+              '/setup': (context) => const SetupScreen(),
+              '/score_table': (context) => const ScoreTableScreen(),
+              '/user_task_management': (context) => const UserTaskManagementScreen(),
+              '/captain_task_management': (context) => const CaptainTaskManagementScreen(),
+              '/admin_task_management': (context) => const AdminTaskManagementScreen(),
+              '/admin_manage_users': (context) => const AdminManageUsersScreen(),
+              '/role_management': (context) => const RoleManagementScreen(),
+              '/my_team': (context) => const MyTeamScreen(),
+            },
+          );
         },
       ),
     );

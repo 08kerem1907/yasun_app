@@ -21,14 +21,13 @@ ThemeData buildLightTheme() {
       centerTitle: false,
     ),
     cardTheme: const CardThemeData(
-  color: Colors.white,
-  elevation: 2,
-  shadowColor: Colors.black12,
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.all(Radius.circular(12)),
-  ),
-),
-
+      color: Colors.white,
+      elevation: 2,
+      shadowColor: Colors.black12,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+    ),
     textTheme: const TextTheme(
       titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black87),
       titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
@@ -66,14 +65,13 @@ ThemeData buildDarkTheme() {
       centerTitle: false,
     ),
     cardTheme: const CardThemeData(
-  color: Colors.white,
-  elevation: 2,
-  shadowColor: Colors.black12,
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.all(Radius.circular(12)),
-  ),
-),
-
+      color: Color(0xFF1E1E1E),  // Dark tema için uygun koyu renk
+      elevation: 2,
+      shadowColor: Colors.black26,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+      ),
+    ),
     textTheme: const TextTheme(
       titleLarge: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
       titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
