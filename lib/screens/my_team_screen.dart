@@ -368,11 +368,18 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
 
         var members = snapshot.data!;
 
-        // Filtreleme
-        if (_selectedFilter == 'active') {
+        // Sıralama ve Filtreleme
+        if (_selectedFilter == 'all') {
+          // "Tümü" filtresi için alfabetik sıralama
+          members.sort((a, b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()));
+        } else if (_selectedFilter == 'active') {
+          // "Aktif" filtresi için filtreleme ve alfabetik sıralama
           members = members.where((m) => m.lastLogin != null).toList();
+          members.sort((a, b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()));
         } else if (_selectedFilter == 'top_score') {
-          // Puana göre sıralama yapılabilir (şimdilik sadece filtre)
+          // "En Yüksek Puan" filtresi için puana göre azalan sıralama
+          // UserModel'deki totalScore alanı kullanılıyor.
+          members.sort((a, b) => b.totalScore.compareTo(a.totalScore));
         }
 
         return ListView.builder(
@@ -385,7 +392,6 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
       },
     );
   }
-
   Widget _buildMemberCard(UserModel member, UserModel captain, ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
