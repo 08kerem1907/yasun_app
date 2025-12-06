@@ -303,6 +303,44 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
+  // Takım adını döndüren helper metot (teamId'den teamName'i çekmek için)
+  // TaskModel'de assignedToTeamName alanı olduğu için, bu metodu artık kullanmayacağız.
+  // Ancak FutureBuilder'ın ihtiyacı olduğu için, assignedToTeamName'i döndürecek şekilde güncelliyoruz.
+  Future<String> _getTeamName(String teamId, List<TaskModel> tasks) async {
+    if (teamId == 'Bilinmeyen Takım') return teamId;
+    // Gruplanmış görevler listesinden takım adını çekiyoruz.
+    final taskWithTeamName = tasks.firstWhere(
+          (task) => task.assignedToTeamId == teamId && task.assignedToTeamName != null,
+      orElse: () => tasks.firstWhere(
+            (task) => task.assignedToTeamId == teamId,
+        orElse: () => TaskModel(
+          id: '',
+          title: '',
+          description: '',
+          assignedToUid: '',
+          assignedToDisplayName: '',
+          assignedByUid: '',
+          assignedByDisplayName: '',
+          dueDate: DateTime.now(),
+          createdAt: DateTime.now(),
+        ),
+      ),
+    );
+    return taskWithTeamName.assignedToTeamName ?? teamId;
+  }
+
+  // SnackBar göstermek için helper metot
+  void _showSnackBar(String message, ColorScheme colorScheme) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: colorScheme.primary,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   Widget _buildAllTasksPage(ColorScheme colorScheme, TextTheme textTheme) {
     return StreamBuilder<List<TaskModel>>(
       stream: _taskService.getTasksForAdmin(),
@@ -336,11 +374,84 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
           );
         }
 
+        // 1. Görevleri takımlara göre grupla
+        final Map<String, List<TaskModel>> groupedTasks = {};
+        for (var task in tasks) {
+          // TaskModel'deki assignedToTeamId alanını kullanarak gruplama yapıyoruz.
+          final teamId = task.assignedToTeamId ?? 'Bilinmeyen Takım';
+          if (!groupedTasks.containsKey(teamId)) {
+            groupedTasks[teamId] = [];
+          }
+          groupedTasks[teamId]!.add(task);
+        }
+
+        // 2. Her takım içindeki görevleri veriliş (createdAt) ve teslim (dueDate) tarihine göre sırala
+        groupedTasks.forEach((teamId, taskList) {
+          taskList.sort((a, b) {
+            // Birincil sıralama: Veriliş tarihi (createdAt) - Eskiden yeniye (artan)
+            final dateComparison = a.createdAt.compareTo(b.createdAt);
+            if (dateComparison != 0) {
+              return dateComparison;
+            }
+            // İkincil sıralama: Teslim tarihi (dueDate) - Eskiden yeniye (artan)
+            // dueDate null olabilir, null'lar sona atılır.
+            if (a.dueDate == null && b.dueDate == null) return 0;
+            if (a.dueDate == null) return 1; // a sona
+            if (b.dueDate == null) return -1; // b sona
+            return a.dueDate!.compareTo(b.dueDate!);
+          });
+        });
+
+        // 3. Takımları alfabetik olarak sırala (teamId'ye göre)
+        final sortedTeamIds = groupedTasks.keys.toList()
+          ..sort();
+
+        // 4. Gruplanmış ve sıralanmış görevleri göster
         return ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: tasks.length,
+          itemCount: sortedTeamIds.length,
           itemBuilder: (context, index) {
-            return _buildTaskCard(tasks[index], showActions: true, colorScheme: colorScheme, textTheme: textTheme);
+            final teamId = sortedTeamIds[index];
+            final teamTasks = groupedTasks[teamId]!;
+
+            // teamId'den takım adını çekmek için FutureBuilder kullanacağız.
+            // Ancak TaskModel'de teamName alanı olduğunu varsayarak ilerleyelim.
+            // teamId'den takım adını çekmek için FutureBuilder kullanacağız.
+            // TaskModel'de assignedToTeamName alanı olduğu için, bu alanı kullanacağız.
+            return FutureBuilder<String>(
+              future: _getTeamName(teamId, teamTasks),
+              builder: (context, teamNameSnapshot) {
+                final teamName = teamNameSnapshot.data ?? teamId;
+
+                final taskCount = teamTasks.length;
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  child: ExpansionTile(
+                    tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    title: Text(
+                      teamName,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '$taskCount Görev',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    children: teamTasks.map((task) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: _buildTaskCard(task, showActions: true, colorScheme: colorScheme, textTheme: textTheme),
+                    )).toList(),
+                  ),
+                );
+              },
+            );
           },
         );
       },
