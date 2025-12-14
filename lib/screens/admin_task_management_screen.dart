@@ -7,7 +7,12 @@ import '../services/task_service.dart';
 import '../services/user_service.dart';
 
 class AdminTaskManagementScreen extends StatefulWidget {
-  const AdminTaskManagementScreen({super.key});
+  final int initialTabIndex;
+
+  const AdminTaskManagementScreen({
+    super.key,
+    this.initialTabIndex = 0,
+  });
 
   @override
   State<AdminTaskManagementScreen> createState() => _AdminTaskManagementScreenState();
@@ -22,6 +27,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialTabIndex;
     _getCurrentUser();
   }
 
@@ -228,7 +234,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                Icon(Icons.error_outline, size: 48, color: colorScheme.error),
                 const SizedBox(height: 16),
                 Text('Hata: ${snapshot.error}', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
               ],
@@ -272,7 +278,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                Icon(Icons.error_outline, size: 48, color: colorScheme.error),
                 const SizedBox(height: 16),
                 Text('Hata: ${snapshot.error}', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
               ],
@@ -303,12 +309,9 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
-  // Takım adını döndüren helper metot (teamId'den teamName'i çekmek için)
-  // TaskModel'de assignedToTeamName alanı olduğu için, bu metodu artık kullanmayacağız.
-  // Ancak FutureBuilder'ın ihtiyacı olduğu için, assignedToTeamName'i döndürecek şekilde güncelliyoruz.
-  Future<String> _getTeamName(String teamId, List<TaskModel> tasks) async {
+  String _getTeamName(String teamId, List<TaskModel> tasks) {
     if (teamId == 'Bilinmeyen Takım') return teamId;
-    // Gruplanmış görevler listesinden takım adını çekiyoruz.
+
     final taskWithTeamName = tasks.firstWhere(
           (task) => task.assignedToTeamId == teamId && task.assignedToTeamName != null,
       orElse: () => tasks.firstWhere(
@@ -329,12 +332,11 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     return taskWithTeamName.assignedToTeamName ?? teamId;
   }
 
-  // SnackBar göstermek için helper metot
-  void _showSnackBar(String message, ColorScheme colorScheme) {
+  void _showSnackBar(String message, ColorScheme colorScheme, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: colorScheme.primary,
+        backgroundColor: isError ? colorScheme.error : colorScheme.primary,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
       ),
@@ -354,7 +356,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                Icon(Icons.error_outline, size: 48, color: colorScheme.error),
                 const SizedBox(height: 16),
                 Text('Hata: ${snapshot.error}', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
               ],
@@ -374,10 +376,9 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
           );
         }
 
-        // 1. Görevleri takımlara göre grupla
+        // Görevleri takımlara göre grupla
         final Map<String, List<TaskModel>> groupedTasks = {};
         for (var task in tasks) {
-          // TaskModel'deki assignedToTeamId alanını kullanarak gruplama yapıyoruz.
           final teamId = task.assignedToTeamId ?? 'Bilinmeyen Takım';
           if (!groupedTasks.containsKey(teamId)) {
             groupedTasks[teamId] = [];
@@ -385,72 +386,54 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
           groupedTasks[teamId]!.add(task);
         }
 
-        // 2. Her takım içindeki görevleri veriliş (createdAt) ve teslim (dueDate) tarihine göre sırala
+        // Her takım içindeki görevleri sırala
         groupedTasks.forEach((teamId, taskList) {
           taskList.sort((a, b) {
-            // Birincil sıralama: Veriliş tarihi (createdAt) - Eskiden yeniye (artan)
             final dateComparison = a.createdAt.compareTo(b.createdAt);
-            if (dateComparison != 0) {
-              return dateComparison;
-            }
-            // İkincil sıralama: Teslim tarihi (dueDate) - Eskiden yeniye (artan)
-            // dueDate null olabilir, null'lar sona atılır.
+            if (dateComparison != 0) return dateComparison;
             if (a.dueDate == null && b.dueDate == null) return 0;
-            if (a.dueDate == null) return 1; // a sona
-            if (b.dueDate == null) return -1; // b sona
+            if (a.dueDate == null) return 1;
+            if (b.dueDate == null) return -1;
             return a.dueDate!.compareTo(b.dueDate!);
           });
         });
 
-        // 3. Takımları alfabetik olarak sırala (teamId'ye göre)
-        final sortedTeamIds = groupedTasks.keys.toList()
-          ..sort();
+        // Takımları alfabetik olarak sırala
+        final sortedTeamIds = groupedTasks.keys.toList()..sort();
 
-        // 4. Gruplanmış ve sıralanmış görevleri göster
         return ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: sortedTeamIds.length,
           itemBuilder: (context, index) {
             final teamId = sortedTeamIds[index];
             final teamTasks = groupedTasks[teamId]!;
+            final teamName = _getTeamName(teamId, teamTasks);
+            final taskCount = teamTasks.length;
 
-            // teamId'den takım adını çekmek için FutureBuilder kullanacağız.
-            // Ancak TaskModel'de teamName alanı olduğunu varsayarak ilerleyelim.
-            // teamId'den takım adını çekmek için FutureBuilder kullanacağız.
-            // TaskModel'de assignedToTeamName alanı olduğu için, bu alanı kullanacağız.
-            return FutureBuilder<String>(
-              future: _getTeamName(teamId, teamTasks),
-              builder: (context, teamNameSnapshot) {
-                final teamName = teamNameSnapshot.data ?? teamId;
-
-                final taskCount = teamTasks.length;
-
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  child: ExpansionTile(
-                    tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    title: Text(
-                      teamName,
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    subtitle: Text(
-                      '$taskCount Görev',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    children: teamTasks.map((task) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: _buildTaskCard(task, showActions: true, colorScheme: colorScheme, textTheme: textTheme),
-                    )).toList(),
+            return Card(
+              margin: const EdgeInsets.only(bottom: 16),
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: ExpansionTile(
+                tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                title: Text(
+                  teamName,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
                   ),
-                );
-              },
+                ),
+                subtitle: Text(
+                  '$taskCount Görev',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                children: teamTasks.map((task) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: _buildTaskCard(task, showActions: true, colorScheme: colorScheme, textTheme: textTheme),
+                )).toList(),
+              ),
             );
           },
         );
@@ -459,7 +442,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
   }
 
   Widget _buildTaskCard(TaskModel task, {required bool showActions, bool isMyTask = false, required ColorScheme colorScheme, required TextTheme textTheme}) {
-    Color statusColor = _getStatusColor(task.status);
+    Color statusColor = _getStatusColor(task.status, colorScheme);
     String statusText = _getStatusText(task.status);
 
     return Container(
@@ -478,7 +461,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _showTaskDetails(task),
+          onTap: () => _showTaskDetails(task, colorScheme, textTheme),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -549,20 +532,20 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.success.withOpacity(0.1),
+                      color: colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.stars, size: 16, color: AppColors.success),
+                        Icon(Icons.stars, size: 16, color: colorScheme.primary),
                         const SizedBox(width: 4),
                         Text(
-                          'Puan: ${task.adminScore}',
-                          style: const TextStyle(
+                          'Nihai Puan: ${task.adminScore! * task.difficultyLevel} (${task.adminScore} × ${task.difficultyLevel})',
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.success,
+                            color: colorScheme.primary,
                           ),
                         ),
                       ],
@@ -574,19 +557,19 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: colorScheme.primary.withOpacity(0.05),
+                      color: colorScheme.secondary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.edit, size: 14, color: colorScheme.primary),
+                        Icon(Icons.edit, size: 14, color: colorScheme.secondary),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
                             'Düzenlendi: ${_formatDateTime(task.updatedAt!)}${task.updatedBy != null ? ' - ${task.updatedBy}' : ''}',
                             style: TextStyle(
                               fontSize: 11,
-                              color: colorScheme.primary,
+                              color: colorScheme.secondary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -602,16 +585,16 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                     children: [
                       if (isMyTask && task.status == TaskStatus.assigned)
                         TextButton.icon(
-                          onPressed: () => _showCompleteTaskDialog(task),
+                          onPressed: () => _showCompleteTaskDialog(task, colorScheme, textTheme),
                           icon: const Icon(Icons.check_circle, size: 16),
                           label: const Text('Tamamla'),
                           style: TextButton.styleFrom(
-                            foregroundColor: AppColors.success,
+                            foregroundColor: colorScheme.primary,
                           ),
                         )
                       else
                         TextButton.icon(
-                          onPressed: () => _showEditTaskDialog(task),
+                          onPressed: () => _showEditTaskDialog(task, colorScheme, textTheme),
                           icon: const Icon(Icons.edit, size: 16),
                           label: const Text('Düzenle'),
                           style: TextButton.styleFrom(
@@ -620,11 +603,11 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                         ),
                       const SizedBox(width: 8),
                       TextButton.icon(
-                        onPressed: () => _deleteTask(task.id, task.title),
+                        onPressed: () => _deleteTask(task.id, task.title, colorScheme, textTheme),
                         icon: const Icon(Icons.delete, size: 16),
                         label: const Text('Sil'),
                         style: TextButton.styleFrom(
-                          foregroundColor: AppColors.error,
+                          foregroundColor: colorScheme.error,
                         ),
                       ),
                     ],
@@ -644,10 +627,10 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.warning.withOpacity(0.3), width: 2),
+        border: Border.all(color: colorScheme.tertiary.withOpacity(0.3), width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.warning.withOpacity(0.1),
+            color: colorScheme.tertiary.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -663,10 +646,10 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.warning.withOpacity(0.1),
+                    color: colorScheme.tertiary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.rate_review, color: AppColors.warning),
+                  child: Icon(Icons.rate_review, color: colorScheme.tertiary),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -754,14 +737,14 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: _getRatingColor(task.captainRating!).withOpacity(0.1),
+                              color: _getRatingColor(task.captainRating!, colorScheme).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               _getRatingText(task.captainRating!),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: _getRatingColor(task.captainRating!),
+                                color: _getRatingColor(task.captainRating!, colorScheme),
                                 fontSize: 12,
                               ),
                             ),
@@ -783,7 +766,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => _showScoreDialog(task),
+                onPressed: () => _showScoreDialog(task, colorScheme, textTheme),
                 icon: const Icon(Icons.rate_review),
                 label: const Text('Puanla ve Onayla'),
                 style: ElevatedButton.styleFrom(
@@ -836,15 +819,9 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
-  // Dialog metodları devam ediyor...
-  // (Karakter sınırı nedeniyle bir sonraki mesajda devam edeceğim)
-  // Devam - Dialog metodları
-
   Future<void> _showCreateTaskDialog() async {
     if (_currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kullanıcı bilgisi alınamadı.')),
-      );
+      _showSnackBar('Kullanıcı bilgisi alınamadı.', Theme.of(context).colorScheme, isError: true);
       return;
     }
 
@@ -875,7 +852,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       decoration: InputDecoration(
                         labelText: 'Görev Başlığı',
                         labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: colorScheme.primary),
                         ),
@@ -888,7 +865,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       decoration: InputDecoration(
                         labelText: 'Görev Açıklaması',
                         labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: colorScheme.primary),
                         ),
@@ -926,7 +903,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       decoration: InputDecoration(
                         labelText: 'Zorluk Derecesi',
                         labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                         helperText: 'Puan bu değerle çarpılacaktır',
                         helperStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                       ),
@@ -964,7 +941,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                           decoration: InputDecoration(
                             labelText: 'Görev Atanacak Kişi',
                             labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                           ),
                           value: selectedUser,
                           onChanged: (UserModel? newValue) {
@@ -995,9 +972,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                         descriptionController.text.isEmpty ||
                         selectedDueDate == null ||
                         selectedUser == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lütfen tüm alanları doldurun.')),
-                      );
+                      _showSnackBar('Lütfen tüm alanları doldurun.', colorScheme, isError: true);
                       return;
                     }
 
@@ -1018,12 +993,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                     await _taskService.createTask(newTask);
                     if (context.mounted) {
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Görev başarıyla oluşturuldu!'),
-                          backgroundColor: AppColors.success,
-                        ),
-                      );
+                      _showSnackBar('Görev başarıyla oluşturuldu!', colorScheme);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -1040,13 +1010,12 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
-  Future<void> _showEditTaskDialog(TaskModel task) async {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
+  Future<void> _showEditTaskDialog(TaskModel task, ColorScheme colorScheme, TextTheme textTheme) async {
     final TextEditingController titleController = TextEditingController(text: task.title);
     final TextEditingController descriptionController = TextEditingController(text: task.description);
     DateTime selectedDueDate = task.dueDate;
+    int selectedDifficulty = task.difficultyLevel;
+    UserModel? selectedUser;
 
     await showDialog(
       context: context,
@@ -1066,7 +1035,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       decoration: InputDecoration(
                         labelText: 'Görev Başlığı',
                         labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: colorScheme.primary),
                         ),
@@ -1079,7 +1048,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       decoration: InputDecoration(
                         labelText: 'Görev Açıklaması',
                         labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: colorScheme.primary),
                         ),
@@ -1108,34 +1077,103 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                         }
                       },
                     ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<int>(
+                      style: TextStyle(color: colorScheme.onSurface),
+                      dropdownColor: colorScheme.surface,
+                      decoration: InputDecoration(
+                        labelText: 'Zorluk Derecesi',
+                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                        border: const OutlineInputBorder(),
+                        helperText: 'Puan bu değerle çarpılacaktır',
+                        helperStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                      ),
+                      value: selectedDifficulty,
+                      onChanged: (int? newValue) {
+                        setState(() {
+                          selectedDifficulty = newValue ?? 1;
+                        });
+                      },
+                      items: const [
+                        DropdownMenuItem<int>(value: 1, child: Text('1 - Kolay')),
+                        DropdownMenuItem<int>(value: 2, child: Text('2 - Orta')),
+                        DropdownMenuItem<int>(value: 3, child: Text('3 - Zor')),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    StreamBuilder<List<UserModel>>(
+                      stream: _userService.getAllUsers(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        }
+                        if (snapshot.hasError) {
+                          return Text('Hata: ${snapshot.error}', style: TextStyle(color: colorScheme.onSurface));
+                        }
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Text('Kullanıcı bulunamadı.', style: TextStyle(color: colorScheme.onSurface));
+                        }
+
+                        List<UserModel> assignableUsers = snapshot.data!;
+
+                        if (selectedUser == null) {
+                          selectedUser = assignableUsers.firstWhere(
+                                (user) => user.uid == task.assignedToUid,
+                            orElse: () => assignableUsers.first,
+                          );
+                        }
+
+                        return DropdownButtonFormField<UserModel>(
+                          style: TextStyle(color: colorScheme.onSurface),
+                          dropdownColor: colorScheme.surface,
+                          decoration: InputDecoration(
+                            labelText: 'Görev Atanacak Kişi',
+                            labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                            border: const OutlineInputBorder(),
+                          ),
+                          value: selectedUser,
+                          onChanged: (UserModel? newValue) {
+                            setState(() {
+                              selectedUser = newValue;
+                            });
+                          },
+                          items: assignableUsers.map<DropdownMenuItem<UserModel>>((UserModel user) {
+                            return DropdownMenuItem<UserModel>(
+                              value: user,
+                              child: Text('${user.displayName} (${user.roleDisplayName})'),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
                     if (task.updatedAt != null) ...[
                       const Divider(height: 24),
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.info.withOpacity(0.1),
+                          color: colorScheme.secondary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
                               children: [
-                                Icon(Icons.edit, size: 16, color: AppColors.info),
-                                SizedBox(width: 4),
+                                Icon(Icons.edit, size: 16, color: colorScheme.secondary),
+                                const SizedBox(width: 4),
                                 Text(
                                   'Son Düzenleme:',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: AppColors.info,
+                                    color: colorScheme.secondary,
                                   ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '${_formatDateTime(task.updatedAt!)}',
+                              _formatDateTime(task.updatedAt!),
                               style: TextStyle(
                                 fontSize: 11,
                                 color: colorScheme.onSurfaceVariant,
@@ -1163,10 +1201,10 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    if (titleController.text.isEmpty || descriptionController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lütfen tüm alanları doldurun.')),
-                      );
+                    if (titleController.text.isEmpty ||
+                        descriptionController.text.isEmpty ||
+                        selectedUser == null) {
+                      _showSnackBar('Lütfen tüm alanları doldurun.', colorScheme, isError: true);
                       return;
                     }
 
@@ -1176,16 +1214,14 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       descriptionController.text,
                       selectedDueDate,
                       _currentUser!.displayName,
+                      difficultyLevel: selectedDifficulty,
+                      assignedToUid: selectedUser!.uid,
+                      assignedToDisplayName: selectedUser!.displayName,
                     );
 
                     if (context.mounted) {
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Görev başarıyla güncellendi!'),
-                          backgroundColor: AppColors.success,
-                        ),
-                      );
+                      _showSnackBar('Görev başarıyla güncellendi!', colorScheme);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -1206,8 +1242,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     return '${dateTime.day}.${dateTime.month}.${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
-  void _showCompleteTaskDialog(TaskModel task) {
-    final colorScheme = Theme.of(context).colorScheme;
+  void _showCompleteTaskDialog(TaskModel task, ColorScheme colorScheme, TextTheme textTheme) {
     final noteController = TextEditingController();
 
     showDialog(
@@ -1222,7 +1257,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
             decoration: InputDecoration(
               labelText: 'Tamamlama Notu',
               labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-              border: OutlineInputBorder(),
+              border: const OutlineInputBorder(),
               focusedBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: colorScheme.primary),
               ),
@@ -1238,6 +1273,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
               onPressed: () async {
                 await _taskService.completeTaskByAdmin(task.id, noteController.text);
                 Navigator.of(context).pop();
+                _showSnackBar('Görev tamamlandı!', colorScheme);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
@@ -1251,10 +1287,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
-  void _showTaskDetails(TaskModel task) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
+  void _showTaskDetails(TaskModel task, ColorScheme colorScheme, TextTheme textTheme) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1272,7 +1305,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
               Text('Durum: ${_getStatusText(task.status)}', style: TextStyle(color: colorScheme.onSurface)),
               Text('Zorluk Derecesi: ${task.difficultyLevel} (${_getDifficultyText(task.difficultyLevel)})', style: TextStyle(color: colorScheme.onSurface)),
               if (task.adminScore != null) Text('Verilen Puan: ${task.adminScore}', style: TextStyle(color: colorScheme.onSurface)),
-              if (task.adminScore != null) Text('Nihai Puan: ${task.adminScore! * task.difficultyLevel} (${task.adminScore} x ${task.difficultyLevel})', style: TextStyle(color: colorScheme.onSurface)),
+              if (task.adminScore != null) Text('Nihai Puan: ${task.adminScore! * task.difficultyLevel} (${task.adminScore} × ${task.difficultyLevel})', style: TextStyle(color: colorScheme.onSurface)),
             ],
           ),
         ),
@@ -1286,9 +1319,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
-  void _showScoreDialog(TaskModel task) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+  void _showScoreDialog(TaskModel task, ColorScheme colorScheme, TextTheme textTheme) {
     final scoreController = TextEditingController();
 
     showDialog(
@@ -1326,7 +1357,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Nihai puan = Verilen puan x ${task.difficultyLevel}',
+                    'Nihai puan = Verilen puan × ${task.difficultyLevel}',
                     style: TextStyle(
                       fontSize: 12,
                       color: colorScheme.onSurfaceVariant,
@@ -1356,7 +1387,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                 labelText: 'Puan (0-100)',
                 labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                 hintText: '85',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: colorScheme.primary),
                 ),
@@ -1377,34 +1408,19 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
               final scoreText = scoreController.text.trim();
 
               if (scoreText.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Lütfen bir puan girin'),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
+                _showSnackBar('Lütfen bir puan girin', colorScheme, isError: true);
                 return;
               }
 
               final score = int.tryParse(scoreText);
 
               if (score == null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Lütfen geçerli bir sayı girin'),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
+                _showSnackBar('Lütfen geçerli bir sayı girin', colorScheme, isError: true);
                 return;
               }
 
               if (score < 0 || score > 100) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Puan 0 ile 100 arasında olmalıdır'),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
+                _showSnackBar('Puan 0 ile 100 arasında olmalıdır', colorScheme, isError: true);
                 return;
               }
 
@@ -1412,12 +1428,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
               final finalScore = score * task.difficultyLevel;
               if (context.mounted) {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Görev başarıyla puanlandı! Verilen puan: $score, Nihai puan: $finalScore'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
+                _showSnackBar('Görev başarıyla puanlandı! Verilen puan: $score, Nihai puan: $finalScore', colorScheme);
               }
             },
             style: ElevatedButton.styleFrom(
@@ -1431,16 +1442,14 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
-  Future<void> _deleteTask(String taskId, String taskTitle) async {
-    final colorScheme = Theme.of(context).colorScheme;
-
+  Future<void> _deleteTask(String taskId, String taskTitle, ColorScheme colorScheme, TextTheme textTheme) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colorScheme.surface,
         title: Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 28),
+            Icon(Icons.warning_amber_rounded, color: colorScheme.error, size: 28),
             const SizedBox(width: 12),
             Text('Görevi Sil', style: TextStyle(color: colorScheme.onSurface)),
           ],
@@ -1457,7 +1466,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
+              backgroundColor: colorScheme.error,
               foregroundColor: Colors.white,
             ),
             child: const Text('Evet, Sil'),
@@ -1475,63 +1484,39 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
         );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('Görev başarıyla silindi'),
-                ],
-              ),
-              backgroundColor: AppColors.success,
-              duration: Duration(seconds: 2),
-            ),
-          );
+          _showSnackBar('Görev başarıyla silindi', colorScheme);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text('Hata: $e')),
-                ],
-              ),
-              backgroundColor: AppColors.error,
-              duration: const Duration(seconds: 3),
-            ),
-          );
+          _showSnackBar('Hata: $e', colorScheme, isError: true);
         }
       }
     }
   }
 
-  Color _getStatusColor(TaskStatus status) {
+  Color _getStatusColor(TaskStatus status, ColorScheme colorScheme) {
     switch (status) {
       case TaskStatus.assigned:
-        return AppColors.info;
+        return colorScheme.tertiary;
       case TaskStatus.inProgress:
-        return AppColors.primary;
+        return colorScheme.primary;
       case TaskStatus.completedByUser:
-        return AppColors.warning;
-      case TaskStatus.evaluatedByCaptain:
         return Colors.orange;
+      case TaskStatus.evaluatedByCaptain:
+        return Colors.deepOrange;
       case TaskStatus.evaluatedByAdmin:
-        return AppColors.success;
+        return colorScheme.primary;
     }
   }
 
-  Color _getRatingColor(CaptainRating rating) {
+  Color _getRatingColor(CaptainRating rating, ColorScheme colorScheme) {
     switch (rating) {
       case CaptainRating.good:
-        return AppColors.success;
+        return Colors.green;
       case CaptainRating.medium:
-        return AppColors.warning;
+        return Colors.orange;
       case CaptainRating.bad:
-        return AppColors.error;
+        return colorScheme.error;
     }
   }
 

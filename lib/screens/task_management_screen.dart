@@ -8,7 +8,12 @@ import 'captain_task_management_screen.dart';
 import 'user_task_management_screen.dart';
 
 class TaskManagementScreen extends StatefulWidget {
-  const TaskManagementScreen({super.key});
+  final int initialTabIndex;
+
+  const TaskManagementScreen({
+    super.key,
+    this.initialTabIndex = 0,
+  });
 
   @override
   State<TaskManagementScreen> createState() => _TaskManagementScreenState();
@@ -18,6 +23,7 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
   final UserService _userService = UserService();
   UserModel? _currentUser;
   bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -27,26 +33,32 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
 
   Future<void> _getCurrentUser() async {
     try {
-      User? firebaseUser = FirebaseAuth.instance.currentUser;
-      if (firebaseUser != null) {
-        UserModel? user = await _userService.getUser(firebaseUser.uid);
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+
+      if (firebaseUser == null) {
         if (mounted) {
           setState(() {
-            _currentUser = user;
+            _errorMessage = 'Oturum bulunamadı';
             _isLoading = false;
           });
         }
-      } else {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+        return;
       }
-    } catch (e) {
-      print('Kullanıcı bilgisi alınırken hata: $e');
+
+      final user = await _userService.getUser(firebaseUser.uid);
+
       if (mounted) {
         setState(() {
+          _currentUser = user;
+          _errorMessage = user == null ? 'Kullanıcı bilgisi alınamadı' : null;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Kullanıcı bilgisi alınırken hata: $e');
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Bir hata oluştu';
           _isLoading = false;
         });
       }
@@ -55,43 +67,54 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Yükleniyor durumu
     if (_isLoading) {
-      return Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.backgroundGradient,
-          ),
-          child: const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Yükleniyor...',
-                  style: TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
+      return _buildLoadingScreen();
     }
 
-    // Kullanıcı bilgisi alınamadı
     if (_currentUser == null) {
-      return Scaffold(
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.backgroundGradient,
+      return _buildErrorScreen();
+    }
+
+    return _buildRoleBasedScreen();
+  }
+
+  Widget _buildLoadingScreen() {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Yükleniyor...',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                ),
+              ),
+            ],
           ),
-          child: Center(
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen() {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -101,9 +124,10 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
                   color: AppColors.error,
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  'Kullanıcı bilgisi alınamadı',
-                  style: TextStyle(
+                Text(
+                  _errorMessage ?? 'Kullanıcı bilgisi alınamadı',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -112,6 +136,7 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
                 const SizedBox(height: 8),
                 const Text(
                   'Lütfen tekrar giriş yapın',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
@@ -119,9 +144,8 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacementNamed('/login');
-                  },
+                  onPressed: () => Navigator.of(context)
+                      .pushReplacementNamed('/login'),
                   icon: const Icon(Icons.login),
                   label: const Text('Giriş Sayfasına Dön'),
                   style: ElevatedButton.styleFrom(
@@ -136,16 +160,25 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
             ),
           ),
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    // Rol bazlı yönlendirme
-    if (_currentUser!.isAdmin) {
-      return const AdminTaskManagementScreen();
-    } else if (_currentUser!.isCaptain) {
-      return const CaptainTaskManagementScreen();
+  Widget _buildRoleBasedScreen() {
+    final user = _currentUser!;
+
+    if (user.isAdmin) {
+      return AdminTaskManagementScreen(
+        initialTabIndex: widget.initialTabIndex,
+      );
+    } else if (user.isCaptain) {
+      return CaptainTaskManagementScreen(
+        initialTabIndex: widget.initialTabIndex,
+      );
     } else {
-      return const UserTaskManagementScreen();
+      return UserTaskManagementScreen(
+        initialTab: widget.initialTabIndex,
+      );
     }
   }
 }

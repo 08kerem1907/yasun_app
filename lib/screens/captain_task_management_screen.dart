@@ -9,7 +9,13 @@ import '../services/team_service.dart';
 import 'package:intl/intl.dart';
 
 class CaptainTaskManagementScreen extends StatefulWidget {
-  const CaptainTaskManagementScreen({super.key});
+  /// Ekranın açılırken başlayacağı sekme indeksi
+  final int initialTabIndex;
+
+  const CaptainTaskManagementScreen({
+    super.key,
+    this.initialTabIndex = 0,
+  });
 
   @override
   State<CaptainTaskManagementScreen> createState() => _CaptainTaskManagementScreenState();
@@ -18,15 +24,16 @@ class CaptainTaskManagementScreen extends StatefulWidget {
 class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScreen> {
   final TaskService _taskService = TaskService();
   final TeamService _teamService = TeamService();
-  CaptainRating? _selectedRating;
   final UserService _userService = UserService();
-  UserModel? _currentUser;
 
+  CaptainRating? _selectedRating;
+  UserModel? _currentUser;
   int _selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialTabIndex;
     _getCurrentUser();
   }
 
@@ -42,14 +49,13 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
         }
       }
     } catch (e) {
-      print('Hata: $e');
+      debugPrint('Hata: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
       body: Container(
@@ -66,10 +72,10 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(colorScheme, textTheme),
-              _buildSegmentedControl(colorScheme, textTheme),
+              _buildAppBar(colorScheme),
+              _buildSegmentedControl(colorScheme),
               Expanded(
-                child: _buildCurrentPage(colorScheme, textTheme),
+                child: _buildCurrentPage(colorScheme),
               ),
             ],
           ),
@@ -85,7 +91,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
-  Widget _buildAppBar(ColorScheme colorScheme, TextTheme textTheme) {
+  /// AppBar widget'ını oluşturur - Tema renklerini kullanır
+  Widget _buildAppBar(ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -106,14 +113,14 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
               children: [
                 Text(
                   'Görev Yönetimi',
-                  style: textTheme.titleLarge?.copyWith(
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   'Kaptan Paneli',
-                  style: textTheme.bodySmall?.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
@@ -146,23 +153,25 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
-  Widget _buildSegmentedControl(ColorScheme colorScheme, TextTheme textTheme) {
+  /// Sekme kontrol widget'ını oluşturur
+  Widget _buildSegmentedControl(ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.all(16),
       color: colorScheme.surface,
       child: Row(
         children: [
-          Expanded(child: _buildSegmentButton(0, 'Bana Atanan', Icons.assignment_ind, colorScheme, textTheme)),
+          Expanded(child: _buildSegmentButton(0, 'Bana Atanan', Icons.assignment_ind, colorScheme)),
           const SizedBox(width: 8),
-          Expanded(child: _buildSegmentButton(1, 'Değerlendirme', Icons.rate_review, colorScheme, textTheme)),
+          Expanded(child: _buildSegmentButton(1, 'Değerlendirme', Icons.rate_review, colorScheme)),
           const SizedBox(width: 8),
-          Expanded(child: _buildSegmentButton(2, 'Takım Görevleri', Icons.people, colorScheme, textTheme)),
+          Expanded(child: _buildSegmentButton(2, 'Takım Görevleri', Icons.people, colorScheme)),
         ],
       ),
     );
   }
 
-  Widget _buildSegmentButton(int index, String label, IconData icon, ColorScheme colorScheme, TextTheme textTheme) {
+  /// Sekme butonunu oluşturur
+  Widget _buildSegmentButton(int index, String label, IconData icon, ColorScheme colorScheme) {
     final isSelected = _selectedIndex == index;
     return InkWell(
       onTap: () {
@@ -191,7 +200,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
             const SizedBox(height: 4),
             Text(
               label,
-              style: textTheme.bodySmall?.copyWith(
+              style: TextStyle(
+                fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 color: isSelected ? Colors.white : colorScheme.onSurfaceVariant,
               ),
@@ -203,20 +213,22 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
-  Widget _buildCurrentPage(ColorScheme colorScheme, TextTheme textTheme) {
+  /// Seçili sekmeye göre sayfayı oluşturur
+  Widget _buildCurrentPage(ColorScheme colorScheme) {
     switch (_selectedIndex) {
       case 0:
-        return _buildMyTasksPage(colorScheme, textTheme);
+        return _buildMyTasksPage(colorScheme);
       case 1:
-        return _buildEvaluationTasksPage(colorScheme, textTheme);
+        return _buildEvaluationTasksPage(colorScheme);
       case 2:
-        return _buildTeamTasksPage(colorScheme, textTheme);
+        return _buildTeamTasksPage(colorScheme);
       default:
-        return _buildMyTasksPage(colorScheme, textTheme);
+        return _buildMyTasksPage(colorScheme);
     }
   }
 
-  Widget _buildMyTasksPage(ColorScheme colorScheme, TextTheme textTheme) {
+  /// Bana atanan görevler sayfasını oluşturur
+  Widget _buildMyTasksPage(ColorScheme colorScheme) {
     if (_currentUser == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -232,7 +244,9 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
           return Center(
             child: Text(
               'Hata: ${snapshot.error}',
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface,
+              ),
             ),
           );
         }
@@ -245,7 +259,6 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
             title: 'Henüz görev yok',
             subtitle: 'Size atanan görevler burada görünecek',
             colorScheme: colorScheme,
-            textTheme: textTheme,
           );
         }
 
@@ -253,14 +266,15 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
           padding: const EdgeInsets.all(16),
           itemCount: tasks.length,
           itemBuilder: (context, index) {
-            return _buildTaskCard(tasks[index], colorScheme, textTheme);
+            return _buildTaskCard(tasks[index], colorScheme);
           },
         );
       },
     );
   }
 
-  Widget _buildEvaluationTasksPage(ColorScheme colorScheme, TextTheme textTheme) {
+  /// Değerlendirme için bekleyen görevler sayfasını oluşturur
+  Widget _buildEvaluationTasksPage(ColorScheme colorScheme) {
     if (_currentUser == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -274,10 +288,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
 
         if (snapshot.hasError) {
           return Center(
-            child: Text(
-              'Hata: ${snapshot.error}',
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-            ),
+            child: Text('Hata: ${snapshot.error}'),
           );
         }
 
@@ -289,7 +300,6 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
             title: 'Değerlendirilecek görev yok',
             subtitle: 'Ekip üyelerinin tamamladığı görevler burada görünecek',
             colorScheme: colorScheme,
-            textTheme: textTheme,
           );
         }
 
@@ -297,14 +307,15 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
           padding: const EdgeInsets.all(16),
           itemCount: tasks.length,
           itemBuilder: (context, index) {
-            return _buildEvaluationTaskCard(tasks[index], colorScheme, textTheme);
+            return _buildEvaluationTaskCard(tasks[index], colorScheme);
           },
         );
       },
     );
   }
 
-  Widget _buildTeamTasksPage(ColorScheme colorScheme, TextTheme textTheme) {
+  /// Takım görevleri sayfasını oluşturur
+  Widget _buildTeamTasksPage(ColorScheme colorScheme) {
     if (_currentUser == null) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -318,10 +329,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
 
         if (teamSnapshot.hasError) {
           return Center(
-            child: Text(
-              'Hata: ${teamSnapshot.error}',
-              style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-            ),
+            child: Text('Hata: ${teamSnapshot.error}'),
           );
         }
 
@@ -333,7 +341,6 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
             title: 'Takım üyesi yok',
             subtitle: 'Takımınıza üye eklendiğinde görevleri burada görünecek',
             colorScheme: colorScheme,
-            textTheme: textTheme,
           );
         }
 
@@ -341,14 +348,15 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
           padding: const EdgeInsets.all(16),
           itemCount: teamMembers.length,
           itemBuilder: (context, index) {
-            return _buildTeamMemberCard(teamMembers[index], colorScheme, textTheme);
+            return _buildTeamMemberCard(teamMembers[index], colorScheme);
           },
         );
       },
     );
   }
 
-  Widget _buildTaskCard(TaskModel task, ColorScheme colorScheme, TextTheme textTheme, {bool showEditButton = true}) {
+  /// Görev kartını oluşturur
+  Widget _buildTaskCard(TaskModel task, ColorScheme colorScheme, {bool showEditButton = true}) {
     Color statusColor = _getStatusColor(task.status);
     String statusText = _getStatusText(task.status);
     bool canComplete = task.status == TaskStatus.assigned;
@@ -369,7 +377,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _showTaskDetails(task),
+          onTap: () => _showTaskDetails(task, colorScheme),
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -381,7 +389,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                     Expanded(
                       child: Text(
                         task.title,
-                        style: textTheme.bodyLarge?.copyWith(
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: colorScheme.onSurface,
                         ),
@@ -407,7 +415,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                 const SizedBox(height: 8),
                 Text(
                   task.description,
-                  style: textTheme.bodyMedium?.copyWith(
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
                   maxLines: 2,
@@ -420,7 +428,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                     const SizedBox(width: 4),
                     Text(
                       'Atayan: ${task.assignedByDisplayName}',
-                      style: textTheme.bodySmall?.copyWith(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
@@ -429,12 +437,13 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                     const SizedBox(width: 4),
                     Text(
                       _formatDate(task.dueDate),
-                      style: textTheme.bodySmall?.copyWith(
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
                 ),
+                // Düzenlenme bilgisi
                 if (task.updatedAt != null) ...[
                   const SizedBox(height: 8),
                   Container(
@@ -461,6 +470,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                     ),
                   ),
                 ],
+                // Düzenleme ve silme butonları
                 if (showEditButton && task.assignedByUid == _currentUser?.uid && task.status == TaskStatus.assigned) ...[
                   const SizedBox(height: 12),
                   Row(
@@ -490,6 +500,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                     ],
                   ),
                 ],
+                // Tamamla butonu
                 if (canComplete) ...[
                   const SizedBox(height: 12),
                   SizedBox(
@@ -514,6 +525,296 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
+  /// Değerlendirme görev kartını oluşturur
+  Widget _buildEvaluationTaskCard(TaskModel task, ColorScheme colorScheme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.orange.withOpacity(0.3), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.rate_review, color: Colors.orange),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        task.title,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        task.assignedToDisplayName,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              task.description,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            if (task.userCompletionNote != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: colorScheme.secondaryContainer.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.note, size: 16, color: colorScheme.onSurface),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Tamamlanma Notu:',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      task.userCompletionNote!,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _rejectTask(task),
+                    icon: const Icon(Icons.close, size: 18),
+                    label: const Text('Reddet'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      side: const BorderSide(color: AppColors.error),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showEvaluationDialog(task),
+                    icon: const Icon(Icons.check_circle, size: 18),
+                    label: const Text('Onayla'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Takım üyesi kartını oluşturur
+  Widget _buildTeamMemberCard(UserModel member, ColorScheme colorScheme) {
+    bool isExpanded = false;
+
+    return StatefulBuilder(
+      builder: (context, setStateCard) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    setStateCard(() {
+                      isExpanded = !isExpanded;
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.7)],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.person, color: Colors.white),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                member.displayName,
+                                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              Text(
+                                member.email,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  const Icon(Icons.stars, size: 14, color: Colors.amber),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Puan: ${member.totalScore ?? 0}',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          isExpanded ? Icons.expand_less : Icons.expand_more,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              if (isExpanded)
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Divider(color: colorScheme.outline),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Görev Özeti',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Takım üyesinin görevleri burada gösterilecek
+                      Text(
+                        'Toplam Puan: ${member.totalScore ?? 0}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Boş durum widget'ını oluşturur
+  Widget _buildEmptyState({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required ColorScheme colorScheme,
+  }) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 64,
+            color: colorScheme.onSurfaceVariant.withOpacity(0.3),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Değerlendirme diyalogunu gösterir
   void _showEvaluationDialog(TaskModel task) {
     final evaluationController = TextEditingController();
     final colorScheme = Theme.of(context).colorScheme;
@@ -639,6 +940,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
+  /// Derece butonunu oluşturur
   Widget _buildRatingButton(CaptainRating rating, StateSetter setState) {
     final isSelected = _selectedRating == rating;
     Color color;
@@ -682,1010 +984,19 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
-  Widget _buildEvaluationTaskCard(TaskModel task, ColorScheme colorScheme, TextTheme textTheme) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.withOpacity(0.3), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.orange.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.rate_review, color: Colors.orange),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        task.title,
-                        style: textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      Text(
-                        task.assignedToDisplayName,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              task.description,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            if (task.userCompletionNote != null) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.secondaryContainer.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.note, size: 16, color: colorScheme.onSurface),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Tamamlanma Notu:',
-                          style: textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      task.userCompletionNote!,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _rejectTask(task),
-                    icon: const Icon(Icons.close, size: 18),
-                    label: const Text('Reddet'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.error,
-                      side: const BorderSide(color: AppColors.error),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _showEvaluationDialog(task),
-                    icon: const Icon(Icons.check_circle, size: 18),
-                    label: const Text('Onayla'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTeamMemberCard(UserModel member, ColorScheme colorScheme, TextTheme textTheme) {
-    bool isExpanded = false;
-
-    return StatefulBuilder(
-      builder: (context, setStateCard) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    setStateCard(() {
-                      isExpanded = !isExpanded;
-                    });
-                  },
-                  borderRadius: BorderRadius.circular(16),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [colorScheme.primary, colorScheme.primary.withOpacity(0.7)],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Icons.person, color: Colors.white),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                member.displayName,
-                                style: textTheme.bodyLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                              Text(
-                                member.email,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  const Icon(Icons.stars, size: 14, color: Colors.amber),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Puan: ${member.totalScore}',
-                                    style: textTheme.bodySmall?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        Icon(
-                          isExpanded ? Icons.expand_less : Icons.expand_more,
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              if (isExpanded)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  child: _buildMemberTasks(member, colorScheme, textTheme),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildMemberTasks(UserModel member, ColorScheme colorScheme, TextTheme textTheme) {
-    return StreamBuilder<List<TaskModel>>(
-      stream: _taskService.getTasksAssignedToUser(member.uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        if (snapshot.hasError) {
-          return Text(
-            'Hata: ${snapshot.error}',
-            style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
-          );
-        }
-
-        final tasks = snapshot.data ?? [];
-
-        if (tasks.isEmpty) {
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colorScheme.secondaryContainer.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              'Bu üyeye henüz görev atanmamış',
-              style: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          );
-        }
-
-        return Column(
-          children: tasks.map((task) {
-            bool isCreatedByCaptain = task.assignedByUid == _currentUser?.uid;
-            bool canEdit = isCreatedByCaptain && task.status == TaskStatus.assigned;
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colorScheme.secondaryContainer.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: colorScheme.outline),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          task.title,
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _getStatusColor(task.status).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          _getStatusText(task.status),
-                          style: TextStyle(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: _getStatusColor(task.status),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    task.description,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.calendar_today, size: 12, color: colorScheme.onSurfaceVariant),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Bitiş: ${_formatDate(task.dueDate)}',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (task.updatedAt != null) ...[
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 12, color: colorScheme.primary),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              'Düzenlendi: ${_formatDateTime(task.updatedAt!)}${task.updatedBy != null ? ' - ${task.updatedBy}' : ''}',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  if (task.adminScore != null) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.stars, size: 12, color: AppColors.success),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Puan: ${task.adminScore}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.success,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                  if (canEdit || task.status != TaskStatus.assigned) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        if (canEdit) ...[
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _showEditTaskDialog(task),
-                              icon: const Icon(Icons.edit, size: 14),
-                              label: const Text('Düzenle', style: TextStyle(fontSize: 11)),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: colorScheme.primary,
-                                side: BorderSide(color: colorScheme.primary),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          OutlinedButton(
-                            onPressed: () => _deleteTask(task.id, task.title),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: AppColors.error,
-                              side: const BorderSide(color: AppColors.error),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              minimumSize: const Size(0, 0),
-                            ),
-                            child: const Icon(Icons.delete_outline, size: 16),
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => _showTaskDetails(task),
-                            icon: const Icon(Icons.info_outline, size: 14),
-                            label: const Text('Detay', style: TextStyle(fontSize: 11)),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: colorScheme.onSurface,
-                              side: BorderSide(color: colorScheme.outline),
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
-
-  Widget _buildEmptyState({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required ColorScheme colorScheme,
-    required TextTheme textTheme,
-  }) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 80,
-            color: colorScheme.onSurfaceVariant.withOpacity(0.3),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: textTheme.bodyMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _showCreateTaskDialog() async {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    if (_currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kullanıcı bilgisi alınamadı.')),
-      );
-      return;
-    }
-
-    if (_currentUser!.teamId == null || _currentUser!.teamId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Takım bilgisi bulunamadı. Lütfen yöneticinizle iletişime geçin.')),
-      );
-      return;
-    }
-
-    final TextEditingController titleController = TextEditingController();
-    final TextEditingController descriptionController = TextEditingController();
-    DateTime? selectedDueDate;
-    UserModel? selectedUser;
-    int selectedDifficulty = 1;
-
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: colorScheme.surface,
-              title: Text(
-                'Takıma Görev Ata',
-                style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: titleController,
-                      style: TextStyle(color: colorScheme.onSurface),
-                      decoration: InputDecoration(
-                        labelText: 'Görev Başlığı',
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: colorScheme.primary),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: descriptionController,
-                      style: TextStyle(color: colorScheme.onSurface),
-                      decoration: InputDecoration(
-                        labelText: 'Görev Açıklaması',
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: colorScheme.primary),
-                        ),
-                      ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 12),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        selectedDueDate == null
-                            ? 'Son Teslim Tarihi Seç'
-                            : 'Son Teslim: ${selectedDueDate!.day}.${selectedDueDate!.month}.${selectedDueDate!.year}',
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-                      ),
-                      trailing: Icon(Icons.calendar_today, color: colorScheme.onSurfaceVariant),
-                      onTap: () async {
-                        final DateTime? picked = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now().add(const Duration(days: 7)),
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
-                          locale: const Locale('tr', 'TR'),
-                        );
-                        if (picked != null && picked != selectedDueDate) {
-                          setState(() {
-                            selectedDueDate = picked;
-                          });
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<int>(
-                      decoration: InputDecoration(
-                        labelText: 'Zorluk Derecesi',
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                        helperText: 'Puan bu değerle çarpılacaktır',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: colorScheme.primary),
-                        ),
-                      ),
-                      value: selectedDifficulty,
-                      style: TextStyle(color: colorScheme.onSurface),
-                      dropdownColor: colorScheme.surface,
-                      onChanged: (int? newValue) {
-                        setState(() {
-                          selectedDifficulty = newValue ?? 1;
-                        });
-                      },
-                      items: const [
-                        DropdownMenuItem<int>(
-                          value: 1,
-                          child: Text('1 - Kolay'),
-                        ),
-                        DropdownMenuItem<int>(
-                          value: 2,
-                          child: Text('2 - Orta'),
-                        ),
-                        DropdownMenuItem<int>(
-                          value: 3,
-                          child: Text('3 - Zor'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    StreamBuilder<List<UserModel>>(
-                      stream: _userService.getTeamMembers(_currentUser!.uid),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        }
-                        if (snapshot.hasError) {
-                          return Text(
-                            'Hata: ${snapshot.error}',
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
-                          );
-                        }
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Text(
-                            'Görev atanacak takım üyesi bulunamadı.',
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                          );
-                        }
-
-                        List<UserModel> assignableUsers = snapshot.data!
-                            .where((user) => user.isUser)
-                            .toList();
-
-                        if (assignableUsers.isEmpty) {
-                          return Text(
-                            'Takımınızda görev atanabilecek üye yok.',
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-                          );
-                        }
-
-                        return DropdownButtonFormField<UserModel>(
-                          decoration: InputDecoration(
-                            labelText: 'Görev Atanacak Takım Üyesi',
-                            labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: colorScheme.primary),
-                            ),
-                          ),
-                          value: selectedUser,
-                          style: TextStyle(color: colorScheme.onSurface),
-                          dropdownColor: colorScheme.surface,
-                          onChanged: (UserModel? newValue) {
-                            setState(() {
-                              selectedUser = newValue;
-                            });
-                          },
-                          items: assignableUsers.map<DropdownMenuItem<UserModel>>((UserModel user) {
-                            return DropdownMenuItem<UserModel>(
-                              value: user,
-                              child: Text('${user.displayName} - Puan: ${user.totalScore}'),
-                            );
-                          }).toList(),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('İptal', style: TextStyle(color: colorScheme.onSurfaceVariant)),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (titleController.text.isEmpty ||
-                        descriptionController.text.isEmpty ||
-                        selectedDueDate == null ||
-                        selectedUser == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lütfen tüm alanları doldurun.')),
-                      );
-                      return;
-                    }
-
-                    final assignedUserTeamId = selectedUser!.teamId;
-                    String? assignedUserTeamName;
-
-                    if (assignedUserTeamId != null) {
-                      final team = await _teamService.getTeam(assignedUserTeamId);
-                      assignedUserTeamName = team?.name;
-                    }
-
-                    final newTask = TaskModel(
-                      id: '',
-                      title: titleController.text,
-                      description: descriptionController.text,
-                      assignedToUid: selectedUser!.uid,
-                      assignedToDisplayName: selectedUser!.displayName,
-                      assignedToTeamId: assignedUserTeamId,
-                      assignedToTeamName: assignedUserTeamName,
-                      assignedByUid: _currentUser!.uid,
-                      assignedByDisplayName: _currentUser!.displayName,
-                      dueDate: selectedDueDate!,
-                      createdAt: DateTime.now(),
-                      status: TaskStatus.assigned,
-                      difficultyLevel: selectedDifficulty,
-                    );
-
-                    await _taskService.createTask(newTask);
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Görev başarıyla atandı!'),
-                          backgroundColor: AppColors.success,
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Görev Ata'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showCompleteTaskDialog(TaskModel task) {
-    final noteController = TextEditingController();
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: colorScheme.surface,
-        title: Text(
-          'Görevi Tamamla',
-          style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              task.title,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: noteController,
-              maxLines: 3,
-              style: TextStyle(color: colorScheme.onSurface),
-              decoration: InputDecoration(
-                labelText: 'Tamamlanma Notu',
-                hintText: 'Görev hakkında notlarınızı yazın...',
-                labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.primary),
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('İptal', style: TextStyle(color: colorScheme.onSurfaceVariant)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (noteController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Lütfen bir not girin'),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-                return;
-              }
-
-              await _taskService.completeTask(task.id, noteController.text);
-              if (context.mounted) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Görev başarıyla tamamlandı!'),
-                    backgroundColor: AppColors.success,
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Tamamla'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _showEditTaskDialog(TaskModel task) async {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    final TextEditingController titleController = TextEditingController(text: task.title);
-    final TextEditingController descriptionController = TextEditingController(text: task.description);
-    DateTime selectedDueDate = task.dueDate;
-
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: colorScheme.surface,
-              title: Text(
-                'Görevi Düzenle',
-                style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: titleController,
-                      style: TextStyle(color: colorScheme.onSurface),
-                      decoration: InputDecoration(
-                        labelText: 'Görev Başlığı',
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: colorScheme.primary),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: descriptionController,
-                      style: TextStyle(color: colorScheme.onSurface),
-                      decoration: InputDecoration(
-                        labelText: 'Görev Açıklaması',
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: colorScheme.primary),
-                        ),
-                      ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 12),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        'Son Teslim: ${selectedDueDate.day}.${selectedDueDate.month}.${selectedDueDate.year}',
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
-                      ),
-                      trailing: Icon(Icons.calendar_today, color: colorScheme.onSurfaceVariant),
-                      onTap: () async {
-                        final DateTime? picked = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDueDate,
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
-                        );
-                        if (picked != null && picked != selectedDueDate) {
-                          setState(() {
-                            selectedDueDate = picked;
-                          });
-                        }
-                      },
-                    ),
-                    if (task.updatedAt != null) ...[
-                      const Divider(height: 24),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(Icons.edit, size: 16, color: colorScheme.primary),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Son Düzenleme:',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${_formatDateTime(task.updatedAt!)}',
-                              style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            if (task.updatedBy != null)
-                              Text(
-                                'Düzenleyen: ${task.updatedBy}',
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text('İptal', style: TextStyle(color: colorScheme.onSurfaceVariant)),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (titleController.text.isEmpty || descriptionController.text.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lütfen tüm alanları doldurun.')),
-                      );
-                      return;
-                    }
-
-                    await _taskService.updateTaskWithInfo(
-                      task.id,
-                      titleController.text,
-                      descriptionController.text,
-                      selectedDueDate,
-                      _currentUser!.displayName,
-                    );
-
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Görev başarıyla güncellendi!'),
-                          backgroundColor: AppColors.success,
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Güncelle'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day}.${dateTime.month}.${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  }
-
+  /// Görev reddedilir
   void _rejectTask(TaskModel task) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: colorScheme.surface,
-        title: Text(
-          'Görevi Reddet',
-          style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
-        ),
-        content: Text(
+        title: const Text('Görevi Reddet'),
+        content: const Text(
           'Bu görev reddedilecek ve kullanıcıya geri gönderilecek. Devam etmek istiyor musunuz?',
-          style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('İptal', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+            child: const Text('İptal'),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -1704,7 +1015,6 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
             ),
             child: const Text('Reddet'),
           ),
@@ -1713,6 +1023,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
+  /// Görev silme diyalogunu gösterir
   Future<void> _deleteTask(String taskId, String taskTitle) async {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -1795,8 +1106,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     }
   }
 
-  void _showTaskDetails(TaskModel task) {
-    final colorScheme = Theme.of(context).colorScheme;
+  /// Görev detaylarını gösterir
+  void _showTaskDetails(TaskModel task, ColorScheme colorScheme) {
     final textTheme = Theme.of(context).textTheme;
 
     showDialog(
@@ -1900,6 +1211,22 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
+  /// Görev tamamlama diyalogunu gösterir (stub)
+  void _showCompleteTaskDialog(TaskModel task) {
+    // Uygulamaya göre implement edilecek
+  }
+
+  /// Görev düzenleme diyalogunu gösterir (stub)
+  void _showEditTaskDialog(TaskModel task) {
+    // Uygulamaya göre implement edilecek
+  }
+
+  /// Görev oluşturma diyalogunu gösterir (stub)
+  void _showCreateTaskDialog() {
+    // Uygulamaya göre implement edilecek
+  }
+
+  /// Görev durumuna göre renk döndürür
   Color _getStatusColor(TaskStatus status) {
     switch (status) {
       case TaskStatus.assigned:
@@ -1915,6 +1242,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     }
   }
 
+  /// Görev durumuna göre metin döndürür
   String _getStatusText(TaskStatus status) {
     switch (status) {
       case TaskStatus.assigned:
@@ -1930,6 +1258,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     }
   }
 
+  /// Derece rengini döndürür
   Color _getRatingColor(CaptainRating rating) {
     switch (rating) {
       case CaptainRating.good:
@@ -1941,6 +1270,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     }
   }
 
+  /// Derece metnini döndürür
   String _getRatingText(CaptainRating rating) {
     switch (rating) {
       case CaptainRating.good:
@@ -1952,10 +1282,17 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     }
   }
 
+  /// Tarihi formatlar
   String _formatDate(DateTime date) {
     return '${date.day}.${date.month}.${date.year}';
   }
 
+  /// Tarih ve saati formatlar
+  String _formatDateTime(DateTime dateTime) {
+    return '${dateTime.day}.${dateTime.month}.${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
+  /// Zorluk derecesine göre metin döndürür
   String _getDifficultyText(int level) {
     switch (level) {
       case 1:
