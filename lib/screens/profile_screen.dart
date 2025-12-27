@@ -249,32 +249,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Text(
-                  'Kişisel Bilgiler',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: Icon(
-                    _isEditing ? Icons.close : Icons.edit_square,
-                    color: _isEditing ? AppColors.error : AppColors.primary,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      _isEditing = !_isEditing;
-                      if (!_isEditing) {
-                        _displayNameController.text = userData.displayName;
-                      }
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
+            child:
+            Text(
+              'Kişisel Bilgiler',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ), ),
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(20),
@@ -953,11 +934,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Text(
               'Takımınızı kolayca yönetebileceğiniz, görev atayabileceğiniz ve performans takibi yapabileceğiniz modern bir uygulama.',
               style: TextStyle(fontSize: 14),
-            ),
-            SizedBox(height: 16),
-            Text(
-              '© 2025 Furkan Toptan',
-              style: TextStyle(fontSize: 12),
             ),
           ],
         ),

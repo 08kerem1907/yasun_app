@@ -212,21 +212,6 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
               ),
               Expanded(
                 child: _buildStatItem(
-                  label: 'Bu Ay\nTamamlanan',
-                  value: (stats['completed_tasks'] ?? 0).toString(),
-                  icon: Icons.task_alt_rounded,
-                  color: _successColor, // Sabit renk
-                  textColor: colorScheme.onSurface,
-                  labelColor: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              Container(
-                width: 1,
-                height: 60,
-                color: colorScheme.outline, // Tema outline rengi
-              ),
-              Expanded(
-                child: _buildStatItem(
                   label: 'Toplam Puan',
                   value: (stats['total_score'] ?? 0).toString(),
                   icon: Icons.emoji_events_rounded,

@@ -76,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   
                   // Giriş Formu
                   _buildLoginCard(),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 100),
 
                 ],
               ),
@@ -92,8 +92,8 @@ class _LoginScreenState extends State<LoginScreen> {
       children: [
         // Logo
         Container(
-          width: 150,
-          height: 150,
+          width: 220,
+          height: 220,
           child: Image.asset(
             'assets/logo_yasunapp.png',
             fit: BoxFit.contain,
@@ -158,16 +158,6 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             // Başlık
             const Text(
-              'by YASUN',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            const Text(
               'Email adresiniz ve şifrenizi girin',
               style: TextStyle(
                 fontSize: 14,
@@ -209,9 +199,16 @@ class _LoginScreenState extends State<LoginScreen> {
         TextFormField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+          ),
+          cursorColor: AppColors.primary,
           decoration: InputDecoration(
             hintText: 'email@yasun.com',
-            hintStyle: const TextStyle(color: AppColors.textHint),
+            hintStyle: const TextStyle(
+              color: AppColors.textHint,
+            ),
             filled: true,
             fillColor: AppColors.background,
             border: OutlineInputBorder(
@@ -224,10 +221,21 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.borderFocused, width: 2),
+              borderSide: const BorderSide(
+                color: AppColors.borderFocused,
+                width: 2,
+              ),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            errorStyle: const TextStyle(
+              color: Colors.redAccent,
+              fontSize: 12,
+            ),
           ),
+
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Email adresi gerekli';
@@ -241,6 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ],
     );
   }
+
 
   Widget _buildPasswordField() {
     return Column(
@@ -258,6 +267,11 @@ class _LoginScreenState extends State<LoginScreen> {
         TextFormField(
           controller: _passwordController,
           obscureText: _obscurePassword,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 14,
+          ),
+          cursorColor: AppColors.primary,
           decoration: InputDecoration(
             hintText: 'Şifrenizi girin',
             hintStyle: const TextStyle(color: AppColors.textHint),
