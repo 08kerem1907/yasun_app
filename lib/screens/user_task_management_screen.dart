@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // ✅ YENİ: Clipboard için
 import 'package:firebase_auth/firebase_auth.dart';
 import '../constants/colors.dart';
 import '../models/task_model.dart';
@@ -874,6 +875,37 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
                       ),
                     ],
 
+                    // ✅ YENİ: Drive Link butonu
+                    if (task.driveLink != null && task.driveLink!.isNotEmpty) ...[
+                      const SizedBox(height: 20),
+                      const Divider(),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Drive Dökümanı',
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _launchURL(task.driveLink!),
+                          icon: const Icon(Icons.open_in_new),
+                          label: const Text('Drive bağlantısını kopyala'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.blue,
+                            side: const BorderSide(color: Colors.blue),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+
                     // Captain evaluation
                     if (task.captainEvaluation != null &&
                         task.captainRating != null) ...[
@@ -1055,8 +1087,10 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
     }
   }
 
+  // ✅ YENİ: Drive link ile görev tamamlama dialogu
   void _showCompleteTaskDialog(TaskModel task) {
     final noteController = TextEditingController();
+    final driveLinkController = TextEditingController();
     final colorScheme = Theme.of(context).colorScheme;
 
     showDialog(
@@ -1068,21 +1102,50 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
             'Görevi Tamamla',
             style: TextStyle(color: colorScheme.onSurface),
           ),
-          content: TextField(
-            controller: noteController,
-            decoration: InputDecoration(
-              labelText: 'Tamamlama Notu',
-              labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: colorScheme.primary),
-              ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Tamamlama Notu
+                TextField(
+                  controller: noteController,
+                  decoration: InputDecoration(
+                    labelText: 'Tamamlama Notu',
+                    labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: colorScheme.primary),
+                    ),
+                  ),
+                  style: TextStyle(color: colorScheme.onSurface),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+
+                // ✅ YENİ: Drive Link Alanı
+                TextField(
+                  controller: driveLinkController,
+                  decoration: InputDecoration(
+                    labelText: 'Google Drive Linki (Opsiyonel)',
+                    hintText: 'https://drive.google.com/...',
+                    labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                    prefixIcon: Icon(Icons.link, color: colorScheme.primary),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: colorScheme.primary),
+                    ),
+                  ),
+                  style: TextStyle(color: colorScheme.onSurface),
+                  keyboardType: TextInputType.url,
+                ),
+              ],
             ),
-            style: TextStyle(color: colorScheme.onSurface),
-            maxLines: 3,
           ),
           actions: [
             TextButton(
@@ -1095,9 +1158,11 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
             ElevatedButton(
               onPressed: () async {
                 try {
+                  final driveLink = driveLinkController.text.trim();
                   await _taskService.completeTask(
                     task.id,
                     noteController.text,
+                    driveLink.isNotEmpty ? driveLink : null,
                   );
                   if (mounted) {
                     Navigator.pop(context);
@@ -1129,6 +1194,28 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
         );
       },
     );
+  }
+
+  // ✅ YENİ: URL açma fonksiyonu (clipboard'a kopyala)
+  Future<void> _launchURL(String url) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: url));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Link panoya kopyalandı! Tarayıcınızda açabilirsiniz.'),
+            backgroundColor: AppColors.info,
+            action: SnackBarAction(
+              label: 'Tamam',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Link açma hatası: $e');
+    }
   }
 
   // Helper methods

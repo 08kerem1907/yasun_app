@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // ✅ YENİ: Clipboard için
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -310,6 +311,23 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                                   ),
                                 ],
                               ),
+                              // ✅ YENİ: Drive Link butonu
+                              if (task.driveLink != null && task.driveLink!.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () => _launchURL(task.driveLink!),
+                                    icon: const Icon(Icons.cloud, size: 16),
+                                    label: const Text('Drive\'da Görüntüle'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.blue,
+                                      side: const BorderSide(color: Colors.blue, width: 1),
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -578,6 +596,36 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                 const SizedBox(height: 8),
                 if (task.userCompletionNote != null && task.userCompletionNote!.isNotEmpty)
                   _buildNoteSection('Kullanıcı Notu', task.userCompletionNote!, Colors.blue),
+                // ✅ YENİ: Drive Link bölümü
+                if (task.driveLink != null && task.driveLink!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Drive Dökümanı',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _launchURL(task.driveLink!),
+                            icon: const Icon(Icons.open_in_new, size: 16),
+                            label: const Text('Drive bağlantısını kopyala'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.blue,
+                              side: const BorderSide(color: Colors.blue),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 if (task.captainEvaluation != null && task.captainEvaluation!.isNotEmpty)
                   _buildNoteSection(
                     'Kaptan Değerlendirmesi',
@@ -649,6 +697,28 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
         ],
       ),
     );
+  }
+
+  // ✅ YENİ: URL açma fonksiyonu
+  Future<void> _launchURL(String url) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: url));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Link panoya kopyalandı! Tarayıcınızda açabilirsiniz.'),
+            backgroundColor: AppColors.info,
+            action: SnackBarAction(
+              label: 'Tamam',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Link açma hatası: $e');
+    }
   }
 
   /// Görev durumuna göre renk döndürür

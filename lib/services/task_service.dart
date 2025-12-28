@@ -385,11 +385,11 @@ class TaskService {
     }
   }
 
-  /// Kullanıcı görevi tamamlar
   Future<void> completeTask(
       String taskId,
       String userCompletionNote,
-      ) async {
+      [String? driveLink] // ✅ YENİ: Opsiyonel Drive linki
+      ) async {  // ✅ Bu satıra dikkat - eski kodda parantez eksikmiş
     try {
       final taskDoc = await _firestore.collection('tasks').doc(taskId).get();
       if (!taskDoc.exists) {
@@ -410,18 +410,13 @@ class TaskService {
         'status': newStatus.name,
         'completedAt': Timestamp.now(),
         'userCompletionNote': userCompletionNote,
+        'driveLink': driveLink, // ✅ YENİ: Drive linkini kaydet
       });
     } catch (e) {
       debugPrint('❌ Görev tamamlanırken hata: $e');
       rethrow;
     }
   }
-
-  // ============================================
-  // CRUD OPERATIONS
-  // ============================================
-
-  /// Yeni görev oluştur
   Future<void> createTask(TaskModel task) async {
     try {
       await _firestore.collection('tasks').add(task.toMap());

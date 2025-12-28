@@ -7,6 +7,7 @@ import '../services/task_service.dart';
 import '../services/user_service.dart';
 import '../services/team_service.dart'; // ✅ YENİ: TeamService eklendi
 import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 
 class CaptainTaskManagementScreen extends StatefulWidget {
   final int initialTabIndex;
@@ -648,6 +649,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
+
   Widget _buildEvaluationTaskCard(TaskModel task) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -748,6 +750,51 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                 ),
               ),
             ],
+            // ✅ YENİ: Drive Link Bölümü
+            if (task.driveLink != null && task.driveLink!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.cloud, size: 16, color: Colors.blue),
+                        SizedBox(width: 4),
+                        Text(
+                          'Google Drive Dökümanı:',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _launchURL(task.driveLink!),
+                        icon: const Icon(Icons.open_in_new, size: 16),
+                        label: const Text('Drive bağlantısını kopyala'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.blue,
+                          side: const BorderSide(color: Colors.blue),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             Row(
               children: [
@@ -782,6 +829,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
       ),
     );
   }
+
 
   Widget _buildTeamMemberCard(UserModel member) {
     bool isExpanded = false;
@@ -990,6 +1038,44 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                       ),
                     ],
                   ),
+                  // ✅ YENİ: Drive Link gösterimi
+                  if (task.driveLink != null && task.driveLink!.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.cloud, size: 12, color: Colors.blue),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'Drive dökümanı mevcut',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.blue.shade700,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => _launchURL(task.driveLink!),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.blue,
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text('Kopyala', style: TextStyle(fontSize: 10)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   // ✅ Düzenlenme bilgisi
                   if (task.updatedAt != null) ...[
                     const SizedBox(height: 6),
@@ -1677,6 +1763,26 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
         ],
       ),
     );
+  }
+  Future<void> _launchURL(String url) async {
+    try {
+      await Clipboard.setData(ClipboardData(text: url));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Link panoya kopyalandı! Tarayıcınızda açabilirsiniz.'),
+            backgroundColor: AppColors.info,
+            action: SnackBarAction(
+              label: 'Tamam',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Link açma hatası: $e');
+    }
   }
 
   Future<void> _deleteTask(String taskId, String taskTitle) async {

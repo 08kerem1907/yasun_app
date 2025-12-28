@@ -20,8 +20,8 @@ class TaskModel {
   final String description;
   final String assignedToUid;
   final String assignedToDisplayName;
-  final String? assignedToTeamId; // ✅ YENİ: Atanan kullanıcının takım ID'si
-  final String? assignedToTeamName; // ✅ YENİ: Atanan kullanıcının takım adı
+  final String? assignedToTeamId;
+  final String? assignedToTeamName;
   final String assignedByUid;
   final String assignedByDisplayName;
   final DateTime dueDate;
@@ -29,14 +29,15 @@ class TaskModel {
   final DateTime createdAt;
   final DateTime? completedAt;
   final String? userCompletionNote;
+  final String? driveLink; // ✅ YENİ: Google Drive linki
   final String? captainEvaluation;
-  final CaptainRating? captainRating; // ✅ YENİ: Kaptan değerlendirme derecesi
+  final CaptainRating? captainRating;
   final DateTime? captainEvaluatedAt;
   final int? adminScore;
   final DateTime? adminEvaluatedAt;
-  final DateTime? updatedAt; // ✅ YENİ: Düzenlenme zamanı
-  final String? updatedBy; // ✅ YENİ: Düzenleyen kişi
-  final int difficultyLevel; // ✅ YENİ: Zorluk derecesi (1, 2 veya 3)
+  final DateTime? updatedAt;
+  final String? updatedBy;
+  final int difficultyLevel;
 
   TaskModel({
     required this.id,
@@ -44,8 +45,8 @@ class TaskModel {
     required this.description,
     required this.assignedToUid,
     required this.assignedToDisplayName,
-    this.assignedToTeamId, // ✅ YENİ
-    this.assignedToTeamName, // ✅ YENİ
+    this.assignedToTeamId,
+    this.assignedToTeamName,
     required this.assignedByUid,
     required this.assignedByDisplayName,
     required this.dueDate,
@@ -53,14 +54,15 @@ class TaskModel {
     required this.createdAt,
     this.completedAt,
     this.userCompletionNote,
+    this.driveLink, // ✅ YENİ
     this.captainEvaluation,
-    this.captainRating, // ✅ YENİ
+    this.captainRating,
     this.captainEvaluatedAt,
     this.adminScore,
     this.adminEvaluatedAt,
     this.updatedAt,
     this.updatedBy,
-    this.difficultyLevel = 1, // ✅ YENİ: Varsayılan zorluk derecesi 1
+    this.difficultyLevel = 1,
   });
 
   factory TaskModel.fromFirestore(DocumentSnapshot doc) {
@@ -71,8 +73,8 @@ class TaskModel {
       description: data['description'] ?? '',
       assignedToUid: data['assignedToUid'] ?? '',
       assignedToDisplayName: data['assignedToDisplayName'] ?? '',
-      assignedToTeamId: data['assignedToTeamId'], // ✅ YENİ
-      assignedToTeamName: data['assignedToTeamName'], // ✅ YENİ
+      assignedToTeamId: data['assignedToTeamId'],
+      assignedToTeamName: data['assignedToTeamName'],
       assignedByUid: data['assignedByUid'] ?? '',
       assignedByDisplayName: data['assignedByDisplayName'] ?? '',
       dueDate: (data['dueDate'] as Timestamp).toDate(),
@@ -80,14 +82,15 @@ class TaskModel {
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       completedAt: (data['completedAt'] as Timestamp?)?.toDate(),
       userCompletionNote: data['userCompletionNote'],
+      driveLink: data['driveLink'], // ✅ YENİ: Firestore'dan oku
       captainEvaluation: data['captainEvaluation'],
-      captainRating: _parseCaptainRating(data['captainRating']), // ✅ YENİ
+      captainRating: _parseCaptainRating(data['captainRating']),
       captainEvaluatedAt: (data['captainEvaluatedAt'] as Timestamp?)?.toDate(),
       adminScore: data['adminScore'] is int ? data['adminScore'] : (data['adminScore'] is String ? int.tryParse(data['adminScore']) : null),
       adminEvaluatedAt: (data['adminEvaluatedAt'] as Timestamp?)?.toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(), // ✅ YENİ
-      updatedBy: data['updatedBy'], // ✅ YENİ
-      difficultyLevel: data['difficultyLevel'] ?? 1, // ✅ YENİ: Zorluk derecesi
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
+      updatedBy: data['updatedBy'],
+      difficultyLevel: data['difficultyLevel'] ?? 1,
     );
   }
 
@@ -97,8 +100,8 @@ class TaskModel {
       'description': description,
       'assignedToUid': assignedToUid,
       'assignedToDisplayName': assignedToDisplayName,
-      'assignedToTeamId': assignedToTeamId, // ✅ YENİ
-      'assignedToTeamName': assignedToTeamName, // ✅ YENİ
+      'assignedToTeamId': assignedToTeamId,
+      'assignedToTeamName': assignedToTeamName,
       'assignedByUid': assignedByUid,
       'assignedByDisplayName': assignedByDisplayName,
       'dueDate': Timestamp.fromDate(dueDate),
@@ -106,14 +109,15 @@ class TaskModel {
       'createdAt': Timestamp.fromDate(createdAt),
       'completedAt': completedAt != null ? Timestamp.fromDate(completedAt!) : null,
       'userCompletionNote': userCompletionNote,
+      'driveLink': driveLink, // ✅ YENİ: Firestore'a kaydet
       'captainEvaluation': captainEvaluation,
-      'captainRating': captainRating?.name, // ✅ YENİ
+      'captainRating': captainRating?.name,
       'captainEvaluatedAt': captainEvaluatedAt != null ? Timestamp.fromDate(captainEvaluatedAt!) : null,
       'adminScore': adminScore,
       'adminEvaluatedAt': adminEvaluatedAt != null ? Timestamp.fromDate(adminEvaluatedAt!) : null,
-      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null, // ✅ YENİ
-      'updatedBy': updatedBy, // ✅ YENİ
-      'difficultyLevel': difficultyLevel, // ✅ YENİ: Zorluk derecesi
+      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+      'updatedBy': updatedBy,
+      'difficultyLevel': difficultyLevel,
     };
   }
 
@@ -123,8 +127,8 @@ class TaskModel {
     String? description,
     String? assignedToUid,
     String? assignedToDisplayName,
-    String? assignedToTeamId, // ✅ YENİ
-    String? assignedToTeamName, // ✅ YENİ
+    String? assignedToTeamId,
+    String? assignedToTeamName,
     String? assignedByUid,
     String? assignedByDisplayName,
     DateTime? dueDate,
@@ -132,14 +136,15 @@ class TaskModel {
     DateTime? createdAt,
     DateTime? completedAt,
     String? userCompletionNote,
+    String? driveLink, // ✅ YENİ
     String? captainEvaluation,
-    CaptainRating? captainRating, // ✅ YENİ
+    CaptainRating? captainRating,
     DateTime? captainEvaluatedAt,
     int? adminScore,
     DateTime? adminEvaluatedAt,
-    DateTime? updatedAt, // ✅ YENİ
-    String? updatedBy, // ✅ YENİ
-    int? difficultyLevel, // ✅ YENİ: Zorluk derecesi
+    DateTime? updatedAt,
+    String? updatedBy,
+    int? difficultyLevel,
   }) {
     return TaskModel(
       id: id ?? this.id,
@@ -147,8 +152,8 @@ class TaskModel {
       description: description ?? this.description,
       assignedToUid: assignedToUid ?? this.assignedToUid,
       assignedToDisplayName: assignedToDisplayName ?? this.assignedToDisplayName,
-      assignedToTeamId: assignedToTeamId ?? this.assignedToTeamId, // ✅ YENİ
-      assignedToTeamName: assignedToTeamName ?? this.assignedToTeamName, // ✅ YENİ
+      assignedToTeamId: assignedToTeamId ?? this.assignedToTeamId,
+      assignedToTeamName: assignedToTeamName ?? this.assignedToTeamName,
       assignedByUid: assignedByUid ?? this.assignedByUid,
       assignedByDisplayName: assignedByDisplayName ?? this.assignedByDisplayName,
       dueDate: dueDate ?? this.dueDate,
@@ -156,14 +161,15 @@ class TaskModel {
       createdAt: createdAt ?? this.createdAt,
       completedAt: completedAt ?? this.completedAt,
       userCompletionNote: userCompletionNote ?? this.userCompletionNote,
+      driveLink: driveLink ?? this.driveLink, // ✅ YENİ
       captainEvaluation: captainEvaluation ?? this.captainEvaluation,
-      captainRating: captainRating ?? this.captainRating, // ✅ YENİ
+      captainRating: captainRating ?? this.captainRating,
       captainEvaluatedAt: captainEvaluatedAt ?? this.captainEvaluatedAt,
       adminScore: adminScore ?? this.adminScore,
       adminEvaluatedAt: adminEvaluatedAt ?? this.adminEvaluatedAt,
-      updatedAt: updatedAt ?? this.updatedAt, // ✅ YENİ
-      updatedBy: updatedBy ?? this.updatedBy, // ✅ YENİ
-      difficultyLevel: difficultyLevel ?? this.difficultyLevel, // ✅ YENİ: Zorluk derecesi
+      updatedAt: updatedAt ?? this.updatedAt,
+      updatedBy: updatedBy ?? this.updatedBy,
+      difficultyLevel: difficultyLevel ?? this.difficultyLevel,
     );
   }
 
