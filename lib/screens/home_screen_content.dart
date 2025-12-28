@@ -51,15 +51,7 @@ class HomeScreenContent extends StatelessWidget {
 
   void _navigateToTaskManagement(BuildContext context, UserModel userData, {int initialTab = 0}) {
     const taskIndex = 3;
-    HomeScreenNavigator.of(context)?.navigateToIndex(taskIndex);
-
-    if (initialTab != 0) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (context.mounted) {
-          TaskManagementNavigator.of(context)?.changeTab(initialTab);
-        }
-      });
-    }
+    HomeScreenNavigator.of(context)?.navigateToIndex(taskIndex, taskTab: initialTab); // ✅ taskTab eklendi
   }
 
   void _navigateToMyTeam(BuildContext context) {
@@ -68,15 +60,7 @@ class HomeScreenContent extends StatelessWidget {
 
   void _navigateToUsersList(BuildContext context, {int initialTab = 0}) {
     const usersIndex = 4;
-    HomeScreenNavigator.of(context)?.navigateToIndex(usersIndex);
-
-    if (initialTab != 0) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (context.mounted) {
-          UsersListNavigator.of(context)?.changeTab(initialTab);
-        }
-      });
-    }
+    HomeScreenNavigator.of(context)?.navigateToIndex(usersIndex, usersTab: initialTab); // ✅ usersTab eklendi
   }
 
   @override
@@ -392,7 +376,7 @@ class HomeScreenContent extends StatelessWidget {
                     teamStats['completed_tasks_this_month'].toString(),
                     Icons.check_circle,
                     AppColors.error,
-                    onTap: () => _navigateToTaskManagement(context, userData, initialTab: 1),
+                    onTap: () => _navigateToTaskManagement(context, userData, initialTab: 2),
                   ),
                 ),
               ],
