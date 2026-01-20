@@ -168,18 +168,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return HomeScreenNavigator(
           navigateToIndex: _navigateToIndex,
-          child: Scaffold(
-            bottomNavigationBar: CurvedNavigationBar(
-              // ✅ DEĞİŞTİ: Tema renklerini kullan
-              backgroundColor: colorScheme.background,
-              color: colorScheme.primary,
-              buttonBackgroundColor: colorScheme.primary,
-              height: 50,
-              index: _selectedIndex,
-              items: _getNavigationItems(userData),
-              onTap: _onItemTapped,
+          child: PopScope(
+            canPop: _selectedIndex == 0, // Sadece ana sayfadayken (index 0) uygulamadan çıkışa izin ver
+            onPopInvoked: (didPop) {
+              if (didPop) return;
+
+              // Eğer ana sayfada değilsek, ana sayfaya yönlendir
+              if (_selectedIndex != 0) {
+                setState(() {
+                  _selectedIndex = 0;
+                });
+              }
+            },
+            child: Scaffold(
+              bottomNavigationBar: CurvedNavigationBar(
+                // ✅ DEĞİŞTİ: Tema renklerini kullan
+                backgroundColor: colorScheme.background,
+                color: colorScheme.primary,
+                buttonBackgroundColor: colorScheme.primary,
+                height: 50,
+                index: _selectedIndex,
+                items: _getNavigationItems(userData),
+                onTap: _onItemTapped,
+              ),
+              body: screens[_selectedIndex],
             ),
-            body: screens[_selectedIndex],
           ),
         );
       },
