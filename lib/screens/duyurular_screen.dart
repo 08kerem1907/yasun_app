@@ -315,7 +315,7 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
-            gradient: AppColors.primaryGradient, // gradient aynı
+            gradient: AppColors.backgroundGradient,
           ),
         ),
         title: Text(

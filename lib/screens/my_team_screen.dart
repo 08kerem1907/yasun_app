@@ -143,12 +143,6 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.search, color: colorScheme.onSurfaceVariant), // Tema onSurfaceVariant rengi
-            onPressed: () {
-              // Arama fonksiyonu
-            },
-          ),
         ],
       ),
     );
