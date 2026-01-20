@@ -1092,6 +1092,7 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
     final noteController = TextEditingController();
     final driveLinkController = TextEditingController();
     final colorScheme = Theme.of(context).colorScheme;
+    final formKey = GlobalKey<FormState>(); // ✅ YENİ: Form kontrolü için
 
     showDialog(
       context: context,
@@ -1103,48 +1104,59 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
             style: TextStyle(color: colorScheme.onSurface),
           ),
           content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Tamamlama Notu
-                TextField(
-                  controller: noteController,
-                  decoration: InputDecoration(
-                    labelText: 'Tamamlama Notu',
-                    labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+            child: Form(
+              key: formKey, // ✅ YENİ: Form widget'ı eklendi
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Tamamlama Notu
+                  TextFormField( // ✅ DEĞİŞTİ: TextField -> TextFormField
+                    controller: noteController,
+                    decoration: InputDecoration(
+                      labelText: 'Tamamlama Notu',
+                      labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: colorScheme.primary),
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: colorScheme.primary),
-                    ),
+                    style: TextStyle(color: colorScheme.onSurface),
+                    maxLines: 3,
                   ),
-                  style: TextStyle(color: colorScheme.onSurface),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // ✅ YENİ: Drive Link Alanı
-                TextField(
-                  controller: driveLinkController,
-                  decoration: InputDecoration(
-                    labelText: 'Google Drive Linki (Opsiyonel)',
-                    hintText: 'https://drive.google.com/...',
-                    labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                    prefixIcon: Icon(Icons.link, color: colorScheme.primary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  // ✅ YENİ: Drive Link Alanı
+                  TextFormField( // ✅ DEĞİŞTİ: TextField -> TextFormField
+                    controller: driveLinkController,
+                    decoration: InputDecoration(
+                      labelText: 'Google Drive Linki (Opsiyonel)',
+                      hintText: 'https://drive.google.com/...',
+                      labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                      prefixIcon: Icon(Icons.link, color: colorScheme.primary),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: colorScheme.primary),
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: colorScheme.primary),
-                    ),
+                    style: TextStyle(color: colorScheme.onSurface),
+                    keyboardType: TextInputType.url,
+                    validator: (value) { // ✅ YENİ: URL Doğrulaması
+                      if (value == null || value.isEmpty) return null;
+                      final urlPattern = r'^(https?:\/\/)?([\w\d\-_]+\.)+[\w\d\-_]+(\/.*)?$';
+                      if (!RegExp(urlPattern).hasMatch(value)) {
+                        return 'Lütfen geçerli bir link giriniz';
+                      }
+                      return null;
+                    },
                   ),
-                  style: TextStyle(color: colorScheme.onSurface),
-                  keyboardType: TextInputType.url,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           actions: [
@@ -1157,30 +1169,33 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                try {
-                  final driveLink = driveLinkController.text.trim();
-                  await _taskService.completeTask(
-                    task.id,
-                    noteController.text,
-                    driveLink.isNotEmpty ? driveLink : null,
-                  );
-                  if (mounted) {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Görev tamamlandı olarak işaretlendi.'),
-                        backgroundColor: AppColors.success,
-                      ),
+                // ✅ YENİ: Form doğrulaması kontrolü
+                if (formKey.currentState!.validate()) {
+                  try {
+                    final driveLink = driveLinkController.text.trim();
+                    await _taskService.completeTask(
+                      task.id,
+                      noteController.text,
+                      driveLink.isNotEmpty ? driveLink : null,
                     );
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Hata: $e'),
-                        backgroundColor: AppColors.error,
-                      ),
-                    );
+                    if (mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Görev tamamlandı olarak işaretlendi.'),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Hata: $e'),
+                          backgroundColor: AppColors.error,
+                        ),
+                      );
+                    }
                   }
                 }
               },

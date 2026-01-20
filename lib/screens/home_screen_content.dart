@@ -372,10 +372,10 @@ class HomeScreenContent extends StatelessWidget {
                 Expanded(
                   child: _buildStatCard(
                     context,
-                    'Bu Ay Tamamlanan\nGörevler',
+                    'Tamamlanan Görevler',
                     teamStats['completed_tasks_this_month'].toString(),
                     Icons.check_circle,
-                    AppColors.error,
+                    AppColors.success,
                     onTap: () => _navigateToTaskManagement(context, userData, initialTab: 2),
                   ),
                 ),
