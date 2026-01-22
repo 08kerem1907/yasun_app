@@ -206,30 +206,34 @@ class _LoginScreenState extends State<LoginScreen> {
         TextFormField(
           controller: _emailController,
           keyboardType: TextInputType.emailAddress,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
             fontSize: 14,
           ),
-          cursorColor: AppColors.primary,
+          cursorColor: isDark ? AppColors.darkPrimary : AppColors.primary,
           decoration: InputDecoration(
             hintText: 'email@yasun.com',
-            hintStyle: const TextStyle(
-              color: AppColors.textHint,
+            hintStyle: TextStyle(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textHint,
             ),
             filled: true,
-            fillColor: AppColors.background,
+            fillColor: isDark ? AppColors.darkBackground : AppColors.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(
+                color: isDark ? AppColors.darkBorder : AppColors.border,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(
+                color: isDark ? AppColors.darkBorder : AppColors.border,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.borderFocused,
+              borderSide: BorderSide(
+                color: isDark ? AppColors.darkPrimary : AppColors.borderFocused,
                 width: 2,
               ),
             ),
@@ -280,28 +284,38 @@ class _LoginScreenState extends State<LoginScreen> {
           cursorColor: isDark ? AppColors.darkPrimary : AppColors.primary,
           decoration: InputDecoration(
             hintText: 'Şifrenizi girin',
-            hintStyle: const TextStyle(color: AppColors.textHint),
+            hintStyle: TextStyle(
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textHint,
+            ),
             filled: true,
-            fillColor: AppColors.background,
+            fillColor: isDark ? AppColors.darkBackground : AppColors.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(
+                color: isDark ? AppColors.darkBorder : AppColors.border,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(
+                color: isDark ? AppColors.darkBorder : AppColors.border,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide:
-              const BorderSide(color: AppColors.borderFocused, width: 2),
+              borderSide: BorderSide(
+                color: isDark ? AppColors.darkPrimary : AppColors.borderFocused,
+                width: 2,
+              ),
             ),
             contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                color: AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textSecondary,
               ),
               onPressed: () {
                 setState(() => _obscurePassword = !_obscurePassword);

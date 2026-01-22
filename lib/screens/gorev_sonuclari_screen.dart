@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // ✅ YENİ: Clipboard için
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -143,10 +143,12 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
   /// Görev listesini dialog olarak göster
   void _showTasksDialog(String period, String title) {
     final tasks = _filterTasksByPeriod(period);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
       builder: (context) => Dialog(
+        backgroundColor: isDark ? AppColors.darkCardBackground : AppColors.cardBackground,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Container(
           constraints: BoxConstraints(
@@ -160,7 +162,9 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.deepPurple.shade50,
+                  color: isDark
+                      ? AppColors.darkPrimary.withOpacity(0.2)
+                      : Colors.deepPurple.shade50,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(16),
                     topRight: Radius.circular(16),
@@ -168,20 +172,26 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.task_alt_rounded,
-                        color: Colors.deepPurple),
+                    Icon(
+                      Icons.task_alt_rounded,
+                      color: isDark ? AppColors.darkPrimary : Colors.deepPurple,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                         ),
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close),
+                      icon: Icon(
+                        Icons.close,
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -190,20 +200,25 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
 
               // Görev Listesi
               if (tasks.isEmpty)
-                const Expanded(
+                Expanded(
                   child: Center(
                     child: Padding(
-                      padding: EdgeInsets.all(32.0),
+                      padding: const EdgeInsets.all(32.0),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.inbox_rounded,
-                              size: 64, color: Colors.grey),
-                          SizedBox(height: 16),
+                          Icon(
+                            Icons.inbox_rounded,
+                            size: 64,
+                            color: isDark ? AppColors.darkTextSecondary : Colors.grey,
+                          ),
+                          const SizedBox(height: 16),
                           Text(
                             'Bu dönemde puanlanmış görev bulunmamaktadır.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.grey),
+                            style: TextStyle(
+                              color: isDark ? AppColors.darkTextSecondary : Colors.grey,
+                            ),
                           ),
                         ],
                       ),
@@ -223,7 +238,8 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
-                        elevation: 2,
+                        elevation: isDark ? 4 : 2,
+                        color: isDark ? AppColors.darkCardBackground : Colors.white,
                         child: Padding(
                           padding: const EdgeInsets.all(12),
                           child: Column(
@@ -234,9 +250,10 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                                   Expanded(
                                     child: Text(
                                       task.title,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
+                                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                                       ),
                                     ),
                                   ),
@@ -246,7 +263,9 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.green.shade100,
+                                      color: isDark
+                                          ? Colors.green.shade900.withOpacity(0.3)
+                                          : Colors.green.shade100,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Row(
@@ -262,7 +281,9 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                                           '$score puan',
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.green.shade900,
+                                            color: isDark
+                                                ? Colors.green.shade300
+                                                : Colors.green.shade900,
                                           ),
                                         ),
                                       ],
@@ -275,7 +296,7 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                                 Text(
                                   task.description,
                                   style: TextStyle(
-                                    color: Colors.grey.shade700,
+                                    color: isDark ? AppColors.darkTextSecondary : Colors.grey.shade700,
                                     fontSize: 14,
                                   ),
                                   maxLines: 2,
@@ -287,18 +308,17 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                                   Icon(
                                     Icons.calendar_today_rounded,
                                     size: 14,
-                                    color: Colors.grey.shade600,
+                                    color: isDark ? AppColors.darkTextSecondary : Colors.grey.shade600,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     taskDate != null
-                                        ? DateFormat(
-                                        'dd MMMM yyyy HH:mm', 'tr_TR')
+                                        ? DateFormat('dd MMMM yyyy HH:mm', 'tr_TR')
                                         .format(taskDate)
                                         : 'Tarih belirtilmemiş',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey.shade600,
+                                      color: isDark ? AppColors.darkTextSecondary : Colors.grey.shade600,
                                     ),
                                   ),
                                 ],
@@ -309,35 +329,35 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                                   Icon(
                                     Icons.speed_rounded,
                                     size: 14,
-                                    color: Colors.grey.shade600,
+                                    color: isDark ? AppColors.darkTextSecondary : Colors.grey.shade600,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Zorluk: ${task.difficultyLevel}x | Yönetici Puanı: ${task.adminScore}',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey.shade600,
+                                      color: isDark ? AppColors.darkTextSecondary : Colors.grey.shade600,
                                     ),
                                   ),
                                 ],
                               ),
-                              // ✅ YENİ: Drive Link butonu
+                              // Drive Link butonu
                               if (task.driveLink != null &&
                                   task.driveLink!.isNotEmpty) ...[
                                 const SizedBox(height: 8),
                                 SizedBox(
                                   width: double.infinity,
                                   child: OutlinedButton.icon(
-                                    onPressed: () =>
-                                        _launchURL(task.driveLink!),
+                                    onPressed: () => _launchURL(task.driveLink!),
                                     icon: const Icon(Icons.cloud, size: 16),
                                     label: const Text('Drive\'da Görüntüle'),
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.blue,
-                                      side: const BorderSide(
-                                          color: Colors.blue, width: 1),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 8),
+                                      foregroundColor: isDark ? AppColors.darkPrimary : Colors.blue,
+                                      side: BorderSide(
+                                        color: isDark ? AppColors.darkPrimary : Colors.blue,
+                                        width: 1,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
                                     ),
                                   ),
                                 ),
@@ -358,16 +378,22 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
       appBar: AppBar(
         title: Text('${widget.user.displayName} - Görev Sonuçları'),
+        backgroundColor: isDark ? AppColors.darkCardBackground : AppColors.primary,
+        foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
           // Puan İstatistikleri Kartı
           Card(
             margin: const EdgeInsets.all(16.0),
-            elevation: 4,
+            elevation: isDark ? 6 : 4,
+            color: isDark ? AppColors.darkCardBackground : Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -377,25 +403,34 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    children: const [
-                      Icon(Icons.analytics_rounded,
-                          color: Colors.deepPurple, size: 28),
-                      SizedBox(width: 8),
+                    children: [
+                      Icon(
+                        Icons.analytics_rounded,
+                        color: isDark ? AppColors.darkPrimary : Colors.deepPurple,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 8),
                       Text(
                         'Puan İstatistikleri',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                         ),
                       ),
                     ],
                   ),
-                  const Divider(height: 24),
+                  Divider(
+                    height: 24,
+                    color: isDark ? AppColors.darkBorder : AppColors.border,
+                  ),
                   if (_isLoadingStats)
-                    const Center(
+                    Center(
                       child: Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(),
+                        padding: const EdgeInsets.all(16.0),
+                        child: CircularProgressIndicator(
+                          color: isDark ? AppColors.darkPrimary : AppColors.primary,
+                        ),
                       ),
                     )
                   else
@@ -407,7 +442,9 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                           iconColor: Colors.amber,
                           label: 'Toplam Puan',
                           score: widget.user.totalScore,
-                          backgroundColor: Colors.amber.shade50,
+                          backgroundColor: isDark
+                              ? Colors.amber.shade900.withOpacity(0.2)
+                              : Colors.amber.shade50,
                           period: 'total',
                         ),
                         const SizedBox(height: 12),
@@ -418,7 +455,9 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                           iconColor: Colors.green,
                           label: 'Yıllık Puan (${DateTime.now().year})',
                           score: _yearlyScore,
-                          backgroundColor: Colors.green.shade50,
+                          backgroundColor: isDark
+                              ? Colors.green.shade900.withOpacity(0.2)
+                              : Colors.green.shade50,
                           period: 'yearly',
                         ),
                         const SizedBox(height: 12),
@@ -427,10 +466,11 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                         _buildScoreRow(
                           icon: Icons.trending_up_rounded,
                           iconColor: Colors.blueAccent,
-                          label:
-                          'Aylık Puan (${_getMonthName(DateTime.now().month)})',
+                          label: 'Aylık Puan (${_getMonthName(DateTime.now().month)})',
                           score: _monthlyScore,
-                          backgroundColor: Colors.blue.shade50,
+                          backgroundColor: isDark
+                              ? Colors.blue.shade900.withOpacity(0.2)
+                              : Colors.blue.shade50,
                           period: 'monthly',
                         ),
                         const SizedBox(height: 12),
@@ -441,7 +481,9 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
                           iconColor: Colors.orange,
                           label: 'Haftalık Puan (Son 7 Gün)',
                           score: _weeklyScore,
-                          backgroundColor: Colors.orange.shade50,
+                          backgroundColor: isDark
+                              ? Colors.orange.shade900.withOpacity(0.2)
+                              : Colors.orange.shade50,
                           period: 'weekly',
                         ),
                       ],
@@ -452,18 +494,21 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
           ),
 
           // Görevler Listesi Başlığı
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Row(
               children: [
-                Icon(Icons.assignment_turned_in_rounded,
-                    color: Colors.deepPurple),
-                SizedBox(width: 8),
+                Icon(
+                  Icons.assignment_turned_in_rounded,
+                  color: isDark ? AppColors.darkPrimary : Colors.deepPurple,
+                ),
+                const SizedBox(width: 8),
                 Text(
                   'Görevler',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                   ),
                 ),
               ],
@@ -476,15 +521,30 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
               stream: _taskService.getTasksAssignedToUser(widget.user.uid),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: isDark ? AppColors.darkPrimary : AppColors.primary,
+                    ),
+                  );
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('Hata: ${snapshot.error}'));
+                  return Center(
+                    child: Text(
+                      'Hata: ${snapshot.error}',
+                      style: TextStyle(
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                      ),
+                    ),
+                  );
                 }
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return Center(
                     child: Text(
-                        '${widget.user.displayName} için görev bulunamadı.'),
+                      '${widget.user.displayName} için görev bulunamadı.',
+                      style: TextStyle(
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                      ),
+                    ),
                   );
                 }
 
@@ -515,6 +575,8 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
     required Color backgroundColor,
     String? period,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return InkWell(
       onTap: period != null && period != 'total'
           ? () {
@@ -524,8 +586,7 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
             title = 'Haftalık Görevler (Son 7 Gün)';
             break;
           case 'monthly':
-            title =
-            'Aylık Görevler (${_getMonthName(DateTime.now().month)})';
+            title = 'Aylık Görevler (${_getMonthName(DateTime.now().month)})';
             break;
           case 'yearly':
             title = 'Yıllık Görevler (${DateTime.now().year})';
@@ -548,9 +609,10 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
+                  color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                 ),
               ),
             ),
@@ -563,9 +625,13 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
               ),
             ),
             if (period != null && period != 'total')
-              const Padding(
-                padding: EdgeInsets.only(left: 8),
-                child: Icon(Icons.arrow_forward_ios_rounded, size: 16),
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                ),
               ),
           ],
         ),
@@ -575,96 +641,122 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
 
   /// Görev kartını oluşturur
   Widget _buildTaskCard(TaskModel task) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final statusColor = _getStatusColor(task.status);
     final evaluated = task.status == TaskStatus.evaluatedByAdmin;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
+      elevation: isDark ? 4 : 2,
+      color: isDark ? AppColors.darkCardBackground : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ExpansionTile(
-        title: Text(
-          task.title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+      child: Theme(
+        data: Theme.of(context).copyWith(
+          dividerColor: Colors.transparent,
         ),
-        subtitle: Text(
-          'Durum: ${_getStatusText(task.status)}',
-          style: TextStyle(color: statusColor, fontSize: 12),
-        ),
-        trailing: evaluated
-            ? Text(
-          'Nihai Puan: ${(task.adminScore ?? 0) * task.difficultyLevel}',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: task.adminScore != null && task.adminScore! >= 80
-                ? AppColors.success
-                : Colors.red,
-          ),
-        )
-            : const Icon(Icons.keyboard_arrow_down),
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Açıklama: ${task.description}'),
-                const SizedBox(height: 8),
-                Text(
-                    'Son Teslim: ${DateFormat('dd MMMM yyyy', 'tr_TR').format(task.dueDate)}'),
-                const SizedBox(height: 8),
-                if (task.userCompletionNote != null &&
-                    task.userCompletionNote!.isNotEmpty)
-                  _buildNoteSection(
-                      'Kullanıcı Notu', task.userCompletionNote!, Colors.blue),
-                // ✅ YENİ: Drive Link bölümü
-                if (task.driveLink != null && task.driveLink!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Drive Dökümanı',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: () => _launchURL(task.driveLink!),
-                            icon: const Icon(Icons.open_in_new, size: 16),
-                            label: const Text('Drive bağlantısını kopyala'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.blue,
-                              side: const BorderSide(color: Colors.blue),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                if (task.captainEvaluation != null &&
-                    task.captainEvaluation!.isNotEmpty)
-                  _buildNoteSection(
-                    'Kaptan Değerlendirmesi',
-                    '${task.captainEvaluation!}\nDerece: ${task.captainRating != null ? _getRatingText(task.captainRating!) : 'Belirtilmemiş'}',
-                    Colors.purple,
-                    rating: task.captainRating,
-                  ),
-                if (evaluated)
-                  _buildNoteSection(
-                    'Yönetici Puanı',
-                    'Verilen Puan: ${task.adminScore ?? '-'}\nZorluk Katsayısı: ${task.difficultyLevel}\nNihai Puan: ${(task.adminScore ?? 0) * task.difficultyLevel}',
-                    AppColors.success,
-                  ),
-              ],
+        child: ExpansionTile(
+          iconColor: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+          collapsedIconColor: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+          title: Text(
+            task.title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
             ),
           ),
-        ],
+          subtitle: Text(
+            'Durum: ${_getStatusText(task.status)}',
+            style: TextStyle(color: statusColor, fontSize: 12),
+          ),
+          trailing: evaluated
+              ? Text(
+            'Nihai Puan: ${(task.adminScore ?? 0) * task.difficultyLevel}',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: task.adminScore != null && task.adminScore! >= 80
+                  ? (isDark ? Colors.green.shade300 : AppColors.success)
+                  : Colors.red,
+            ),
+          )
+              : Icon(
+            Icons.keyboard_arrow_down,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Açıklama: ${task.description}',
+                    style: TextStyle(
+                      color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Son Teslim: ${DateFormat('dd MMMM yyyy', 'tr_TR').format(task.dueDate)}',
+                    style: TextStyle(
+                      color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (task.userCompletionNote != null &&
+                      task.userCompletionNote!.isNotEmpty)
+                    _buildNoteSection(
+                        'Kullanıcı Notu', task.userCompletionNote!, Colors.blue),
+                  // Drive Link bölümü
+                  if (task.driveLink != null && task.driveLink!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Drive Dökümanı',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? AppColors.darkPrimary : Colors.blue,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _launchURL(task.driveLink!),
+                              icon: const Icon(Icons.open_in_new, size: 16),
+                              label: const Text('Drive bağlantısını kopyala'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: isDark ? AppColors.darkPrimary : Colors.blue,
+                                side: BorderSide(
+                                  color: isDark ? AppColors.darkPrimary : Colors.blue,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (task.captainEvaluation != null &&
+                      task.captainEvaluation!.isNotEmpty)
+                    _buildNoteSection(
+                      'Kaptan Değerlendirmesi',
+                      '${task.captainEvaluation!}\nDerece: ${task.captainRating != null ? _getRatingText(task.captainRating!) : 'Belirtilmemiş'}',
+                      Colors.purple,
+                      rating: task.captainRating,
+                    ),
+                  if (evaluated)
+                    _buildNoteSection(
+                      'Yönetici Puanı',
+                      'Verilen Puan: ${task.adminScore ?? '-'}\nZorluk Katsayısı: ${task.difficultyLevel}\nNihai Puan: ${(task.adminScore ?? 0) * task.difficultyLevel}',
+                      isDark ? Colors.green.shade300 : AppColors.success,
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -672,6 +764,8 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
   /// Not bölümünü oluşturur
   Widget _buildNoteSection(String title, String content, Color color,
       {CaptainRating? rating}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.only(top: 8.0),
       child: Column(
@@ -688,13 +782,18 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withOpacity(isDark ? 0.2 : 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(content),
+                Text(
+                  content,
+                  style: TextStyle(
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                  ),
+                ),
                 if (rating != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 4.0),
@@ -723,7 +822,7 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
     );
   }
 
-  // ✅ YENİ: URL açma fonksiyonu
+  // URL açma fonksiyonu
   Future<void> _launchURL(String url) async {
     try {
       await Clipboard.setData(ClipboardData(text: url));
@@ -748,16 +847,18 @@ class _GorevSonuclariScreenState extends State<GorevSonuclariScreen> {
 
   /// Görev durumuna göre renk döndürür
   Color _getStatusColor(TaskStatus status) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     switch (status) {
       case TaskStatus.assigned:
       case TaskStatus.inProgress:
-        return Colors.blue;
+        return isDark ? Colors.blue.shade300 : Colors.blue;
       case TaskStatus.completedByUser:
-        return Colors.orange;
+        return isDark ? Colors.orange.shade300 : Colors.orange;
       case TaskStatus.evaluatedByCaptain:
-        return Colors.purple;
+        return isDark ? Colors.purple.shade300 : Colors.purple;
       case TaskStatus.evaluatedByAdmin:
-        return AppColors.success;
+        return isDark ? Colors.green.shade300 : AppColors.success;
     }
   }
 

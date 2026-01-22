@@ -83,19 +83,31 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.darkBackground,
+              AppColors.darkBackground.withOpacity(0.8),
+            ],
+          )
+              : AppColors.backgroundGradient,
         ),
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(context),
+              _buildAppBar(context, isDark),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
-                  child: _buildForm(),
+                  child: _buildForm(isDark),
                 ),
               ),
             ],
@@ -105,14 +117,14 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCardBackground : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -121,17 +133,17 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            icon: Icon(Icons.arrow_back, color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: Text(
               'Yeni Takım Oluştur',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
               ),
             ),
           ),
@@ -140,15 +152,15 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
     );
   }
 
-  Widget _buildForm() {
+  Widget _buildForm(bool isDark) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 600),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCardBackground : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -161,36 +173,37 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Başlık
-            const Row(
+            Row(
               children: [
                 Icon(
                   Icons.group_add,
-                  color: AppColors.primary,
+                  color: isDark ? AppColors.darkPrimary : AppColors.primary,
                   size: 28,
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Text(
                   'Takım Bilgileri',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Yeni takım oluşturmak için takım adını, kaptanı ve üyeleri seçin.',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 32),
 
             // Takım Adı
             _buildTextField(
+              isDark: isDark,
               controller: _teamNameController,
               label: 'Takım Adı',
               hint: 'Örn: A Takımı',
@@ -205,11 +218,11 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
             const SizedBox(height: 20),
 
             // Kaptan Seçimi
-            _buildCaptainSelector(),
+            _buildCaptainSelector(isDark),
             const SizedBox(height: 20),
 
             // Üye Seçimi
-            _buildMemberSelector(),
+            _buildMemberSelector(isDark),
             const SizedBox(height: 32),
 
             // Oluştur butonu
@@ -217,7 +230,21 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
               height: 56,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                gradient: AppColors.primaryGradient,
+                gradient: isDark
+                    ? LinearGradient(
+                  colors: [
+                    AppColors.darkPrimary,
+                    AppColors.darkPrimary.withOpacity(0.8),
+                  ],
+                )
+                    : AppColors.primaryGradient,
+                boxShadow: [
+                  BoxShadow(
+                    color: (isDark ? AppColors.darkPrimary : AppColors.primary).withOpacity(0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _handleCreateTeam,
@@ -249,6 +276,7 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
   }
 
   Widget _buildTextField({
+    required bool isDark,
     required TextEditingController controller,
     required String label,
     required String hint,
@@ -260,47 +288,52 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           validator: validator,
+          style: TextStyle(color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon, color: AppColors.textSecondary),
+            hintStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary.withOpacity(0.5) : AppColors.textHint),
+            prefixIcon: Icon(icon, color: isDark ? AppColors.darkPrimary : AppColors.textSecondary),
             filled: true,
-            fillColor: AppColors.background,
+            fillColor: isDark ? AppColors.darkBackground : AppColors.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.border),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              borderSide: BorderSide(color: isDark ? AppColors.darkPrimary : AppColors.primary, width: 2),
             ),
-            contentPadding:
-            const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildCaptainSelector() {
+  Widget _buildCaptainSelector(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Takım Kaptanı Seçin',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -311,10 +344,10 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              return Text('Hata: ${snapshot.error}');
+              return Text('Hata: ${snapshot.error}', style: const TextStyle(color: AppColors.error));
             }
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Text('Kaptan olabilecek kullanıcı bulunamadı.');
+              return Text('Kaptan olabilecek kullanıcı bulunamadı.', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary));
             }
 
             final users = snapshot.data!
@@ -323,24 +356,27 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
                 .toList();
 
             return DropdownButtonFormField<UserModel>(
+              dropdownColor: isDark ? AppColors.darkCardBackground : Colors.white,
+              style: TextStyle(color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
               decoration: InputDecoration(
-                prefixIcon:
-                const Icon(Icons.star, color: AppColors.textSecondary),
+                prefixIcon: Icon(Icons.star, color: isDark ? AppColors.darkPrimary : AppColors.textSecondary),
                 filled: true,
-                fillColor: AppColors.background,
+                fillColor: isDark ? AppColors.darkBackground : AppColors.background,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.border),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.border),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide:
-                  const BorderSide(color: AppColors.primary, width: 2),
+                  borderSide: BorderSide(color: isDark ? AppColors.darkPrimary : AppColors.primary, width: 2),
                 ),
-                contentPadding:
-                const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
               ),
-              hint: const Text('Kaptan seçin'),
+              hint: Text('Kaptan seçin', style: TextStyle(color: isDark ? AppColors.darkTextSecondary.withOpacity(0.5) : AppColors.textHint)),
               value: _selectedCaptain,
               items: users.map((user) {
                 return DropdownMenuItem<UserModel>(
@@ -365,16 +401,16 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
     );
   }
 
-  Widget _buildMemberSelector() {
+  Widget _buildMemberSelector(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Takım Üyelerini Seçin (Kaptan hariç)',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -385,10 +421,10 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              return Text('Hata: ${snapshot.error}');
+              return Text('Hata: ${snapshot.error}', style: const TextStyle(color: AppColors.error));
             }
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Text('Üye olabilecek kullanıcı bulunamadı.');
+              return Text('Üye olabilecek kullanıcı bulunamadı.', style: TextStyle(color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary));
             }
 
             final allUsers = snapshot.data!;
@@ -419,21 +455,21 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
                           }
                         });
                       },
-                      backgroundColor: isSelected
-                          ? AppColors.primary.withOpacity(0.1)
-                          : AppColors.background,
-                      selectedColor: AppColors.primary,
+                      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
+                      selectedColor: isDark ? AppColors.darkPrimary : AppColors.primary,
+                      checkmarkColor: Colors.white,
                       labelStyle: TextStyle(
-                        color:
-                        isSelected ? Colors.white : AppColors.textPrimary,
-                        fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color: isSelected
+                            ? Colors.white
+                            : (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                         side: BorderSide(
-                          color:
-                          isSelected ? AppColors.primary : AppColors.border,
+                          color: isSelected
+                              ? (isDark ? AppColors.darkPrimary : AppColors.primary)
+                              : (isDark ? AppColors.darkBorder : AppColors.border),
                         ),
                       ),
                     );
@@ -442,9 +478,9 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'Seçilen Üye Sayısı: ${_selectedMembers.length}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.textSecondary,
+                    color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                   ),
                 ),
               ],

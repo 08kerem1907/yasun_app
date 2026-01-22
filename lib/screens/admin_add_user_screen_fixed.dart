@@ -137,19 +137,31 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.darkBackground,
+              AppColors.darkBackground.withOpacity(0.8),
+            ],
+          )
+              : AppColors.backgroundGradient,
         ),
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(context),
+              _buildAppBar(context, isDark),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24),
-                  child: _buildForm(),
+                  child: _buildForm(isDark),
                 ),
               ),
             ],
@@ -159,14 +171,14 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar(BuildContext context, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCardBackground : Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -175,17 +187,17 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            icon: Icon(Icons.arrow_back, color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: Text(
               'Yeni Kullanıcı Ekle',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
               ),
             ),
           ),
@@ -194,15 +206,15 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
     );
   }
 
-  Widget _buildForm() {
+  Widget _buildForm(bool isDark) {
     return Container(
       constraints: const BoxConstraints(maxWidth: 600),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCardBackground : Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -214,35 +226,36 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Row(
+            Row(
               children: [
                 Icon(
                   Icons.person_add,
-                  color: AppColors.primary,
+                  color: isDark ? AppColors.darkPrimary : AppColors.primary,
                   size: 28,
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Text(
                   'Kullanıcı Bilgileri',
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Yeni kullanıcı eklemek için aşağıdaki bilgileri doldurun',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 32),
 
             _buildTextField(
+              isDark: isDark,
               controller: _displayNameController,
               label: 'Ad Soyad',
               hint: 'Örn: Ahmet Yılmaz',
@@ -260,6 +273,7 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
             const SizedBox(height: 20),
 
             _buildTextField(
+              isDark: isDark,
               controller: _emailController,
               label: 'Email Adresi',
               hint: 'ornek@example.com',
@@ -278,6 +292,7 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
             const SizedBox(height: 20),
 
             _buildTextField(
+              isDark: isDark,
               controller: _passwordController,
               label: 'Şifre',
               hint: 'En az 6 karakter',
@@ -286,7 +301,7 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: AppColors.textSecondary,
+                  color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                 ),
                 onPressed: () {
                   setState(() => _obscurePassword = !_obscurePassword);
@@ -304,11 +319,11 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
             ),
             const SizedBox(height: 24),
 
-            _buildRoleSelector(),
+            _buildRoleSelector(isDark),
             const SizedBox(height: 20),
 
             if (_selectedRole == 'user') ...[
-              _buildCaptainSelector(),
+              _buildCaptainSelector(isDark),
               const SizedBox(height: 20),
             ],
 
@@ -316,27 +331,33 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.warning.withOpacity(0.1),
+                color: isDark
+                    ? AppColors.warning.withOpacity(0.05)
+                    : AppColors.warning.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+                border: Border.all(
+                    color: isDark
+                        ? AppColors.warning.withOpacity(0.2)
+                        : AppColors.warning.withOpacity(0.3)
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.security,
                         color: AppColors.warning,
                         size: 20,
                       ),
                       const SizedBox(width: 12),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Kullanıcı eklemek için şifrenizi girin',
                           style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.warning,
+                            color: isDark ? AppColors.warning.withOpacity(0.9) : AppColors.warning,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -345,6 +366,7 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
                   ),
                   const SizedBox(height: 12),
                   _buildTextField(
+                    isDark: isDark,
                     controller: _adminPasswordController,
                     label: 'Yönetici Şifresi',
                     hint: 'Şifrenizi girin',
@@ -353,7 +375,7 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureAdminPassword ? Icons.visibility_off : Icons.visibility,
-                        color: AppColors.textSecondary,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
                       ),
                       onPressed: () {
                         setState(() => _obscureAdminPassword = !_obscureAdminPassword);
@@ -374,11 +396,18 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
             Container(
               height: 56,
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                gradient: isDark
+                    ? LinearGradient(
+                  colors: [
+                    AppColors.darkPrimary,
+                    AppColors.darkPrimary.withOpacity(0.8),
+                  ],
+                )
+                    : AppColors.primaryGradient,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
+                    color: (isDark ? AppColors.darkPrimary : AppColors.primary).withOpacity(0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -426,6 +455,7 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
   }
 
   Widget _buildTextField({
+    required bool isDark,
     required TextEditingController controller,
     required String label,
     required String hint,
@@ -440,33 +470,34 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
+          style: TextStyle(color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppColors.textHint),
-            prefixIcon: Icon(icon, color: AppColors.primary),
+            hintStyle: TextStyle(color: isDark ? AppColors.darkTextSecondary.withOpacity(0.5) : AppColors.textHint),
+            prefixIcon: Icon(icon, color: isDark ? AppColors.darkPrimary : AppColors.primary),
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: AppColors.background,
+            fillColor: isDark ? AppColors.darkBackground : AppColors.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderSide: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              borderSide: BorderSide(color: isDark ? AppColors.darkPrimary : AppColors.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -482,32 +513,34 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
     );
   }
 
-  Widget _buildRoleSelector() {
+  Widget _buildRoleSelector(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Rol Seçimi',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
             borderRadius: BorderRadius.circular(12),
-            color: AppColors.background,
+            color: isDark ? AppColors.darkBackground : AppColors.background,
           ),
           child: DropdownButtonFormField<String>(
             value: _selectedRole,
             isExpanded: true,
-            decoration: const InputDecoration(
+            dropdownColor: isDark ? AppColors.darkCardBackground : Colors.white,
+            style: TextStyle(color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
+            decoration: InputDecoration(
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              prefixIcon: Icon(Icons.admin_panel_settings, color: AppColors.primary),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              prefixIcon: Icon(Icons.admin_panel_settings, color: isDark ? AppColors.darkPrimary : AppColors.primary),
             ),
             items: const [
               DropdownMenuItem(
@@ -535,16 +568,16 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
     );
   }
 
-  Widget _buildCaptainSelector() {
+  Widget _buildCaptainSelector(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Bağlı Olduğu Kaptan',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 12),
@@ -555,9 +588,9 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.border),
+                  border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
                   borderRadius: BorderRadius.circular(12),
-                  color: AppColors.background,
+                  color: isDark ? AppColors.darkBackground : AppColors.background,
                 ),
                 child: const Center(
                   child: SizedBox(
@@ -594,14 +627,17 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.warning.withOpacity(0.3)),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.warning_amber, color: AppColors.warning, size: 20),
-                    SizedBox(width: 8),
+                    const Icon(Icons.warning_amber, color: AppColors.warning, size: 20),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Henüz kaptan bulunmamaktadır. Lütfen önce bir kaptan oluşturun.',
-                        style: TextStyle(color: AppColors.warning, fontSize: 12),
+                        style: TextStyle(
+                            color: isDark ? AppColors.warning.withOpacity(0.9) : AppColors.warning,
+                            fontSize: 12
+                        ),
                       ),
                     ),
                   ],
@@ -611,23 +647,34 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
 
             return Container(
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
                 borderRadius: BorderRadius.circular(12),
-                color: AppColors.background,
+                color: isDark ? AppColors.darkBackground : AppColors.background,
               ),
               child: DropdownButtonFormField<String>(
                 value: _selectedCaptainId,
                 isExpanded: true,
-                decoration: const InputDecoration(
+                dropdownColor: isDark ? AppColors.darkCardBackground : Colors.white,
+                style: TextStyle(color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
+                decoration: InputDecoration(
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  prefixIcon: Icon(Icons.person_outline, color: AppColors.primary),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  prefixIcon: Icon(Icons.person_outline, color: isDark ? AppColors.darkPrimary : AppColors.primary),
                 ),
-                hint: const Text('Kaptan Seçin'),
+                hint: Text(
+                  'Kaptan Seçin',
+                  style: TextStyle(color: isDark ? AppColors.darkTextSecondary.withOpacity(0.5) : AppColors.textHint),
+                ),
                 items: [
-                  const DropdownMenuItem<String>(
+                  DropdownMenuItem<String>(
                     value: null,
-                    child: Text('Kaptansız Üye', style: TextStyle(fontStyle: FontStyle.italic)),
+                    child: Text(
+                        'Kaptansız Üye',
+                        style: TextStyle(
+                            fontStyle: FontStyle.italic,
+                            color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary
+                        )
+                    ),
                   ),
                   ...captains.map<DropdownMenuItem<String>>((captain) {
                     return DropdownMenuItem<String>(
@@ -643,9 +690,6 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
                   setState(() {
                     _selectedCaptainId = value;
                   });
-                },
-                validator: (value) {
-                  return null;
                 },
               ),
             );
