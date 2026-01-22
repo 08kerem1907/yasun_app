@@ -18,7 +18,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditing = false;
   final _displayNameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _notificationsEnabled = true;
 
   @override
   void dispose() {
@@ -64,11 +63,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         final userData = snapshot.data!;
         _displayNameController.text = userData.displayName;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
 
         return Scaffold(
           body: Container(
-            decoration: const BoxDecoration(
-              gradient: AppColors.backgroundGradient,
+            decoration: BoxDecoration(
+              gradient: isDark
+                  ? AppColors.darkBackgroundGradient
+                  : AppColors.backgroundGradient,
             ),
             child: SafeArea(
               child: SingleChildScrollView(
@@ -92,9 +94,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, UserModel userData, AuthService authService) {
+  Widget _buildHeader(
+      BuildContext context, UserModel userData, AuthService authService) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final cardColor =
+    isDark ? AppColors.darkCardBackground : AppColors.cardBackground;
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
@@ -117,11 +121,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 'Profil',
                 style: textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: isDark ? AppColors.darkTextPrimary : null,
                 ),
               ),
               const Spacer(),
               IconButton(
-                icon: const Icon(Icons.logout, color: AppColors.error),
+                icon: Icon(Icons.logout,
+                    color: isDark ? AppColors.darkError : AppColors.error),
                 onPressed: () => _showLogoutDialog(context, authService),
               ),
             ],
@@ -132,11 +138,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
+              gradient: isDark
+                  ? AppColors.darkPrimaryGradient
+                  : AppColors.primaryGradient,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
+                  color: (isDark ? AppColors.darkPrimary : AppColors.primary)
+                      .withOpacity(0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -147,7 +156,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 userData.displayName.isNotEmpty
                     ? userData.displayName[0].toUpperCase()
                     : '?',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -249,13 +258,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(20),
-            child:
-            Text(
+            child: Text(
               'Kişisel Bilgiler',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
-            ), ),
+            ),
+          ),
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.all(20),
@@ -364,7 +373,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               hintText: 'Adınızı ve soyadınızı girin',
               prefixIcon: const Icon(Icons.person, color: AppColors.primary),
               filled: true,
-              fillColor: isDark ? const Color(0xFF2A2A2A) : AppColors.background,
+              fillColor:
+              isDark ? const Color(0xFF2A2A2A) : AppColors.background,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
@@ -688,7 +698,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Text('Çıkış Yap'),
           ],
         ),
-        content: const Text('Hesabınızdan çıkış yapmak istediğinizden emin misiniz?'),
+        content: const Text(
+            'Hesabınızdan çıkış yapmak istediğinizden emin misiniz?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -771,41 +782,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Text(
                         'Sık Sorulan Sorular',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        style:
+                        Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 16),
                       _buildFAQItem(
                         question: 'Nasıl görev oluştururum?',
-                        answer: 'Ana sayfada "Görev Yönetimi" sekmesine giderek yeni görev oluşturabilirsiniz. Admin ve Captain yetkilerine sahip kullanıcılar görev atayabilir.',
+                        answer:
+                        'Ana sayfada "Görev Yönetimi" sekmesine giderek yeni görev oluşturabilirsiniz. Admin ve Captain yetkilerine sahip kullanıcılar görev atayabilir.',
                       ),
                       const SizedBox(height: 12),
                       _buildFAQItem(
                         question: 'Takımıma nasıl üye eklerim?',
-                        answer: 'Captain yetkisine sahipseniz, "Ekibim" sekmesinden takımınıza üye ekleyebilirsiniz. Sağ alt köşedeki "+" butonuna tıklayın.',
+                        answer:
+                        'Captain yetkisine sahipseniz, "Ekibim" sekmesinden takımınıza üye ekleyebilirsiniz. Sağ alt köşedeki "+" butonuna tıklayın.',
                       ),
                       const SizedBox(height: 12),
                       _buildFAQItem(
                         question: 'Puan sistemi nasıl çalışır?',
-                        answer: 'Her tamamlanan görev için puan kazanırsınız. Puanlarınız profil sayfanızda görüntülenir ve puan tablosunda sıralanırsınız.',
+                        answer:
+                        'Her tamamlanan görev için puan kazanırsınız. Puanlarınız profil sayfanızda görüntülenir ve puan tablosunda sıralanırsınız.',
                       ),
                       const SizedBox(height: 12),
                       _buildFAQItem(
                         question: 'Bildirimlerimi nasıl yönetirim?',
-                        answer: 'Profil sayfasında "Ayarlar" bölümünden "Bildirimler" seçeneğine tıklayarak bildirim tercihlerinizi özelleştirebilirsiniz.',
+                        answer:
+                        'Profil sayfasında "Ayarlar" bölümünden "Bildirimler" seçeneğine tıklayarak bildirim tercihlerinizi özelleştirebilirsiniz.',
                       ),
                       const SizedBox(height: 12),
                       _buildFAQItem(
                         question: 'Şifremi nasıl değiştirim?',
-                        answer: 'Güvenlik nedeniyle şifre değişikliği email üzerinden yapılmaktadır. Giriş ekranında "Şifremi Unuttum" seçeneğini kullanın.',
+                        answer:
+                        'Güvenlik nedeniyle şifre değişikliği email üzerinden yapılmaktadır. Giriş ekranında "Şifremi Unuttum" seçeneğini kullanın.',
                       ),
                       const SizedBox(height: 32),
                       const Divider(),
                       const SizedBox(height: 16),
                       Text(
                         'Destek Talebi',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        style:
+                        Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -833,7 +851,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   'yasun.destek@gmail.com',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: isDark ? Colors.grey[400] : Colors.grey,
+                                    color:
+                                    isDark ? Colors.grey[400] : Colors.grey,
                                   ),
                                 ),
                               ],

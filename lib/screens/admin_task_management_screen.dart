@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../constants/colors.dart';
 import '../models/task_model.dart';
 import '../models/user_model.dart';
 import '../services/task_service.dart';
@@ -16,7 +15,8 @@ class AdminTaskManagementScreen extends StatefulWidget {
   });
 
   @override
-  State<AdminTaskManagementScreen> createState() => _AdminTaskManagementScreenState();
+  State<AdminTaskManagementScreen> createState() =>
+      _AdminTaskManagementScreenState();
 }
 
 class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
@@ -130,7 +130,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.admin_panel_settings, size: 16, color: colorScheme.primary),
+                Icon(Icons.admin_panel_settings,
+                    size: 16, color: colorScheme.primary),
                 const SizedBox(width: 4),
                 Text(
                   'Admin',
@@ -154,17 +155,24 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
       color: colorScheme.surface,
       child: Row(
         children: [
-          Expanded(child: _buildSegmentButton(0, 'Bana Atanan', Icons.assignment_ind, colorScheme, textTheme)),
+          Expanded(
+              child: _buildSegmentButton(0, 'Bana Atanan', Icons.assignment_ind,
+                  colorScheme, textTheme)),
           const SizedBox(width: 8),
-          Expanded(child: _buildSegmentButton(1, 'Değerlendirme', Icons.rate_review, colorScheme, textTheme)),
+          Expanded(
+              child: _buildSegmentButton(1, 'Değerlendirme', Icons.rate_review,
+                  colorScheme, textTheme)),
           const SizedBox(width: 8),
-          Expanded(child: _buildSegmentButton(2, 'Tüm Görevler', Icons.assignment, colorScheme, textTheme)),
+          Expanded(
+              child: _buildSegmentButton(
+                  2, 'Tüm Görevler', Icons.assignment, colorScheme, textTheme)),
         ],
       ),
     );
   }
 
-  Widget _buildSegmentButton(int index, String label, IconData icon, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildSegmentButton(int index, String label, IconData icon,
+      ColorScheme colorScheme, TextTheme textTheme) {
     final isSelected = _selectedIndex == index;
     return InkWell(
       onTap: () {
@@ -188,14 +196,18 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
             Icon(
               icon,
               size: 20,
-              color: isSelected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+              color: isSelected
+                  ? colorScheme.onPrimary
+                  : colorScheme.onSurfaceVariant,
             ),
             const SizedBox(height: 4),
             Text(
               label,
               style: textTheme.bodySmall?.copyWith(
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                color: isSelected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                color: isSelected
+                    ? colorScheme.onPrimary
+                    : colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
             ),
@@ -237,7 +249,9 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
               children: [
                 Icon(Icons.error_outline, size: 48, color: colorScheme.error),
                 const SizedBox(height: 16),
-                Text('Hata: ${snapshot.error}', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                Text('Hata: ${snapshot.error}',
+                    style: textTheme.bodyMedium
+                        ?.copyWith(color: colorScheme.onSurface)),
               ],
             ),
           );
@@ -259,14 +273,19 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
           padding: const EdgeInsets.all(16),
           itemCount: tasks.length,
           itemBuilder: (context, index) {
-            return _buildTaskCard(tasks[index], showActions: true, isMyTask: true, colorScheme: colorScheme, textTheme: textTheme);
+            return _buildTaskCard(tasks[index],
+                showActions: true,
+                isMyTask: true,
+                colorScheme: colorScheme,
+                textTheme: textTheme);
           },
         );
       },
     );
   }
 
-  Widget _buildEvaluationTasksPage(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildEvaluationTasksPage(
+      ColorScheme colorScheme, TextTheme textTheme) {
     return StreamBuilder<List<TaskModel>>(
       stream: _taskService.getTasksForAdminEvaluation(),
       builder: (context, snapshot) {
@@ -281,7 +300,9 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
               children: [
                 Icon(Icons.error_outline, size: 48, color: colorScheme.error),
                 const SizedBox(height: 16),
-                Text('Hata: ${snapshot.error}', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                Text('Hata: ${snapshot.error}',
+                    style: textTheme.bodyMedium
+                        ?.copyWith(color: colorScheme.onSurface)),
               ],
             ),
           );
@@ -303,7 +324,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
           padding: const EdgeInsets.all(16),
           itemCount: tasks.length,
           itemBuilder: (context, index) {
-            return _buildEvaluationTaskCard(tasks[index], colorScheme, textTheme);
+            return _buildEvaluationTaskCard(
+                tasks[index], colorScheme, textTheme);
           },
         );
       },
@@ -314,7 +336,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     if (teamId == 'Bilinmeyen Takım') return teamId;
 
     final taskWithTeamName = tasks.firstWhere(
-          (task) => task.assignedToTeamId == teamId && task.assignedToTeamName != null,
+          (task) =>
+      task.assignedToTeamId == teamId && task.assignedToTeamName != null,
       orElse: () => tasks.firstWhere(
             (task) => task.assignedToTeamId == teamId,
         orElse: () => TaskModel(
@@ -333,7 +356,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     return taskWithTeamName.assignedToTeamName ?? teamId;
   }
 
-  void _showSnackBar(String message, ColorScheme colorScheme, {bool isError = false}) {
+  void _showSnackBar(String message, ColorScheme colorScheme,
+      {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -359,7 +383,9 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
               children: [
                 Icon(Icons.error_outline, size: 48, color: colorScheme.error),
                 const SizedBox(height: 16),
-                Text('Hata: ${snapshot.error}', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface)),
+                Text('Hata: ${snapshot.error}',
+                    style: textTheme.bodyMedium
+                        ?.copyWith(color: colorScheme.onSurface)),
               ],
             ),
           );
@@ -392,10 +418,7 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
           taskList.sort((a, b) {
             final dateComparison = a.createdAt.compareTo(b.createdAt);
             if (dateComparison != 0) return dateComparison;
-            if (a.dueDate == null && b.dueDate == null) return 0;
-            if (a.dueDate == null) return 1;
-            if (b.dueDate == null) return -1;
-            return a.dueDate!.compareTo(b.dueDate!);
+            return a.dueDate.compareTo(b.dueDate);
           });
         });
 
@@ -414,9 +437,11 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
             return Card(
               margin: const EdgeInsets.only(bottom: 16),
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               child: ExpansionTile(
-                tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                tilePadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 title: Text(
                   teamName,
                   style: textTheme.titleMedium?.copyWith(
@@ -430,10 +455,15 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-                children: teamTasks.map((task) => Padding(
+                children: teamTasks
+                    .map((task) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: _buildTaskCard(task, showActions: true, colorScheme: colorScheme, textTheme: textTheme),
-                )).toList(),
+                  child: _buildTaskCard(task,
+                      showActions: true,
+                      colorScheme: colorScheme,
+                      textTheme: textTheme),
+                ))
+                    .toList(),
               ),
             );
           },
@@ -442,7 +472,11 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
-  Widget _buildTaskCard(TaskModel task, {required bool showActions, bool isMyTask = false, required ColorScheme colorScheme, required TextTheme textTheme}) {
+  Widget _buildTaskCard(TaskModel task,
+      {required bool showActions,
+        bool isMyTask = false,
+        required ColorScheme colorScheme,
+        required TextTheme textTheme}) {
     Color statusColor = _getStatusColor(task.status, colorScheme);
     String statusText = _getStatusText(task.status);
 
@@ -481,7 +515,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: statusColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
@@ -509,7 +544,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.person_outline, size: 16, color: colorScheme.onSurfaceVariant),
+                    Icon(Icons.person_outline,
+                        size: 16, color: colorScheme.onSurfaceVariant),
                     const SizedBox(width: 4),
                     Text(
                       task.assignedToDisplayName,
@@ -518,7 +554,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       ),
                     ),
                     const Spacer(),
-                    Icon(Icons.calendar_today, size: 16, color: colorScheme.onSurfaceVariant),
+                    Icon(Icons.calendar_today,
+                        size: 16, color: colorScheme.onSurfaceVariant),
                     const SizedBox(width: 4),
                     Text(
                       _formatDate(task.dueDate),
@@ -556,11 +593,13 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                           onPressed: () => _launchURL(task.driveLink!),
                           style: TextButton.styleFrom(
                             foregroundColor: Colors.blue,
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text('Kopyala', style: TextStyle(fontSize: 11)),
+                          child: const Text('Kopyala',
+                              style: TextStyle(fontSize: 11)),
                         ),
                       ],
                     ),
@@ -601,7 +640,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.edit, size: 14, color: colorScheme.secondary),
+                        Icon(Icons.edit,
+                            size: 14, color: colorScheme.secondary),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
@@ -624,7 +664,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                     children: [
                       if (isMyTask && task.status == TaskStatus.assigned)
                         TextButton.icon(
-                          onPressed: () => _showCompleteTaskDialog(task, colorScheme, textTheme),
+                          onPressed: () => _showCompleteTaskDialog(
+                              task, colorScheme, textTheme),
                           icon: const Icon(Icons.check_circle, size: 16),
                           label: const Text('Tamamla'),
                           style: TextButton.styleFrom(
@@ -633,7 +674,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                         )
                       else
                         TextButton.icon(
-                          onPressed: () => _showEditTaskDialog(task, colorScheme, textTheme),
+                          onPressed: () =>
+                              _showEditTaskDialog(task, colorScheme, textTheme),
                           icon: const Icon(Icons.edit, size: 16),
                           label: const Text('Düzenle'),
                           style: TextButton.styleFrom(
@@ -642,7 +684,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                         ),
                       const SizedBox(width: 8),
                       TextButton.icon(
-                        onPressed: () => _deleteTask(task.id, task.title, colorScheme, textTheme),
+                        onPressed: () => _deleteTask(
+                            task.id, task.title, colorScheme, textTheme),
                         icon: const Icon(Icons.delete, size: 16),
                         label: const Text('Sil'),
                         style: TextButton.styleFrom(
@@ -660,13 +703,15 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
-  Widget _buildEvaluationTaskCard(TaskModel task, ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildEvaluationTaskCard(
+      TaskModel task, ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.tertiary.withOpacity(0.3), width: 2),
+        border:
+        Border.all(color: colorScheme.tertiary.withOpacity(0.3), width: 2),
         boxShadow: [
           BoxShadow(
             color: colorScheme.tertiary.withOpacity(0.1),
@@ -819,16 +864,20 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                         const SizedBox(width: 8),
                         if (task.captainRating != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: _getRatingColor(task.captainRating!, colorScheme).withOpacity(0.1),
+                              color: _getRatingColor(
+                                  task.captainRating!, colorScheme)
+                                  .withOpacity(0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               _getRatingText(task.captainRating!),
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: _getRatingColor(task.captainRating!, colorScheme),
+                                color: _getRatingColor(
+                                    task.captainRating!, colorScheme),
                                 fontSize: 12,
                               ),
                             ),
@@ -905,12 +954,13 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
 
   Future<void> _showCreateTaskDialog() async {
     if (_currentUser == null) {
-      _showSnackBar('Kullanıcı bilgisi alınamadı.', Theme.of(context).colorScheme, isError: true);
+      _showSnackBar(
+          'Kullanıcı bilgisi alınamadı.', Theme.of(context).colorScheme,
+          isError: true);
       return;
     }
 
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     final TextEditingController titleController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
@@ -925,7 +975,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
           builder: (context, setState) {
             return AlertDialog(
               backgroundColor: colorScheme.surface,
-              title: Text('Yeni Görev Ata', style: TextStyle(color: colorScheme.onSurface)),
+              title: Text('Yeni Görev Ata',
+                  style: TextStyle(color: colorScheme.onSurface)),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -935,7 +986,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       style: TextStyle(color: colorScheme.onSurface),
                       decoration: InputDecoration(
                         labelText: 'Görev Başlığı',
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                        labelStyle:
+                        TextStyle(color: colorScheme.onSurfaceVariant),
                         border: const OutlineInputBorder(),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: colorScheme.primary),
@@ -948,7 +1000,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       style: TextStyle(color: colorScheme.onSurface),
                       decoration: InputDecoration(
                         labelText: 'Görev Açıklaması',
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                        labelStyle:
+                        TextStyle(color: colorScheme.onSurfaceVariant),
                         border: const OutlineInputBorder(),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: colorScheme.primary),
@@ -965,13 +1018,16 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                             : 'Son Teslim: ${selectedDueDate!.day}.${selectedDueDate!.month}.${selectedDueDate!.year}',
                         style: TextStyle(color: colorScheme.onSurface),
                       ),
-                      trailing: Icon(Icons.calendar_today, color: colorScheme.onSurfaceVariant),
+                      trailing: Icon(Icons.calendar_today,
+                          color: colorScheme.onSurfaceVariant),
                       onTap: () async {
                         final DateTime? picked = await showDatePicker(
                           context: context,
-                          initialDate: DateTime.now().add(const Duration(days: 7)),
+                          initialDate:
+                          DateTime.now().add(const Duration(days: 7)),
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          lastDate:
+                          DateTime.now().add(const Duration(days: 365)),
                         );
                         if (picked != null && picked != selectedDueDate) {
                           setState(() {
@@ -986,10 +1042,12 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       dropdownColor: colorScheme.surface,
                       decoration: InputDecoration(
                         labelText: 'Zorluk Derecesi',
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                        labelStyle:
+                        TextStyle(color: colorScheme.onSurfaceVariant),
                         border: const OutlineInputBorder(),
                         helperText: 'Puan bu değerle çarpılacaktır',
-                        helperStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                        helperStyle:
+                        TextStyle(color: colorScheme.onSurfaceVariant),
                       ),
                       value: selectedDifficulty,
                       onChanged: (int? newValue) {
@@ -998,8 +1056,10 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                         });
                       },
                       items: const [
-                        DropdownMenuItem<int>(value: 1, child: Text('1 - Kolay')),
-                        DropdownMenuItem<int>(value: 2, child: Text('2 - Orta')),
+                        DropdownMenuItem<int>(
+                            value: 1, child: Text('1 - Kolay')),
+                        DropdownMenuItem<int>(
+                            value: 2, child: Text('2 - Orta')),
                         DropdownMenuItem<int>(value: 3, child: Text('3 - Zor')),
                       ],
                     ),
@@ -1007,14 +1067,17 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                     StreamBuilder<List<UserModel>>(
                       stream: _userService.getAllUsers(),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         }
                         if (snapshot.hasError) {
-                          return Text('Hata: ${snapshot.error}', style: TextStyle(color: colorScheme.onSurface));
+                          return Text('Hata: ${snapshot.error}',
+                              style: TextStyle(color: colorScheme.onSurface));
                         }
                         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Text('Görev atanacak kullanıcı bulunamadı.', style: TextStyle(color: colorScheme.onSurface));
+                          return Text('Görev atanacak kullanıcı bulunamadı.',
+                              style: TextStyle(color: colorScheme.onSurface));
                         }
 
                         List<UserModel> assignableUsers = snapshot.data!;
@@ -1024,7 +1087,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                           dropdownColor: colorScheme.surface,
                           decoration: InputDecoration(
                             labelText: 'Görev Atanacak Kişi',
-                            labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                            labelStyle:
+                            TextStyle(color: colorScheme.onSurfaceVariant),
                             border: const OutlineInputBorder(),
                           ),
                           value: selectedUser,
@@ -1033,12 +1097,15 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                               selectedUser = newValue;
                             });
                           },
-                          items: assignableUsers.map<DropdownMenuItem<UserModel>>((UserModel user) {
-                            return DropdownMenuItem<UserModel>(
-                              value: user,
-                              child: Text('${user.displayName} (${user.roleDisplayName})'),
-                            );
-                          }).toList(),
+                          items: assignableUsers
+                              .map<DropdownMenuItem<UserModel>>(
+                                  (UserModel user) {
+                                return DropdownMenuItem<UserModel>(
+                                  value: user,
+                                  child: Text(
+                                      '${user.displayName} (${user.roleDisplayName})'),
+                                );
+                              }).toList(),
                         );
                       },
                     ),
@@ -1048,7 +1115,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('İptal', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                  child: Text('İptal',
+                      style: TextStyle(color: colorScheme.onSurfaceVariant)),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -1056,7 +1124,9 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                         descriptionController.text.isEmpty ||
                         selectedDueDate == null ||
                         selectedUser == null) {
-                      _showSnackBar('Lütfen tüm alanları doldurun.', colorScheme, isError: true);
+                      _showSnackBar(
+                          'Lütfen tüm alanları doldurun.', colorScheme,
+                          isError: true);
                       return;
                     }
 
@@ -1077,7 +1147,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                     await _taskService.createTask(newTask);
                     if (context.mounted) {
                       Navigator.pop(context);
-                      _showSnackBar('Görev başarıyla oluşturuldu!', colorScheme);
+                      _showSnackBar(
+                          'Görev başarıyla oluşturuldu!', colorScheme);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -1094,9 +1165,12 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
-  Future<void> _showEditTaskDialog(TaskModel task, ColorScheme colorScheme, TextTheme textTheme) async {
-    final TextEditingController titleController = TextEditingController(text: task.title);
-    final TextEditingController descriptionController = TextEditingController(text: task.description);
+  Future<void> _showEditTaskDialog(
+      TaskModel task, ColorScheme colorScheme, TextTheme textTheme) async {
+    final TextEditingController titleController =
+    TextEditingController(text: task.title);
+    final TextEditingController descriptionController =
+    TextEditingController(text: task.description);
     DateTime selectedDueDate = task.dueDate;
     int selectedDifficulty = task.difficultyLevel;
     UserModel? selectedUser;
@@ -1108,7 +1182,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
           builder: (context, setState) {
             return AlertDialog(
               backgroundColor: colorScheme.surface,
-              title: Text('Görevi Düzenle', style: TextStyle(color: colorScheme.onSurface)),
+              title: Text('Görevi Düzenle',
+                  style: TextStyle(color: colorScheme.onSurface)),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -1118,7 +1193,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       style: TextStyle(color: colorScheme.onSurface),
                       decoration: InputDecoration(
                         labelText: 'Görev Başlığı',
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                        labelStyle:
+                        TextStyle(color: colorScheme.onSurfaceVariant),
                         border: const OutlineInputBorder(),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: colorScheme.primary),
@@ -1131,7 +1207,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       style: TextStyle(color: colorScheme.onSurface),
                       decoration: InputDecoration(
                         labelText: 'Görev Açıklaması',
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                        labelStyle:
+                        TextStyle(color: colorScheme.onSurfaceVariant),
                         border: const OutlineInputBorder(),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: colorScheme.primary),
@@ -1146,13 +1223,15 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                         'Son Teslim: ${selectedDueDate.day}.${selectedDueDate.month}.${selectedDueDate.year}',
                         style: TextStyle(color: colorScheme.onSurface),
                       ),
-                      trailing: Icon(Icons.calendar_today, color: colorScheme.onSurfaceVariant),
+                      trailing: Icon(Icons.calendar_today,
+                          color: colorScheme.onSurfaceVariant),
                       onTap: () async {
                         final DateTime? picked = await showDatePicker(
                           context: context,
                           initialDate: selectedDueDate,
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          lastDate:
+                          DateTime.now().add(const Duration(days: 365)),
                         );
                         if (picked != null && picked != selectedDueDate) {
                           setState(() {
@@ -1167,10 +1246,12 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                       dropdownColor: colorScheme.surface,
                       decoration: InputDecoration(
                         labelText: 'Zorluk Derecesi',
-                        labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                        labelStyle:
+                        TextStyle(color: colorScheme.onSurfaceVariant),
                         border: const OutlineInputBorder(),
                         helperText: 'Puan bu değerle çarpılacaktır',
-                        helperStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                        helperStyle:
+                        TextStyle(color: colorScheme.onSurfaceVariant),
                       ),
                       value: selectedDifficulty,
                       onChanged: (int? newValue) {
@@ -1179,8 +1260,10 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                         });
                       },
                       items: const [
-                        DropdownMenuItem<int>(value: 1, child: Text('1 - Kolay')),
-                        DropdownMenuItem<int>(value: 2, child: Text('2 - Orta')),
+                        DropdownMenuItem<int>(
+                            value: 1, child: Text('1 - Kolay')),
+                        DropdownMenuItem<int>(
+                            value: 2, child: Text('2 - Orta')),
                         DropdownMenuItem<int>(value: 3, child: Text('3 - Zor')),
                       ],
                     ),
@@ -1188,14 +1271,17 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                     StreamBuilder<List<UserModel>>(
                       stream: _userService.getAllUsers(),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         }
                         if (snapshot.hasError) {
-                          return Text('Hata: ${snapshot.error}', style: TextStyle(color: colorScheme.onSurface));
+                          return Text('Hata: ${snapshot.error}',
+                              style: TextStyle(color: colorScheme.onSurface));
                         }
                         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Text('Kullanıcı bulunamadı.', style: TextStyle(color: colorScheme.onSurface));
+                          return Text('Kullanıcı bulunamadı.',
+                              style: TextStyle(color: colorScheme.onSurface));
                         }
 
                         List<UserModel> assignableUsers = snapshot.data!;
@@ -1212,7 +1298,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                           dropdownColor: colorScheme.surface,
                           decoration: InputDecoration(
                             labelText: 'Görev Atanacak Kişi',
-                            labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                            labelStyle:
+                            TextStyle(color: colorScheme.onSurfaceVariant),
                             border: const OutlineInputBorder(),
                           ),
                           value: selectedUser,
@@ -1221,12 +1308,15 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                               selectedUser = newValue;
                             });
                           },
-                          items: assignableUsers.map<DropdownMenuItem<UserModel>>((UserModel user) {
-                            return DropdownMenuItem<UserModel>(
-                              value: user,
-                              child: Text('${user.displayName} (${user.roleDisplayName})'),
-                            );
-                          }).toList(),
+                          items: assignableUsers
+                              .map<DropdownMenuItem<UserModel>>(
+                                  (UserModel user) {
+                                return DropdownMenuItem<UserModel>(
+                                  value: user,
+                                  child: Text(
+                                      '${user.displayName} (${user.roleDisplayName})'),
+                                );
+                              }).toList(),
                         );
                       },
                     ),
@@ -1243,7 +1333,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.edit, size: 16, color: colorScheme.secondary),
+                                Icon(Icons.edit,
+                                    size: 16, color: colorScheme.secondary),
                                 const SizedBox(width: 4),
                                 Text(
                                   'Son Düzenleme:',
@@ -1281,14 +1372,17 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('İptal', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                  child: Text('İptal',
+                      style: TextStyle(color: colorScheme.onSurfaceVariant)),
                 ),
                 ElevatedButton(
                   onPressed: () async {
                     if (titleController.text.isEmpty ||
                         descriptionController.text.isEmpty ||
                         selectedUser == null) {
-                      _showSnackBar('Lütfen tüm alanları doldurun.', colorScheme, isError: true);
+                      _showSnackBar(
+                          'Lütfen tüm alanları doldurun.', colorScheme,
+                          isError: true);
                       return;
                     }
 
@@ -1305,7 +1399,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
 
                     if (context.mounted) {
                       Navigator.pop(context);
-                      _showSnackBar('Görev başarıyla güncellendi!', colorScheme);
+                      _showSnackBar(
+                          'Görev başarıyla güncellendi!', colorScheme);
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -1326,7 +1421,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     return '${dateTime.day}.${dateTime.month}.${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 
-  void _showCompleteTaskDialog(TaskModel task, ColorScheme colorScheme, TextTheme textTheme) {
+  void _showCompleteTaskDialog(
+      TaskModel task, ColorScheme colorScheme, TextTheme textTheme) {
     final noteController = TextEditingController();
 
     showDialog(
@@ -1334,7 +1430,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: colorScheme.surface,
-          title: Text('Görevi Tamamla', style: TextStyle(color: colorScheme.onSurface)),
+          title: Text('Görevi Tamamla',
+              style: TextStyle(color: colorScheme.onSurface)),
           content: TextField(
             controller: noteController,
             style: TextStyle(color: colorScheme.onSurface),
@@ -1351,11 +1448,13 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('İptal', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+              child: Text('İptal',
+                  style: TextStyle(color: colorScheme.onSurfaceVariant)),
             ),
             ElevatedButton(
               onPressed: () async {
-                await _taskService.completeTaskByAdmin(task.id, noteController.text);
+                await _taskService.completeTaskByAdmin(
+                    task.id, noteController.text);
                 Navigator.of(context).pop();
                 _showSnackBar('Görev tamamlandı!', colorScheme);
               },
@@ -1371,7 +1470,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     );
   }
 
-  void _showTaskDetails(TaskModel task, ColorScheme colorScheme, TextTheme textTheme) {
+  void _showTaskDetails(
+      TaskModel task, ColorScheme colorScheme, TextTheme textTheme) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1382,35 +1482,49 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Açıklama: ${task.description}', style: TextStyle(color: colorScheme.onSurface)),
+              Text('Açıklama: ${task.description}',
+                  style: TextStyle(color: colorScheme.onSurface)),
               const SizedBox(height: 8),
-              Text('Atanan: ${task.assignedToDisplayName}', style: TextStyle(color: colorScheme.onSurface)),
-              Text('Bitiş Tarihi: ${_formatDate(task.dueDate)}', style: TextStyle(color: colorScheme.onSurface)),
-              Text('Durum: ${_getStatusText(task.status)}', style: TextStyle(color: colorScheme.onSurface)),
-              Text('Zorluk Derecesi: ${task.difficultyLevel} (${_getDifficultyText(task.difficultyLevel)})', style: TextStyle(color: colorScheme.onSurface)),
-              if (task.adminScore != null) Text('Verilen Puan: ${task.adminScore}', style: TextStyle(color: colorScheme.onSurface)),
-              if (task.adminScore != null) Text('Nihai Puan: ${task.adminScore! * task.difficultyLevel} (${task.adminScore} × ${task.difficultyLevel})', style: TextStyle(color: colorScheme.onSurface)),
+              Text('Atanan: ${task.assignedToDisplayName}',
+                  style: TextStyle(color: colorScheme.onSurface)),
+              Text('Bitiş Tarihi: ${_formatDate(task.dueDate)}',
+                  style: TextStyle(color: colorScheme.onSurface)),
+              Text('Durum: ${_getStatusText(task.status)}',
+                  style: TextStyle(color: colorScheme.onSurface)),
+              Text(
+                  'Zorluk Derecesi: ${task.difficultyLevel} (${_getDifficultyText(task.difficultyLevel)})',
+                  style: TextStyle(color: colorScheme.onSurface)),
+              if (task.adminScore != null)
+                Text('Verilen Puan: ${task.adminScore}',
+                    style: TextStyle(color: colorScheme.onSurface)),
+              if (task.adminScore != null)
+                Text(
+                    'Nihai Puan: ${task.adminScore! * task.difficultyLevel} (${task.adminScore} × ${task.difficultyLevel})',
+                    style: TextStyle(color: colorScheme.onSurface)),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Kapat', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+            child: Text('Kapat',
+                style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ),
         ],
       ),
     );
   }
 
-  void _showScoreDialog(TaskModel task, ColorScheme colorScheme, TextTheme textTheme) {
+  void _showScoreDialog(
+      TaskModel task, ColorScheme colorScheme, TextTheme textTheme) {
     final scoreController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text('Görevi Puanla', style: TextStyle(color: colorScheme.onSurface)),
+        title: Text('Görevi Puanla',
+            style: TextStyle(color: colorScheme.onSurface)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1475,7 +1589,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
                 focusedBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: colorScheme.primary),
                 ),
-                prefixIcon: Icon(Icons.stars, color: colorScheme.onSurfaceVariant),
+                prefixIcon:
+                Icon(Icons.stars, color: colorScheme.onSurfaceVariant),
                 helperText: 'Lütfen 0 ile 100 arasında bir değer girin',
                 helperStyle: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
@@ -1485,26 +1600,30 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('İptal', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+            child: Text('İptal',
+                style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ),
           ElevatedButton(
             onPressed: () async {
               final scoreText = scoreController.text.trim();
 
               if (scoreText.isEmpty) {
-                _showSnackBar('Lütfen bir puan girin', colorScheme, isError: true);
+                _showSnackBar('Lütfen bir puan girin', colorScheme,
+                    isError: true);
                 return;
               }
 
               final score = int.tryParse(scoreText);
 
               if (score == null) {
-                _showSnackBar('Lütfen geçerli bir sayı girin', colorScheme, isError: true);
+                _showSnackBar('Lütfen geçerli bir sayı girin', colorScheme,
+                    isError: true);
                 return;
               }
 
               if (score < 0 || score > 100) {
-                _showSnackBar('Puan 0 ile 100 arasında olmalıdır', colorScheme, isError: true);
+                _showSnackBar('Puan 0 ile 100 arasında olmalıdır', colorScheme,
+                    isError: true);
                 return;
               }
 
@@ -1512,7 +1631,9 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
               final finalScore = score * task.difficultyLevel;
               if (context.mounted) {
                 Navigator.pop(context);
-                _showSnackBar('Görev başarıyla puanlandı! Verilen puan: $score, Nihai puan: $finalScore', colorScheme);
+                _showSnackBar(
+                    'Görev başarıyla puanlandı! Verilen puan: $score, Nihai puan: $finalScore',
+                    colorScheme);
               }
             },
             style: ElevatedButton.styleFrom(
@@ -1532,7 +1653,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Link panoya kopyalandı! Tarayıcınızda açabilirsiniz.'),
+            content: const Text(
+                'Link panoya kopyalandı! Tarayıcınızda açabilirsiniz.'),
             backgroundColor: Colors.blue,
             action: SnackBarAction(
               label: 'Tamam',
@@ -1547,14 +1669,16 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
     }
   }
 
-  Future<void> _deleteTask(String taskId, String taskTitle, ColorScheme colorScheme, TextTheme textTheme) async {
+  Future<void> _deleteTask(String taskId, String taskTitle,
+      ColorScheme colorScheme, TextTheme textTheme) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colorScheme.surface,
         title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: colorScheme.error, size: 28),
+            Icon(Icons.warning_amber_rounded,
+                color: colorScheme.error, size: 28),
             const SizedBox(width: 12),
             Text('Görevi Sil', style: TextStyle(color: colorScheme.onSurface)),
           ],
@@ -1566,7 +1690,8 @@ class _AdminTaskManagementScreenState extends State<AdminTaskManagementScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('İptal', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+            child: Text('İptal',
+                style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),

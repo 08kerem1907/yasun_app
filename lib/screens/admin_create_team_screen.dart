@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../constants/colors.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
@@ -57,7 +56,8 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Takım başarıyla oluşturuldu ve kullanıcı rolleri güncellendi!'),
+            content: Text(
+                'Takım başarıyla oluşturuldu ve kullanıcı rolleri güncellendi!'),
             backgroundColor: AppColors.success,
             duration: Duration(seconds: 3),
           ),
@@ -230,16 +230,16 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      )
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                )
                     : const Text(
-                        'Takımı Oluştur',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                  'Takımı Oluştur',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ],
@@ -283,7 +283,8 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            contentPadding:
+            const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           ),
         ),
       ],
@@ -317,12 +318,14 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
             }
 
             final users = snapshot.data!
-                .where((user) => user.role != 'admin') // Adminler kaptan olmasın
+                .where(
+                    (user) => user.role != 'admin') // Adminler kaptan olmasın
                 .toList();
 
             return DropdownButtonFormField<UserModel>(
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.star, color: AppColors.textSecondary),
+                prefixIcon:
+                const Icon(Icons.star, color: AppColors.textSecondary),
                 filled: true,
                 fillColor: AppColors.background,
                 border: OutlineInputBorder(
@@ -331,9 +334,11 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                  borderSide:
+                  const BorderSide(color: AppColors.primary, width: 2),
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                contentPadding:
+                const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
               ),
               hint: const Text('Kaptan seçin'),
               value: _selectedCaptain,
@@ -347,10 +352,12 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
                 setState(() {
                   _selectedCaptain = newValue;
                   // Kaptan seçildiğinde, üyeler listesinden kaptanı çıkar
-                  _selectedMembers.removeWhere((member) => member.uid == newValue?.uid);
+                  _selectedMembers
+                      .removeWhere((member) => member.uid == newValue?.uid);
                 });
               },
-              validator: (value) => value == null ? 'Kaptan seçimi zorunludur.' : null,
+              validator: (value) =>
+              value == null ? 'Kaptan seçimi zorunludur.' : null,
             );
           },
         ),
@@ -388,8 +395,7 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
             // Kaptan ve admin olmayan kullanıcıları filtrele
             final availableMembers = allUsers
                 .where((user) =>
-                    user.uid != _selectedCaptain?.uid &&
-                    user.role != 'admin')
+            user.uid != _selectedCaptain?.uid && user.role != 'admin')
                 .toList();
 
             return Column(
@@ -398,7 +404,8 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
                 Wrap(
                   spacing: 8.0,
                   children: availableMembers.map((user) {
-                    final isSelected = _selectedMembers.any((member) => member.uid == user.uid);
+                    final isSelected = _selectedMembers
+                        .any((member) => member.uid == user.uid);
                     return FilterChip(
                       label: Text(user.displayName),
                       selected: isSelected,
@@ -407,20 +414,26 @@ class _AdminCreateTeamScreenState extends State<AdminCreateTeamScreen> {
                           if (selected) {
                             _selectedMembers.add(user);
                           } else {
-                            _selectedMembers.removeWhere((member) => member.uid == user.uid);
+                            _selectedMembers.removeWhere(
+                                    (member) => member.uid == user.uid);
                           }
                         });
                       },
-                      backgroundColor: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.background,
+                      backgroundColor: isSelected
+                          ? AppColors.primary.withOpacity(0.1)
+                          : AppColors.background,
                       selectedColor: AppColors.primary,
                       labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : AppColors.textPrimary,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color:
+                        isSelected ? Colors.white : AppColors.textPrimary,
+                        fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                         side: BorderSide(
-                          color: isSelected ? AppColors.primary : AppColors.border,
+                          color:
+                          isSelected ? AppColors.primary : AppColors.border,
                         ),
                       ),
                     );

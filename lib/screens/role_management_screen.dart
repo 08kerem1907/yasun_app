@@ -15,7 +15,6 @@ class RoleManagementScreen extends StatefulWidget {
 class _RoleManagementScreenState extends State<RoleManagementScreen> {
   final UserService _userService = UserService();
   String _selectedFilter = 'all';
-  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -59,13 +58,14 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
   }
 
   Widget _buildAppBar(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCardBackground : AppColors.cardBackground,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -74,7 +74,9 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            icon: Icon(Icons.arrow_back,
+                color:
+                isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
@@ -127,7 +129,8 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
           children: [
             _buildFilterChip('all', 'Tümü', Icons.people),
             const SizedBox(width: 8),
-            _buildFilterChip('admin', 'Yöneticiler', Icons.admin_panel_settings),
+            _buildFilterChip(
+                'admin', 'Yöneticiler', Icons.admin_panel_settings),
             const SizedBox(width: 8),
             _buildFilterChip('captain', 'Kaptanlar', Icons.star),
             const SizedBox(width: 8),
@@ -207,7 +210,8 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: AppColors.error),
+                const Icon(Icons.error_outline,
+                    size: 64, color: AppColors.error),
                 const SizedBox(height: 16),
                 Text(
                   'Hata: ${snapshot.error}',
@@ -239,7 +243,8 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
     );
   }
 
-  Widget _buildUserCard(UserModel user, UserModel currentUserData, bool isSelf) {
+  Widget _buildUserCard(
+      UserModel user, UserModel currentUserData, bool isSelf) {
     Color roleColor;
     IconData roleIcon;
 
@@ -374,11 +379,14 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 20),
-            _buildRoleOption(user, 'admin', 'Yönetici', Icons.admin_panel_settings, AppColors.error, currentUserData),
+            _buildRoleOption(user, 'admin', 'Yönetici',
+                Icons.admin_panel_settings, AppColors.error, currentUserData),
             const SizedBox(height: 12),
-            _buildRoleOption(user, 'captain', 'Kaptan', Icons.star, AppColors.warning, currentUserData),
+            _buildRoleOption(user, 'captain', 'Kaptan', Icons.star,
+                AppColors.warning, currentUserData),
             const SizedBox(height: 12),
-            _buildRoleOption(user, 'user', 'Kullanıcı', Icons.person, AppColors.success, currentUserData),
+            _buildRoleOption(user, 'user', 'Kullanıcı', Icons.person,
+                AppColors.success, currentUserData),
           ],
         ),
         actions: [
@@ -423,13 +431,13 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
                 label,
                 style: TextStyle(
                   fontSize: 15,
-                  fontWeight: isCurrentRole ? FontWeight.w600 : FontWeight.normal,
+                  fontWeight:
+                  isCurrentRole ? FontWeight.w600 : FontWeight.normal,
                   color: isCurrentRole ? color : AppColors.textPrimary,
                 ),
               ),
             ),
-            if (isCurrentRole)
-              Icon(Icons.check_circle, color: color, size: 20),
+            if (isCurrentRole) Icon(Icons.check_circle, color: color, size: 20),
           ],
         ),
       ),
@@ -438,8 +446,6 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
 
   Future<void> _changeUserRole(UserModel user, String newRole) async {
     Navigator.pop(context); // Dialog'u kapat
-
-    setState(() => _isLoading = true);
 
     try {
       await _userService.updateUserRole(user.uid, newRole);
@@ -460,10 +466,6 @@ class _RoleManagementScreenState extends State<RoleManagementScreen> {
             backgroundColor: AppColors.error,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
       }
     }
   }

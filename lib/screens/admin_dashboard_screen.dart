@@ -36,6 +36,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     // Yönetici değilse geri dön
     if (_currentUser != null && !_currentUser!.isAdmin) {
       return Scaffold(
@@ -43,11 +44,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.lock, size: 64, color: AppColors.error),
+              Icon(Icons.lock,
+                  size: 64,
+                  color: isDark ? AppColors.darkError : AppColors.error),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Bu sayfaya erişim yetkiniz yok',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? AppColors.darkTextPrimary
+                      : AppColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -62,8 +71,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? AppColors.darkBackgroundGradient
+              : AppColors.backgroundGradient,
         ),
         child: SafeArea(
           child: Column(
@@ -83,10 +94,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   Widget _buildAppBar() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCardBackground : AppColors.cardBackground,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -371,4 +383,3 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 }
-

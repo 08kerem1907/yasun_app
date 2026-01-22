@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 
-import '../constants/colors.dart';
 import '../models/user_model.dart';
 import '../services/auth_service_fixed.dart';
 
@@ -169,7 +168,8 @@ class _HomeScreenState extends State<HomeScreen> {
         return HomeScreenNavigator(
           navigateToIndex: _navigateToIndex,
           child: PopScope(
-            canPop: _selectedIndex == 0, // Sadece ana sayfadayken (index 0) uygulamadan çıkışa izin ver
+            canPop: _selectedIndex ==
+                0, // Sadece ana sayfadayken (index 0) uygulamadan çıkışa izin ver
             onPopInvoked: (didPop) {
               if (didPop) return;
 

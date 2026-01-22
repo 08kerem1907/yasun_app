@@ -2,11 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../models/task_model.dart';
 import '../models/user_model.dart';
-import 'user_service.dart';
 
 class TaskService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final UserService _userService = UserService();
 
   // ============================================
   // PRIVATE HELPER METHODS
@@ -115,9 +113,8 @@ class TaskService {
         .where('status', isEqualTo: TaskStatus.evaluatedByCaptain.name)
         .snapshots()
         .map((snapshot) {
-      final tasks = snapshot.docs
-          .map((doc) => TaskModel.fromFirestore(doc))
-          .toList();
+      final tasks =
+      snapshot.docs.map((doc) => TaskModel.fromFirestore(doc)).toList();
 
       // Client-side sorting
       tasks.sort((a, b) {
@@ -136,9 +133,8 @@ class TaskService {
   /// Admin için tüm görevleri getir
   Stream<List<TaskModel>> getTasksForAdmin() {
     return _firestore.collection('tasks').snapshots().map((snapshot) {
-      final tasks = snapshot.docs
-          .map((doc) => TaskModel.fromFirestore(doc))
-          .toList();
+      final tasks =
+      snapshot.docs.map((doc) => TaskModel.fromFirestore(doc)).toList();
       return _sortTasksByDate(tasks);
     });
   }
@@ -153,9 +149,8 @@ class TaskService {
     ])
         .orderBy('adminEvaluatedAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => TaskModel.fromFirestore(doc))
-        .toList());
+        .map((snapshot) =>
+        snapshot.docs.map((doc) => TaskModel.fromFirestore(doc)).toList());
   }
 
   /// Admin değerlendirmesi (limitli)
@@ -168,9 +163,8 @@ class TaskService {
         .limit(limit)
         .snapshots()
         .map((snapshot) {
-      final tasks = snapshot.docs
-          .map((doc) => TaskModel.fromFirestore(doc))
-          .toList();
+      final tasks =
+      snapshot.docs.map((doc) => TaskModel.fromFirestore(doc)).toList();
 
       tasks.sort((a, b) {
         if (a.captainEvaluatedAt == null && b.captainEvaluatedAt == null) {
@@ -255,9 +249,8 @@ class TaskService {
         .where('assignedByUid', isEqualTo: captainUid)
         .snapshots()
         .map((snapshot) {
-      final tasks = snapshot.docs
-          .map((doc) => TaskModel.fromFirestore(doc))
-          .toList();
+      final tasks =
+      snapshot.docs.map((doc) => TaskModel.fromFirestore(doc)).toList();
       return _sortTasksByDate(tasks);
     });
   }
@@ -302,9 +295,8 @@ class TaskService {
             .where('status', isEqualTo: TaskStatus.completedByUser.name)
             .snapshots()
             .map((snapshot) {
-          final tasks = snapshot.docs
-              .map((doc) => TaskModel.fromFirestore(doc))
-              .toList();
+          final tasks =
+          snapshot.docs.map((doc) => TaskModel.fromFirestore(doc)).toList();
           return _sortTasksByDate(tasks);
         });
       }
@@ -351,9 +343,8 @@ class TaskService {
     }
 
     return query.snapshots().map((snapshot) {
-      final tasks = snapshot.docs
-          .map((doc) => TaskModel.fromFirestore(doc))
-          .toList();
+      final tasks =
+      snapshot.docs.map((doc) => TaskModel.fromFirestore(doc)).toList();
       return _sortTasksByDate(tasks);
     });
   }
@@ -365,9 +356,8 @@ class TaskService {
         .where('assignedToUid', isEqualTo: userId)
         .snapshots()
         .map((snapshot) {
-      final tasks = snapshot.docs
-          .map((doc) => TaskModel.fromFirestore(doc))
-          .toList();
+      final tasks =
+      snapshot.docs.map((doc) => TaskModel.fromFirestore(doc)).toList();
       return _sortTasksByDate(tasks);
     });
   }
@@ -385,11 +375,10 @@ class TaskService {
     }
   }
 
-  Future<void> completeTask(
-      String taskId,
-      String userCompletionNote,
+  Future<void> completeTask(String taskId, String userCompletionNote,
       [String? driveLink] // ✅ YENİ: Opsiyonel Drive linki
-      ) async {  // ✅ Bu satıra dikkat - eski kodda parantez eksikmiş
+      ) async {
+    // ✅ Bu satıra dikkat - eski kodda parantez eksikmiş
     try {
       final taskDoc = await _firestore.collection('tasks').doc(taskId).get();
       if (!taskDoc.exists) {
@@ -401,8 +390,8 @@ class TaskService {
       final assignedUserRole = await _getUserRole(task.assignedToUid);
 
       // Admin veya Kaptan ise Kaptan değerlendirmesini atla
-      final newStatus = (assignedUserRole == 'admin' ||
-          assignedUserRole == 'captain')
+      final newStatus =
+      (assignedUserRole == 'admin' || assignedUserRole == 'captain')
           ? TaskStatus.evaluatedByCaptain
           : TaskStatus.completedByUser;
 
@@ -417,6 +406,7 @@ class TaskService {
       rethrow;
     }
   }
+
   Future<void> createTask(TaskModel task) async {
     try {
       await _firestore.collection('tasks').add(task.toMap());

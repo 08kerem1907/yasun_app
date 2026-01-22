@@ -3,7 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'constants/colors.dart';
 import 'services/auth_service_fixed.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
@@ -56,7 +55,8 @@ class MyApp extends StatelessWidget {
               Locale('tr', 'TR'), // Türkçe
               Locale('en', 'US'), // İngilizce (Varsayılan)
             ],
-            locale: const Locale('tr', 'TR'), // Uygulamanın varsayılan dilini Türkçe yap
+            locale: const Locale(
+                'tr', 'TR'), // Uygulamanın varsayılan dilini Türkçe yap
             title: 'Ekip Yönetim Sistemi',
             debugShowCheckedModeBanner: false,
             themeMode: themeProvider.themeMode,
@@ -68,10 +68,14 @@ class MyApp extends StatelessWidget {
               '/home': (context) => const HomeScreen(),
               '/setup': (context) => const SetupScreen(),
               '/score_table': (context) => const ScoreTableScreen(),
-              '/user_task_management': (context) => const UserTaskManagementScreen(),
-              '/captain_task_management': (context) => const CaptainTaskManagementScreen(),
-              '/admin_task_management': (context) => const AdminTaskManagementScreen(),
-              '/admin_manage_users': (context) => const AdminManageUsersScreen(),
+              '/user_task_management': (context) =>
+              const UserTaskManagementScreen(),
+              '/captain_task_management': (context) =>
+              const CaptainTaskManagementScreen(),
+              '/admin_task_management': (context) =>
+              const AdminTaskManagementScreen(),
+              '/admin_manage_users': (context) =>
+              const AdminManageUsersScreen(),
               '/role_management': (context) => const RoleManagementScreen(),
               '/my_team': (context) => const MyTeamScreen(),
             },

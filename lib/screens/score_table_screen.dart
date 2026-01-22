@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/user_model.dart';
@@ -72,7 +71,8 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
             const SizedBox(width: 8),
             Text(
               'Puan Tablosu',
-              style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+              style:
+              textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
             ),
           ],
         ),
@@ -133,7 +133,8 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
             return Center(
               child: Text(
                 'Henüz kullanıcı bulunmamaktadır.',
-                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                style: textTheme.bodyMedium
+                    ?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
             );
           }
@@ -163,9 +164,6 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
 
               // Görev Sonuçları Butonunun Görünürlük Mantığı
               final bool isOwnProfile = _currentUser!.uid == user.uid;
-              final bool isTeamMember = _currentUser!.teamId != null && _currentUser!.teamId == user.teamId;
-              final bool canSeeOthersResults = _currentUser!.isAdmin ||
-                  (isTeamMember && !isOwnProfile);
 
               return Card(
                 color: colorScheme.surface,
@@ -185,33 +183,39 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.workspace_premium_rounded, color: colorScheme.primary),
+                          Icon(Icons.workspace_premium_rounded,
+                              color: colorScheme.primary),
                           const SizedBox(width: 6),
                           Text(
                             'Rol: ${user.roleDisplayName}',
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.military_tech_rounded, color: colorScheme.secondary),
+                          Icon(Icons.military_tech_rounded,
+                              color: colorScheme.secondary),
                           const SizedBox(width: 6),
                           Text(
                             'Toplam Puan: ${user.totalScore}',
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.trending_up_rounded, color: colorScheme.tertiary ?? colorScheme.primary),
+                          Icon(Icons.trending_up_rounded,
+                              color: colorScheme.tertiary),
                           const SizedBox(width: 6),
                           Text(
                             'Bu Ayki Puan: $monthlyScore',
-                            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            style: textTheme.bodyMedium
+                                ?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ],
                       ),
@@ -227,7 +231,8 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => GorevSonuclariScreen(user: user),
+                                builder: (context) =>
+                                    GorevSonuclariScreen(user: user),
                               ),
                             );
                           },
@@ -236,7 +241,8 @@ class _ScoreTableScreenState extends State<ScoreTableScreen> {
                               : Row(
                             mainAxisSize: MainAxisSize.min,
                             children: const [
-                              Icon(Icons.assignment_turned_in_rounded, size: 18),
+                              Icon(Icons.assignment_turned_in_rounded,
+                                  size: 18),
                               SizedBox(width: 6),
                               Text('Görev Sonuçları'),
                             ],

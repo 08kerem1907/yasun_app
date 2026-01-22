@@ -16,16 +16,19 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? AppColors.darkBackgroundGradient
+              : AppColors.backgroundGradient,
         ),
         child: SafeArea(
           child: Column(
             children: [
-              _buildAppBar(),
-              _buildSearchBar(),
+              _buildAppBar(context),
+              _buildSearchBar(context),
               Expanded(
                 child: _buildTeamsList(),
               ),
@@ -36,14 +39,15 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
     );
   }
 
-  Widget _buildAppBar() {
+  Widget _buildAppBar(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? AppColors.darkCardBackground : AppColors.cardBackground,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -52,17 +56,20 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            icon: Icon(Icons.arrow_back,
+                color:
+                isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
-          const Expanded(
+          Expanded(
             child: Text(
               'Takımları Yönet',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color:
+                isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
               ),
             ),
           ),
@@ -71,23 +78,29 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      color: isDark ? AppColors.darkCardBackground : AppColors.cardBackground,
       child: TextField(
         onChanged: (value) {
           setState(() => _searchQuery = value.toLowerCase());
         },
         decoration: InputDecoration(
           hintText: 'Takım ara...',
-          prefixIcon: const Icon(Icons.search),
+          prefixIcon: Icon(Icons.search,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.textSecondary),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.border),
+            borderSide: BorderSide(
+              color: isDark ? AppColors.darkBorder : AppColors.border,
+            ),
           ),
         ),
       ),
@@ -129,7 +142,8 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
                 const SizedBox(height: 16),
                 const Text(
                   'Takım bulunamadı',
-                  style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                  style:
+                  TextStyle(fontSize: 16, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -341,12 +355,12 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
             }
 
             // Takıma atanmamış kullanıcıları filtrele
-	            // Sadece rolü 'user' olan ve henüz bir kaptana bağlı olmayan kullanıcıları filtrele
-	            final availableUsers = (snapshot.data ?? [])
-	                .where((user) =>
-	            user.isUser &&
-	                (user.captainId == null || user.captainId!.isEmpty))
-	                .toList();
+            // Sadece rolü 'user' olan ve henüz bir kaptana bağlı olmayan kullanıcıları filtrele
+            final availableUsers = (snapshot.data ?? [])
+                .where((user) =>
+            user.isUser &&
+                (user.captainId == null || user.captainId!.isEmpty))
+                .toList();
 
             if (availableUsers.isEmpty) {
               return const Text(
@@ -363,7 +377,8 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
                     subtitle: Text(user.email),
                     onTap: () async {
                       try {
-	                        await _userService.updateUserCaptain(user.uid, captain.uid);
+                        await _userService.updateUserCaptain(
+                            user.uid, captain.uid);
                         if (context.mounted) {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -417,7 +432,7 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
           ElevatedButton(
             onPressed: () async {
               try {
-	                await _userService.updateUserCaptain(member.uid, null);
+                await _userService.updateUserCaptain(member.uid, null);
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -449,4 +464,3 @@ class _AdminManageTeamsScreenState extends State<AdminManageTeamsScreen> {
     );
   }
 }
-

@@ -6,7 +6,6 @@ import '../models/user_model.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';
 import '../services/team_service.dart'; // ✅ YENİ: TeamService eklendi
-import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 
 class CaptainTaskManagementScreen extends StatefulWidget {
@@ -18,10 +17,12 @@ class CaptainTaskManagementScreen extends StatefulWidget {
   });
 
   @override
-  State<CaptainTaskManagementScreen> createState() => _CaptainTaskManagementScreenState();
+  State<CaptainTaskManagementScreen> createState() =>
+      _CaptainTaskManagementScreenState();
 }
 
-class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScreen> {
+class _CaptainTaskManagementScreenState
+    extends State<CaptainTaskManagementScreen> {
   final TaskService _taskService = TaskService();
   final TeamService _teamService = TeamService(); // ✅ YENİ: TeamService eklendi
   CaptainRating? _selectedRating; // ✅ YENİ: Seçilen dereceyi tutmak için
@@ -150,11 +151,16 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
       color: Colors.white,
       child: Row(
         children: [
-          Expanded(child: _buildSegmentButton(0, 'Bana Atanan', Icons.assignment_ind)),
+          Expanded(
+              child:
+              _buildSegmentButton(0, 'Bana Atanan', Icons.assignment_ind)),
           const SizedBox(width: 8),
-          Expanded(child: _buildSegmentButton(1, 'Değerlendirme', Icons.rate_review)),
+          Expanded(
+              child:
+              _buildSegmentButton(1, 'Değerlendirme', Icons.rate_review)),
           const SizedBox(width: 8),
-          Expanded(child: _buildSegmentButton(2, 'Takım Görevleri', Icons.people)),
+          Expanded(
+              child: _buildSegmentButton(2, 'Takım Görevleri', Icons.people)),
         ],
       ),
     );
@@ -257,7 +263,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     }
 
     return StreamBuilder<List<TaskModel>>(
-      stream: _taskService.getTasksForCaptainEvaluation(_currentUser!.teamId ?? ''),
+      stream:
+      _taskService.getTasksForCaptainEvaluation(_currentUser!.teamId ?? ''),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -366,7 +373,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: statusColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
@@ -395,7 +403,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Icon(Icons.person_outline, size: 16, color: AppColors.textSecondary),
+                    const Icon(Icons.person_outline,
+                        size: 16, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       'Atayan: ${task.assignedByDisplayName}',
@@ -405,7 +414,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                       ),
                     ),
                     const Spacer(),
-                    const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
+                    const Icon(Icons.calendar_today,
+                        size: 16, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Text(
                       _formatDate(task.dueDate),
@@ -444,7 +454,9 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                   ),
                 ],
                 // ✅ Düzenleme ve Tamamlama butonları
-                if (showEditButton && task.assignedByUid == _currentUser?.uid && task.status == TaskStatus.assigned) ...[
+                if (showEditButton &&
+                    task.assignedByUid == _currentUser?.uid &&
+                    task.status == TaskStatus.assigned) ...[
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -496,6 +508,7 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
       ),
     );
   }
+
   void _showEvaluationDialog(TaskModel task) {
     final evaluationController = TextEditingController();
     _selectedRating = task.captainRating; // Mevcut değerlendirmeyi yükle
@@ -533,7 +546,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                       children: CaptainRating.values.map((rating) {
                         return Expanded(
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            padding:
+                            const EdgeInsets.symmetric(horizontal: 4.0),
                             child: _buildRatingButton(rating, setState),
                           ),
                         );
@@ -562,7 +576,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                     if (_selectedRating == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Lütfen bir derece seçin (İyi, Orta, Kötü)'),
+                          content:
+                          Text('Lütfen bir derece seçin (İyi, Orta, Kötü)'),
                           backgroundColor: AppColors.error,
                         ),
                       );
@@ -587,7 +602,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Görev değerlendirildi ve yönetime iletildi!'),
+                          content: Text(
+                              'Görev değerlendirildi ve yönetime iletildi!'),
                           backgroundColor: AppColors.success,
                         ),
                       );
@@ -648,7 +664,6 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
       ),
     );
   }
-
 
   Widget _buildEvaluationTaskCard(TaskModel task) {
     return Container(
@@ -726,7 +741,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.note, size: 16, color: AppColors.textPrimary),
+                        Icon(Icons.note,
+                            size: 16, color: AppColors.textPrimary),
                         SizedBox(width: 4),
                         Text(
                           'Tamamlanma Notu:',
@@ -830,7 +846,6 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
     );
   }
 
-
   Widget _buildTeamMemberCard(UserModel member) {
     bool isExpanded = false;
 
@@ -869,7 +884,10 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                           height: 50,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Colors.blue.shade400, Colors.blue.shade600],
+                              colors: [
+                                Colors.blue.shade400,
+                                Colors.blue.shade600
+                              ],
                             ),
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -896,7 +914,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                               ),
                               Row(
                                 children: [
-                                  const Icon(Icons.stars, size: 14, color: Colors.amber),
+                                  const Icon(Icons.stars,
+                                      size: 14, color: Colors.amber),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Puan: ${member.totalScore}',
@@ -973,7 +992,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
             // ✅ Kaptanın oluşturduğu görevleri kontrol et
             bool isCreatedByCaptain = task.assignedByUid == _currentUser?.uid;
             // ✅ Sınırsız düzenleme: Admin puanlamadıysa düzenlenebilir
-            bool canEdit = isCreatedByCaptain && task.status != TaskStatus.evaluatedByAdmin;
+            bool canEdit = isCreatedByCaptain &&
+                task.status != TaskStatus.evaluatedByAdmin;
 
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
@@ -998,7 +1018,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: _getStatusColor(task.status).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
@@ -1027,7 +1048,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.calendar_today, size: 12, color: AppColors.textSecondary),
+                      const Icon(Icons.calendar_today,
+                          size: 12, color: AppColors.textSecondary),
                       const SizedBox(width: 4),
                       Text(
                         'Bitiş: ${_formatDate(task.dueDate)}',
@@ -1066,11 +1088,13 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                             onPressed: () => _launchURL(task.driveLink!),
                             style: TextButton.styleFrom(
                               foregroundColor: Colors.blue,
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 2),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            child: const Text('Kopyala', style: TextStyle(fontSize: 10)),
+                            child: const Text('Kopyala',
+                                style: TextStyle(fontSize: 10)),
                           ),
                         ],
                       ),
@@ -1108,7 +1132,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(Icons.stars, size: 12, color: AppColors.success),
+                        const Icon(Icons.stars,
+                            size: 12, color: AppColors.success),
                         const SizedBox(width: 4),
                         Text(
                           'Nihai Puan: ${task.adminScore! * task.difficultyLevel}',
@@ -1130,11 +1155,13 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                             child: OutlinedButton.icon(
                               onPressed: () => _showEditTaskDialog(task),
                               icon: const Icon(Icons.edit, size: 14),
-                              label: const Text('Düzenle', style: TextStyle(fontSize: 11)),
+                              label: const Text('Düzenle',
+                                  style: TextStyle(fontSize: 11)),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.blue,
                                 side: const BorderSide(color: Colors.blue),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding:
+                                const EdgeInsets.symmetric(vertical: 8),
                               ),
                             ),
                           ),
@@ -1145,7 +1172,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.error,
                               side: const BorderSide(color: AppColors.error),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
                               minimumSize: const Size(0, 0),
                             ),
                             child: const Icon(Icons.delete_outline, size: 16),
@@ -1156,7 +1184,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                           child: OutlinedButton.icon(
                             onPressed: () => _showTaskDetails(task),
                             icon: const Icon(Icons.info_outline, size: 14),
-                            label: const Text('Detay', style: TextStyle(fontSize: 11)),
+                            label: const Text('Detay',
+                                style: TextStyle(fontSize: 11)),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.textPrimary,
                               side: const BorderSide(color: AppColors.border),
@@ -1223,7 +1252,9 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
 
     if (_currentUser!.teamId == null || _currentUser!.teamId!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Takım bilgisi bulunamadı. Lütfen yöneticinizle iletişime geçin.')),
+        const SnackBar(
+            content: Text(
+                'Takım bilgisi bulunamadı. Lütfen yöneticinizle iletişime geçin.')),
       );
       return;
     }
@@ -1273,9 +1304,11 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                       onTap: () async {
                         final DateTime? picked = await showDatePicker(
                           context: context,
-                          initialDate: DateTime.now().add(const Duration(days: 7)),
+                          initialDate:
+                          DateTime.now().add(const Duration(days: 7)),
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          lastDate:
+                          DateTime.now().add(const Duration(days: 365)),
                           locale: const Locale('tr', 'TR'),
                         );
                         if (picked != null && picked != selectedDueDate) {
@@ -1317,14 +1350,16 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                     StreamBuilder<List<UserModel>>(
                       stream: _userService.getTeamMembers(_currentUser!.uid),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         }
                         if (snapshot.hasError) {
                           return Text('Hata: ${snapshot.error}');
                         }
                         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return const Text('Görev atanacak takım üyesi bulunamadı.');
+                          return const Text(
+                              'Görev atanacak takım üyesi bulunamadı.');
                         }
 
                         List<UserModel> assignableUsers = snapshot.data!
@@ -1332,7 +1367,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                             .toList();
 
                         if (assignableUsers.isEmpty) {
-                          return const Text('Takımınızda görev atanabilecek üye yok.');
+                          return const Text(
+                              'Takımınızda görev atanabilecek üye yok.');
                         }
 
                         return DropdownButtonFormField<UserModel>(
@@ -1346,12 +1382,15 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                               selectedUser = newValue;
                             });
                           },
-                          items: assignableUsers.map<DropdownMenuItem<UserModel>>((UserModel user) {
-                            return DropdownMenuItem<UserModel>(
-                              value: user,
-                              child: Text('${user.displayName} - Puan: ${user.totalScore}'),
-                            );
-                          }).toList(),
+                          items: assignableUsers
+                              .map<DropdownMenuItem<UserModel>>(
+                                  (UserModel user) {
+                                return DropdownMenuItem<UserModel>(
+                                  value: user,
+                                  child: Text(
+                                      '${user.displayName} - Puan: ${user.totalScore}'),
+                                );
+                              }).toList(),
                         );
                       },
                     ),
@@ -1370,7 +1409,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                         selectedDueDate == null ||
                         selectedUser == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lütfen tüm alanları doldurun.')),
+                        const SnackBar(
+                            content: Text('Lütfen tüm alanları doldurun.')),
                       );
                       return;
                     }
@@ -1379,7 +1419,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                     String? assignedUserTeamName;
 
                     if (assignedUserTeamId != null) {
-                      final team = await _teamService.getTeam(assignedUserTeamId);
+                      final team =
+                      await _teamService.getTeam(assignedUserTeamId);
                       assignedUserTeamName = team?.name;
                     }
 
@@ -1490,10 +1531,13 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
 
   // ✅ DÜZELTİLMİŞ: Görev düzenleme dialogu
   Future<void> _showEditTaskDialog(TaskModel task) async {
-    final TextEditingController titleController = TextEditingController(text: task.title);
-    final TextEditingController descriptionController = TextEditingController(text: task.description);
+    final TextEditingController titleController =
+    TextEditingController(text: task.title);
+    final TextEditingController descriptionController =
+    TextEditingController(text: task.description);
     DateTime selectedDueDate = task.dueDate;
-    int selectedDifficulty = task.difficultyLevel; // ✅ YENİ: Mevcut zorluk seviyesi
+    int selectedDifficulty =
+        task.difficultyLevel; // ✅ YENİ: Mevcut zorluk seviyesi
     UserModel? selectedUser; // ✅ YENİ: Atanan kişi değişikliği için
 
     await showDialog(
@@ -1535,7 +1579,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                           context: context,
                           initialDate: selectedDueDate,
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          lastDate:
+                          DateTime.now().add(const Duration(days: 365)),
                         );
                         if (picked != null && picked != selectedDueDate) {
                           setState(() {
@@ -1578,7 +1623,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                     StreamBuilder<List<UserModel>>(
                       stream: _userService.getTeamMembers(_currentUser!.uid),
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
                           return const CircularProgressIndicator();
                         }
                         if (snapshot.hasError) {
@@ -1615,12 +1661,15 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                               selectedUser = newValue;
                             });
                           },
-                          items: assignableUsers.map<DropdownMenuItem<UserModel>>((UserModel user) {
-                            return DropdownMenuItem<UserModel>(
-                              value: user,
-                              child: Text('${user.displayName} - Puan: ${user.totalScore}'),
-                            );
-                          }).toList(),
+                          items: assignableUsers
+                              .map<DropdownMenuItem<UserModel>>(
+                                  (UserModel user) {
+                                return DropdownMenuItem<UserModel>(
+                                  value: user,
+                                  child: Text(
+                                      '${user.displayName} - Puan: ${user.totalScore}'),
+                                );
+                              }).toList(),
                         );
                       },
                     ),
@@ -1683,7 +1732,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                         descriptionController.text.isEmpty ||
                         selectedUser == null) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lütfen tüm alanları doldurun.')),
+                        const SnackBar(
+                            content: Text('Lütfen tüm alanları doldurun.')),
                       );
                       return;
                     }
@@ -1749,7 +1799,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Görev reddedildi ve kullanıcıya geri gönderildi'),
+                    content:
+                    Text('Görev reddedildi ve kullanıcıya geri gönderildi'),
                     backgroundColor: AppColors.warning,
                   ),
                 );
@@ -1764,13 +1815,15 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
       ),
     );
   }
+
   Future<void> _launchURL(String url) async {
     try {
       await Clipboard.setData(ClipboardData(text: url));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Link panoya kopyalandı! Tarayıcınızda açabilirsiniz.'),
+            content: const Text(
+                'Link panoya kopyalandı! Tarayıcınızda açabilirsiniz.'),
             backgroundColor: AppColors.info,
             action: SnackBarAction(
               label: 'Tamam',
@@ -1875,12 +1928,14 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
               Text('Atayan: ${task.assignedByDisplayName}'),
               Text('Bitiş Tarihi: ${_formatDate(task.dueDate)}'),
               Text('Durum: ${_getStatusText(task.status)}'),
-              Text('Zorluk Derecesi: ${task.difficultyLevel} (${_getDifficultyText(task.difficultyLevel)})'),
+              Text(
+                  'Zorluk Derecesi: ${task.difficultyLevel} (${_getDifficultyText(task.difficultyLevel)})'),
               if (task.userCompletionNote != null) ...[
                 const SizedBox(height: 8),
                 Text('Tamamlanma Notu: ${task.userCompletionNote}'),
               ],
-              if (task.captainEvaluation != null && task.captainRating != null) ...[
+              if (task.captainEvaluation != null &&
+                  task.captainRating != null) ...[
                 const SizedBox(height: 8),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1889,12 +1944,16 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                       children: [
                         const Text(
                           'Kaptan Değerlendirmesi: ',
-                          style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: _getRatingColor(task.captainRating!).withOpacity(0.1),
+                            color: _getRatingColor(task.captainRating!)
+                                .withOpacity(0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -1919,7 +1978,8 @@ class _CaptainTaskManagementScreenState extends State<CaptainTaskManagementScree
                   ],
                 ),
               ],
-              if (task.adminScore != null) Text('Nihai Puan: ${task.adminScore! * task.difficultyLevel}'),
+              if (task.adminScore != null)
+                Text('Nihai Puan: ${task.adminScore! * task.difficultyLevel}'),
             ],
           ),
         ),

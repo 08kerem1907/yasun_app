@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../constants/colors.dart'; // Eğer AppColors içerisindeki özel renkler (success, warning, error vb.) farklı bir yerde kullanılmıyorsa bu import kaldırılabilir. Tema renkleri için gerek kalmadı.
 import '../models/user_model.dart';
 import '../services/auth_service_fixed.dart';
 import '../services/user_service.dart';
@@ -10,8 +9,6 @@ import '../services/user_service.dart';
 // Bunlar tema renk şemasına dahil edilmediği için elle tanımlayalım veya import edelim.
 // NOT: Gerçek bir Material 3 projesinde bu renkler de ColorScheme'e dahil edilmelidir.
 // Ancak mevcut yapıyı korumak adına, aşağıdaki özel renkleri doğrudan kullanıyoruz.
-const Color _primaryColor = Color(0xFF4A148C); // AppColors.primary (Örnek sabit bir değer)
-const Color _primaryLightColor = Color(0xFF6A1B9A);
 const Color _successColor = Color(0xFF4CAF50); // AppColors.success
 const Color _warningColor = Color(0xFFFFC107); // AppColors.warning
 const Color _errorColor = Color(0xFFF44336); // AppColors.error
@@ -36,7 +33,9 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
 
     if (currentUser == null) {
       return Scaffold(
-        body: Center(child: Text('Kullanıcı bulunamadı', style: TextStyle(color: colorScheme.onSurface))),
+        body: Center(
+            child: Text('Kullanıcı bulunamadı',
+                style: TextStyle(color: colorScheme.onSurface))),
       );
     }
 
@@ -45,13 +44,16 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
-            body: Center(child: CircularProgressIndicator(color: colorScheme.primary)),
+            body: Center(
+                child: CircularProgressIndicator(color: colorScheme.primary)),
           );
         }
 
         if (!snapshot.hasData || snapshot.data == null) {
           return Scaffold(
-            body: Center(child: Text('Kullanıcı verileri yüklenemedi', style: TextStyle(color: colorScheme.onSurface))),
+            body: Center(
+                child: Text('Kullanıcı verileri yüklenemedi',
+                    style: TextStyle(color: colorScheme.onSurface))),
           );
         }
 
@@ -91,7 +93,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, UserModel userData, ColorScheme colorScheme) {
+  Widget _buildAppBar(
+      BuildContext context, UserModel userData, ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -137,7 +140,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
                   'Kaptan: ${userData.displayName}',
                   style: TextStyle(
                     fontSize: 13,
-                    color: colorScheme.onSurfaceVariant, // Tema onSurfaceVariant rengi
+                    color: colorScheme
+                        .onSurfaceVariant, // Tema onSurfaceVariant rengi
                   ),
                 ),
               ],
@@ -167,7 +171,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
         future: Future.wait([
           _userService.getTeamMemberCount(userData.uid),
           _userService.getCompletedTasksThisMonth(userData.uid),
-          _userService.getTeamTotalScore(userData.uid), // ✅ DÜZELTME: Sadece üyelerin puanı
+          _userService.getTeamTotalScore(
+              userData.uid), // ✅ DÜZELTME: Sadece üyelerin puanı
         ]).then((responses) {
           return {
             'team_members': responses[0],
@@ -273,16 +278,19 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
           children: [
             _buildFilterChip('Tümü', 'all', Icons.people, colorScheme),
             const SizedBox(width: 8),
-            _buildFilterChip('Aktif Üyeler', 'active', Icons.check_circle, colorScheme),
+            _buildFilterChip(
+                'Aktif Üyeler', 'active', Icons.check_circle, colorScheme),
             const SizedBox(width: 8),
-            _buildFilterChip('En Yüksek Puan', 'top_score', Icons.star, colorScheme),
+            _buildFilterChip(
+                'En Yüksek Puan', 'top_score', Icons.star, colorScheme),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, String value, IconData icon, ColorScheme colorScheme) {
+  Widget _buildFilterChip(
+      String label, String value, IconData icon, ColorScheme colorScheme) {
     final isSelected = _selectedFilter == value;
     return FilterChip(
       selected: isSelected,
@@ -292,7 +300,9 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
           Icon(
             icon,
             size: 16,
-            color: isSelected ? colorScheme.onPrimary : colorScheme.primary, // Seçili: onPrimary, Değil: Primary
+            color: isSelected
+                ? colorScheme.onPrimary
+                : colorScheme.primary, // Seçili: onPrimary, Değil: Primary
           ),
           const SizedBox(width: 6),
           Text(label),
@@ -304,13 +314,17 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
       backgroundColor: colorScheme.surface, // Tema Surface
       selectedColor: colorScheme.primary, // Tema Primary
       labelStyle: TextStyle(
-        color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface, // Seçili: onPrimary, Değil: onSurface
+        color: isSelected
+            ? colorScheme.onPrimary
+            : colorScheme.onSurface, // Seçili: onPrimary, Değil: onSurface
         fontWeight: FontWeight.w600,
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: isSelected ? colorScheme.primary : colorScheme.outline, // Seçili: Primary, Değil: Outline
+          color: isSelected
+              ? colorScheme.primary
+              : colorScheme.outline, // Seçili: Primary, Değil: Outline
         ),
       ),
     );
@@ -321,7 +335,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
       stream: _userService.getTeamMembers(userData.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
+          return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary));
         }
 
         if (snapshot.hasError) {
@@ -350,11 +365,15 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
         // Sıralama ve Filtreleme
         if (_selectedFilter == 'all') {
           // "Tümü" filtresi için alfabetik sıralama
-          members.sort((a, b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()));
+          members.sort((a, b) => a.displayName
+              .toLowerCase()
+              .compareTo(b.displayName.toLowerCase()));
         } else if (_selectedFilter == 'active') {
           // "Aktif" filtresi için filtreleme ve alfabetik sıralama
           members = members.where((m) => m.lastLogin != null).toList();
-          members.sort((a, b) => a.displayName.toLowerCase().compareTo(b.displayName.toLowerCase()));
+          members.sort((a, b) => a.displayName
+              .toLowerCase()
+              .compareTo(b.displayName.toLowerCase()));
         } else if (_selectedFilter == 'top_score') {
           // "En Yüksek Puan" filtresi için puana göre azalan sıralama
           // UserModel'deki totalScore alanı kullanılıyor.
@@ -372,7 +391,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
     );
   }
 
-  Widget _buildMemberCard(UserModel member, UserModel captain, ColorScheme colorScheme) {
+  Widget _buildMemberCard(
+      UserModel member, UserModel captain, ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -436,7 +456,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
                         member.email,
                         style: TextStyle(
                           fontSize: 13,
-                          color: colorScheme.onSurfaceVariant, // Tema onSurfaceVariant
+                          color: colorScheme
+                              .onSurfaceVariant, // Tema onSurfaceVariant
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -447,7 +468,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
                           Icon(
                             Icons.access_time,
                             size: 12,
-                            color: colorScheme.onSurfaceVariant, // Tema onSurfaceVariant
+                            color: colorScheme
+                                .onSurfaceVariant, // Tema onSurfaceVariant
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -456,7 +478,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
                                 : 'Hiç giriş yapmadı',
                             style: TextStyle(
                               fontSize: 11,
-                              color: colorScheme.onSurfaceVariant, // Tema onSurfaceVariant
+                              color: colorScheme
+                                  .onSurfaceVariant, // Tema onSurfaceVariant
                             ),
                           ),
                         ],
@@ -507,10 +530,12 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
                     IconButton(
                       icon: Icon(
                         Icons.more_vert,
-                        color: colorScheme.onSurfaceVariant, // Tema onSurfaceVariant
+                        color: colorScheme
+                            .onSurfaceVariant, // Tema onSurfaceVariant
                         size: 20,
                       ),
-                      onPressed: () => _showMemberOptionsMenu(member, captain, colorScheme),
+                      onPressed: () =>
+                          _showMemberOptionsMenu(member, captain, colorScheme),
                     ),
                   ],
                 ),
@@ -616,7 +641,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
             Expanded(
               child: Text(
                 'Üye Detayları',
-                style: TextStyle(color: colorScheme.onSurface), // Tema onSurface
+                style:
+                TextStyle(color: colorScheme.onSurface), // Tema onSurface
               ),
             ),
           ],
@@ -637,7 +663,9 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
             if (!snapshot.hasData) {
               return SizedBox(
                 height: 200,
-                child: Center(child: CircularProgressIndicator(color: colorScheme.primary)),
+                child: Center(
+                    child:
+                    CircularProgressIndicator(color: colorScheme.primary)),
               );
             }
 
@@ -700,7 +728,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Kapat', style: TextStyle(color: colorScheme.primary)), // Tema Primary
+            child: Text('Kapat',
+                style: TextStyle(color: colorScheme.primary)), // Tema Primary
           ),
         ],
       ),
@@ -732,7 +761,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
     );
   }
 
-  void _showMemberOptionsMenu(UserModel member, UserModel captain, ColorScheme colorScheme) {
+  void _showMemberOptionsMenu(
+      UserModel member, UserModel captain, ColorScheme colorScheme) {
     showModalBottomSheet(
       context: context,
       backgroundColor: colorScheme.surface, // Tema Surface
@@ -754,26 +784,34 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
             ),
             const SizedBox(height: 24),
             ListTile(
-              leading: Icon(Icons.assignment, color: colorScheme.primary), // Tema Primary
-              title: Text('Görev Ata', style: TextStyle(color: colorScheme.onSurface)), // Tema onSurface
+              leading: Icon(Icons.assignment,
+                  color: colorScheme.primary), // Tema Primary
+              title: Text('Görev Ata',
+                  style: TextStyle(
+                      color: colorScheme.onSurface)), // Tema onSurface
               onTap: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('Görev atama özelliği yakında eklenecek'),
+                    content:
+                    const Text('Görev atama özelliği yakında eklenecek'),
                     backgroundColor: _infoColor, // Sabit renk
                   ),
                 );
               },
             ),
             ListTile(
-              leading: Icon(Icons.message, color: colorScheme.primary), // Tema Primary
-              title: Text('Mesaj Gönder', style: TextStyle(color: colorScheme.onSurface)), // Tema onSurface
+              leading: Icon(Icons.message,
+                  color: colorScheme.primary), // Tema Primary
+              title: Text('Mesaj Gönder',
+                  style: TextStyle(
+                      color: colorScheme.onSurface)), // Tema onSurface
               onTap: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('Mesajlaşma özelliği yakında eklenecek'),
+                    content:
+                    const Text('Mesajlaşma özelliği yakında eklenecek'),
                     backgroundColor: _infoColor, // Sabit renk
                   ),
                 );
@@ -781,8 +819,10 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
             ),
             Divider(color: colorScheme.outline), // Tema Outline
             ListTile(
-              leading: const Icon(Icons.person_remove, color: _errorColor), // Sabit renk
-              title: const Text('Takımdan Çıkar', style: TextStyle(color: _errorColor)), // Sabit renk
+              leading: const Icon(Icons.person_remove,
+                  color: _errorColor), // Sabit renk
+              title: const Text('Takımdan Çıkar',
+                  style: TextStyle(color: _errorColor)), // Sabit renk
               onTap: () {
                 Navigator.pop(context);
                 _showRemoveMemberDialog(member, colorScheme);
@@ -802,15 +842,20 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
-        title: Text('Üyeyi Çıkar', style: TextStyle(color: colorScheme.onSurface)), // Tema onSurface
+        title: Text('Üyeyi Çıkar',
+            style: TextStyle(color: colorScheme.onSurface)), // Tema onSurface
         content: Text(
           '${member.displayName} üyesini takımdan çıkarmak istediğinize emin misiniz?',
-          style: TextStyle(color: colorScheme.onSurfaceVariant), // Tema onSurfaceVariant
+          style: TextStyle(
+              color: colorScheme.onSurfaceVariant), // Tema onSurfaceVariant
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('İptal', style: TextStyle(color: colorScheme.onSurfaceVariant)), // Tema onSurfaceVariant
+            child: Text('İptal',
+                style: TextStyle(
+                    color:
+                    colorScheme.onSurfaceVariant)), // Tema onSurfaceVariant
           ),
           ElevatedButton(
             onPressed: () async {
@@ -872,7 +917,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.person_add, color: colorScheme.onPrimary), // Tema onPrimary
+                    Icon(Icons.person_add,
+                        color: colorScheme.onPrimary), // Tema onPrimary
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
@@ -885,7 +931,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.close, color: colorScheme.onPrimary), // Tema onPrimary
+                      icon: Icon(Icons.close,
+                          color: colorScheme.onPrimary), // Tema onPrimary
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -907,18 +954,21 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
       stream: _userService.getAllUsers(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
+          return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary));
         }
 
         if (snapshot.hasError) {
           return Center(
-            child: Text('Hata: ${snapshot.error}', style: TextStyle(color: colorScheme.error)),
+            child: Text('Hata: ${snapshot.error}',
+                style: TextStyle(color: colorScheme.error)),
           );
         }
 
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Center(
-            child: Text('Kullanıcı bulunamadı', style: TextStyle(color: colorScheme.onSurface)),
+            child: Text('Kullanıcı bulunamadı',
+                style: TextStyle(color: colorScheme.onSurface)),
           );
         }
 
@@ -962,7 +1012,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
                     'Tüm kullanıcılar bir takıma atanmış\nveya yetkili pozisyonlarda',
                     style: TextStyle(
                       fontSize: 14,
-                      color: colorScheme.onSurfaceVariant, // Tema onSurfaceVariant
+                      color:
+                      colorScheme.onSurfaceVariant, // Tema onSurfaceVariant
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -976,14 +1027,16 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
           padding: const EdgeInsets.all(16),
           itemCount: availableUsers.length,
           itemBuilder: (context, index) {
-            return _buildAvailableUserCard(availableUsers[index], captain, colorScheme);
+            return _buildAvailableUserCard(
+                availableUsers[index], captain, colorScheme);
           },
         );
       },
     );
   }
 
-  Widget _buildAvailableUserCard(UserModel user, UserModel captain, ColorScheme colorScheme) {
+  Widget _buildAvailableUserCard(
+      UserModel user, UserModel captain, ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -1088,7 +1141,8 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
     );
   }
 
-  Future<void> _addMemberToTeam(UserModel user, UserModel captain, ColorScheme colorScheme) async {
+  Future<void> _addMemberToTeam(
+      UserModel user, UserModel captain, ColorScheme colorScheme) async {
     try {
       // Kullanıcının teamId'sini captain'ın uid'si ile güncelle
       await _userService.updateUserCaptain(user.uid, captain.uid);
@@ -1158,8 +1212,11 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () => _showAddMemberDialog(userData, colorScheme),
-            icon: Icon(Icons.person_add, color: colorScheme.onPrimary), // Tema onPrimary
-            label: Text('Üye Ekle', style: TextStyle(color: colorScheme.onPrimary)), // Tema onPrimary
+            icon: Icon(Icons.person_add,
+                color: colorScheme.onPrimary), // Tema onPrimary
+            label: Text('Üye Ekle',
+                style:
+                TextStyle(color: colorScheme.onPrimary)), // Tema onPrimary
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary, // Tema Primary
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

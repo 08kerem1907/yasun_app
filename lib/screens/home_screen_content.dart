@@ -9,8 +9,6 @@ import '../services/activity_service.dart';
 import '../services/auth_service_fixed.dart';
 import '../services/user_service.dart';
 import 'home_screen.dart';
-import 'user_task_management_screen.dart';
-import 'users_list_screen.dart';
 
 class HomeScreenContent extends StatelessWidget {
   final String role;
@@ -45,13 +43,16 @@ class HomeScreenContent extends StatelessWidget {
   }
 
   void _navigateToScoreTable(BuildContext context, UserModel userData) {
-    final int scoreTableIndex = (userData.isAdmin || userData.isCaptain) ? 5 : 4;
+    final int scoreTableIndex =
+    (userData.isAdmin || userData.isCaptain) ? 5 : 4;
     HomeScreenNavigator.of(context)?.navigateToIndex(scoreTableIndex);
   }
 
-  void _navigateToTaskManagement(BuildContext context, UserModel userData, {int initialTab = 0}) {
+  void _navigateToTaskManagement(BuildContext context, UserModel userData,
+      {int initialTab = 0}) {
     const taskIndex = 3;
-    HomeScreenNavigator.of(context)?.navigateToIndex(taskIndex, taskTab: initialTab); // ✅ taskTab eklendi
+    HomeScreenNavigator.of(context)
+        ?.navigateToIndex(taskIndex, taskTab: initialTab); // ✅ taskTab eklendi
   }
 
   void _navigateToMyTeam(BuildContext context) {
@@ -60,7 +61,8 @@ class HomeScreenContent extends StatelessWidget {
 
   void _navigateToUsersList(BuildContext context, {int initialTab = 0}) {
     const usersIndex = 4;
-    HomeScreenNavigator.of(context)?.navigateToIndex(usersIndex, usersTab: initialTab); // ✅ usersTab eklendi
+    HomeScreenNavigator.of(context)?.navigateToIndex(usersIndex,
+        usersTab: initialTab); // ✅ usersTab eklendi
   }
 
   @override
@@ -76,19 +78,24 @@ class HomeScreenContent extends StatelessWidget {
       stream: authService.getUserDataStream(currentUser.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+              body: Center(child: CircularProgressIndicator()));
         }
         if (!snapshot.hasData) {
-          return const Scaffold(body: Center(child: Text('Kullanıcı verileri bulunamadı')));
+          return const Scaffold(
+              body: Center(child: Text('Kullanıcı verileri bulunamadı')));
         }
 
         final userData = snapshot.data!;
         final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
 
         return Container(
-          decoration: theme.brightness == Brightness.light
-              ? const BoxDecoration(gradient: AppColors.backgroundGradient)
-              : null,
+          decoration: BoxDecoration(
+            gradient: isDark
+                ? AppColors.darkBackgroundGradient
+                : AppColors.backgroundGradient,
+          ),
           child: SafeArea(
             child: Column(
               children: [
@@ -102,11 +109,14 @@ class HomeScreenContent extends StatelessWidget {
                         _buildWelcomeSection(context, userData),
                         const SizedBox(height: 32),
                         if (userData.isAdmin)
-                          _buildAdminStatsSection(context, authService, userData),
+                          _buildAdminStatsSection(
+                              context, authService, userData),
                         if (userData.isCaptain)
-                          _buildCaptainStatsSection(context, userData.uid, authService, userData),
+                          _buildCaptainStatsSection(
+                              context, userData.uid, authService, userData),
                         if (userData.isUser)
-                          _buildUserStatsSection(context, userData.uid, authService, userData),
+                          _buildUserStatsSection(
+                              context, userData.uid, authService, userData),
                         const SizedBox(height: 32),
                         _buildRecentActivitiesSection(context, userData.uid),
                       ],
@@ -121,7 +131,8 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, UserModel userData, AuthService authService) {
+  Widget _buildAppBar(
+      BuildContext context, UserModel userData, AuthService authService) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -129,7 +140,8 @@ class HomeScreenContent extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: theme.appBarTheme.backgroundColor ?? (isDark ? Colors.grey[900] : Colors.white),
+        color: theme.appBarTheme.backgroundColor ??
+            (isDark ? Colors.grey[900] : Colors.white),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
@@ -193,6 +205,7 @@ class HomeScreenContent extends StatelessWidget {
 
   Widget _buildWelcomeSection(BuildContext context, UserModel userData) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -212,20 +225,24 @@ class HomeScreenContent extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: isDark
+                ? AppColors.darkPrimary.withOpacity(0.15)
+                : AppColors.primary.withOpacity(0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(_getRoleIcon(userData.role), size: 16, color: AppColors.primary),
+              Icon(_getRoleIcon(userData.role),
+                  size: 16,
+                  color: isDark ? AppColors.darkPrimary : AppColors.primary),
               const SizedBox(width: 6),
               Text(
                 userData.roleDisplayName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
+                  color: isDark ? AppColors.darkPrimary : AppColors.primary,
                 ),
               ),
             ],
@@ -235,7 +252,8 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildAdminStatsSection(BuildContext context, AuthService authService, UserModel userData) {
+  Widget _buildAdminStatsSection(
+      BuildContext context, AuthService authService, UserModel userData) {
     final userService = UserService();
     final theme = Theme.of(context);
 
@@ -325,7 +343,8 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildCaptainStatsSection(BuildContext context, String captainUid, AuthService authService, UserModel userData) {
+  Widget _buildCaptainStatsSection(BuildContext context, String captainUid,
+      AuthService authService, UserModel userData) {
     final userService = UserService();
     final theme = Theme.of(context);
 
@@ -376,7 +395,8 @@ class HomeScreenContent extends StatelessWidget {
                     teamStats['completed_tasks_this_month'].toString(),
                     Icons.check_circle,
                     AppColors.success,
-                    onTap: () => _navigateToTaskManagement(context, userData, initialTab: 2),
+                    onTap: () => _navigateToTaskManagement(context, userData,
+                        initialTab: 2),
                   ),
                 ),
               ],
@@ -396,7 +416,8 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildUserStatsSection(BuildContext context, String userUid, AuthService authService, UserModel userData) {
+  Widget _buildUserStatsSection(BuildContext context, String userUid,
+      AuthService authService, UserModel userData) {
     final userService = UserService();
     final theme = Theme.of(context);
 
@@ -447,7 +468,8 @@ class HomeScreenContent extends StatelessWidget {
                     userStats['completed_tasks'].toString(),
                     Icons.check_circle_outline,
                     AppColors.error,
-                    onTap: () => _navigateToTaskManagement(context, userData, initialTab: 1),
+                    onTap: () => _navigateToTaskManagement(context, userData,
+                        initialTab: 1),
                   ),
                 ),
               ],
@@ -467,7 +489,8 @@ class HomeScreenContent extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentActivitiesSection(BuildContext context, String currentUserId) {
+  Widget _buildRecentActivitiesSection(
+      BuildContext context, String currentUserId) {
     final activityService = ActivityService();
     final theme = Theme.of(context);
 

@@ -18,7 +18,8 @@ class TaskManagementNavigator extends InheritedWidget {
   });
 
   static TaskManagementNavigator? of(BuildContext context) {
-    return context.dependOnInheritedWidgetOfExactType<TaskManagementNavigator>();
+    return context
+        .dependOnInheritedWidgetOfExactType<TaskManagementNavigator>();
   }
 
   @override
@@ -342,7 +343,8 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
 
         final totalScore = completedTasks
             .where((task) => task.adminScore != null)
-            .fold(0, (sum, task) => sum + (task.adminScore! * task.difficultyLevel));
+            .fold(0,
+                (sum, task) => sum + (task.adminScore! * task.difficultyLevel));
 
         return Column(
           children: [
@@ -876,7 +878,8 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
                     ],
 
                     // ✅ YENİ: Drive Link butonu
-                    if (task.driveLink != null && task.driveLink!.isNotEmpty) ...[
+                    if (task.driveLink != null &&
+                        task.driveLink!.isNotEmpty) ...[
                       const SizedBox(height: 20),
                       const Divider(),
                       const SizedBox(height: 12),
@@ -1110,11 +1113,13 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Tamamlama Notu
-                  TextFormField( // ✅ DEĞİŞTİ: TextField -> TextFormField
+                  TextFormField(
+                    // ✅ DEĞİŞTİ: TextField -> TextFormField
                     controller: noteController,
                     decoration: InputDecoration(
                       labelText: 'Tamamlama Notu',
-                      labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                      labelStyle:
+                      TextStyle(color: colorScheme.onSurfaceVariant),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -1129,12 +1134,14 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
                   const SizedBox(height: 16),
 
                   // ✅ YENİ: Drive Link Alanı
-                  TextFormField( // ✅ DEĞİŞTİ: TextField -> TextFormField
+                  TextFormField(
+                    // ✅ DEĞİŞTİ: TextField -> TextFormField
                     controller: driveLinkController,
                     decoration: InputDecoration(
                       labelText: 'Google Drive Linki (Opsiyonel)',
                       hintText: 'https://drive.google.com/...',
-                      labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                      labelStyle:
+                      TextStyle(color: colorScheme.onSurfaceVariant),
                       prefixIcon: Icon(Icons.link, color: colorScheme.primary),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -1146,9 +1153,11 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
                     ),
                     style: TextStyle(color: colorScheme.onSurface),
                     keyboardType: TextInputType.url,
-                    validator: (value) { // ✅ YENİ: URL Doğrulaması
+                    validator: (value) {
+                      // ✅ YENİ: URL Doğrulaması
                       if (value == null || value.isEmpty) return null;
-                      final urlPattern = r'^(https?:\/\/)?([\w\d\-_]+\.)+[\w\d\-_]+(\/.*)?$';
+                      final urlPattern =
+                          r'^(https?:\/\/)?([\w\d\-_]+\.)+[\w\d\-_]+(\/.*)?$';
                       if (!RegExp(urlPattern).hasMatch(value)) {
                         return 'Lütfen geçerli bir link giriniz';
                       }
@@ -1218,7 +1227,8 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Link panoya kopyalandı! Tarayıcınızda açabilirsiniz.'),
+            content: const Text(
+                'Link panoya kopyalandı! Tarayıcınızda açabilirsiniz.'),
             backgroundColor: AppColors.info,
             action: SnackBarAction(
               label: 'Tamam',
@@ -1254,8 +1264,6 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
         return Colors.orange;
       case TaskStatus.evaluatedByAdmin:
         return AppColors.success;
-      default:
-        return AppColors.textSecondary;
     }
   }
 
@@ -1293,8 +1301,6 @@ class _UserTaskManagementScreenState extends State<UserTaskManagementScreen> {
         return 'Kaptan Değerlendirdi';
       case TaskStatus.evaluatedByAdmin:
         return 'Puanlandı';
-      default:
-        return 'Bilinmiyor';
     }
   }
 

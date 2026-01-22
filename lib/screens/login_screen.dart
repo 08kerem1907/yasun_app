@@ -35,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _emailController.text.trim(),
         _passwordController.text,
       );
-      
+
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/home');
       }
@@ -55,13 +55,15 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? AppColors.darkBackgroundGradient
+              : AppColors.backgroundGradient,
         ),
         child: SafeArea(
           child: Center(
@@ -71,13 +73,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Logo ve Başlık
-                  _buildHeader(),
+                  _buildHeader(context),
                   const SizedBox(height: 48),
-                  
-                  // Giriş Formu
-                  _buildLoginCard(),
-                  const SizedBox(height: 100),
 
+                  // Giriş Formu
+                  _buildLoginCard(context),
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
@@ -87,7 +88,8 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         // Logo
@@ -101,34 +103,35 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
 
         const SizedBox(height: 12),
-        
+
         // Başlık
-        const Text(
+        Text(
           'Ekip Yönetim Sistemi',
           style: TextStyle(
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
 
-        const Text(
+        Text(
           'by YASUN',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
-        
+
         // Alt başlık
-        const Text(
+        Text(
           'Hesabınıza giriş yapın ve takımınızı yönetin',
           style: TextStyle(
             fontSize: 14,
-            color: AppColors.textSecondary,
+            color:
+            isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
           ),
           textAlign: TextAlign.center,
         ),
@@ -136,15 +139,16 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLoginCard() {
+  Widget _buildLoginCard(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       constraints: const BoxConstraints(maxWidth: 400),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: isDark ? AppColors.darkCardBackground : AppColors.cardBackground,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -157,24 +161,26 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Başlık
-            const Text(
+            Text(
               'Email adresiniz ve şifrenizi girin',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            
+
             // Email Input
-            _buildEmailField(),
+            _buildEmailField(context),
             const SizedBox(height: 16),
-            
+
             // Şifre Input
-            _buildPasswordField(),
+            _buildPasswordField(context),
             const SizedBox(height: 24),
-            
+
             // Giriş Butonu
             _buildLoginButton(),
           ],
@@ -183,16 +189,17 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildEmailField() {
+  Widget _buildEmailField(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Email',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -235,7 +242,6 @@ class _LoginScreenState extends State<LoginScreen> {
               fontSize: 12,
             ),
           ),
-
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Email adresi gerekli';
@@ -250,28 +256,28 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-
-  Widget _buildPasswordField() {
+  Widget _buildPasswordField(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Şifre',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
         TextFormField(
           controller: _passwordController,
           obscureText: _obscurePassword,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
+          style: TextStyle(
+            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
             fontSize: 14,
           ),
-          cursorColor: AppColors.primary,
+          cursorColor: isDark ? AppColors.darkPrimary : AppColors.primary,
           decoration: InputDecoration(
             hintText: 'Şifrenizi girin',
             hintStyle: const TextStyle(color: AppColors.textHint),
@@ -287,9 +293,11 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.borderFocused, width: 2),
+              borderSide:
+              const BorderSide(color: AppColors.borderFocused, width: 2),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -339,25 +347,22 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
         child: _isLoading
             ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+        )
             : const Text(
-                'Giriş Yap',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
+          'Giriş Yap',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }
-
-
-
 }

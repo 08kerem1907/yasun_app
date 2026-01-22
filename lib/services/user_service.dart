@@ -60,7 +60,8 @@ class UserService {
         .snapshots()
         .map((snapshot) {
       // Client-side sorting ile sıralama yapıyoruz
-      var users = snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList();
+      var users =
+      snapshot.docs.map((doc) => UserModel.fromFirestore(doc)).toList();
       users.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return users;
     });
@@ -78,7 +79,10 @@ class UserService {
   // Kullanıcı kaptanını güncelle
   Future<void> updateUserCaptain(String uid, String? captainId) async {
     try {
-      await _firestore.collection('users').doc(uid).update({'captainId': captainId});
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .update({'captainId': captainId});
     } catch (e) {
       throw 'Kaptan güncellenirken hata oluştu: $e';
     }
@@ -114,7 +118,8 @@ class UserService {
   }
 
   // Kullanıcıyı sil (aktivite kaydı ile)
-  Future<void> deleteUser(String uid, {String? deletedByAdminUid, String? deletedByAdminName}) async {
+  Future<void> deleteUser(String uid,
+      {String? deletedByAdminUid, String? deletedByAdminName}) async {
     try {
       // Silinecek kullanıcının verilerini al
       final userDoc = await _firestore.collection('users').doc(uid).get();
@@ -134,7 +139,8 @@ class UserService {
         await _firestore.collection('activities').add({
           'type': 'userDeleted',
           'title': 'Kullanıcı Silindi',
-          'subtitle': '${deletedUser.displayName} (${deletedUser.email}) kullanıcısı ${deletedByAdminName} tarafından silindi',
+          'subtitle':
+          '${deletedUser.displayName} (${deletedUser.email}) kullanıcısı ${deletedByAdminName} tarafından silindi',
           'timestamp': Timestamp.now(),
           'performedByUid': deletedByAdminUid,
           'performedByName': deletedByAdminName,
@@ -144,7 +150,8 @@ class UserService {
           'deletedUserRole': deletedUser.role,
         });
 
-        print('✅ Aktivite kaydı oluşturuldu: ${deletedUser.displayName} silindi');
+        print(
+            '✅ Aktivite kaydı oluşturuldu: ${deletedUser.displayName} silindi');
       }
     } catch (e) {
       // Hata mesajını daha anlaşılır hale getir
@@ -213,7 +220,7 @@ class UserService {
       // ✅ Client-side filtreleme: Aktif görev durumlarını say
       int activeCount = 0;
       for (var doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
+        final data = doc.data();
         final status = data['status'];
 
         // Aktif görev durumları: assigned, inProgress, completedByUser, evaluatedByCaptain
@@ -225,7 +232,8 @@ class UserService {
         }
       }
 
-      print('🔍 DEBUG [UserService]: Kullanıcı $uid için $activeCount aktif görev bulundu');
+      print(
+          '🔍 DEBUG [UserService]: Kullanıcı $uid için $activeCount aktif görev bulundu');
       return activeCount;
     } catch (e) {
       print('❌ ERROR [UserService]: Aktif görev sayısı alınamadı: $e');
@@ -238,7 +246,9 @@ class UserService {
       final snapshot = await _firestore
           .collection('tasks')
           .where('assignedToUid', isEqualTo: uid)
-          .where('status', isEqualTo: 'evaluatedByAdmin') // Yönetici tarafından puanlanmış görevler
+          .where('status',
+          isEqualTo:
+          'evaluatedByAdmin') // Yönetici tarafından puanlanmış görevler
           .get();
       return snapshot.docs.length;
     } catch (e) {
@@ -248,7 +258,8 @@ class UserService {
   }
 
   // Kullanıcının puanlarını güncelle
-  Future<void> updateUserScores(String uid, int totalScore, Map<String, int> monthlyScores) async {
+  Future<void> updateUserScores(
+      String uid, int totalScore, Map<String, int> monthlyScores) async {
     try {
       await _firestore.collection("users").doc(uid).update({
         "totalScore": totalScore,
@@ -289,7 +300,8 @@ class UserService {
         membersScore += member.totalScore;
       }
 
-      print('🔍 DEBUG [UserService]: Takım toplam puanı (Sadece Üyeler): $membersScore');
+      print(
+          '🔍 DEBUG [UserService]: Takım toplam puanı (Sadece Üyeler): $membersScore');
       return membersScore;
     } catch (e) {
       print('❌ ERROR [UserService]: Takım toplam puanı alınamadı: $e');
@@ -372,7 +384,8 @@ class UserService {
   // Belirli bir kullanıcıyı UID ile getir
   Future<UserModel?> getUser(String uid) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection("users").doc(uid).get();
+      DocumentSnapshot doc =
+      await _firestore.collection("users").doc(uid).get();
       if (doc.exists) {
         return UserModel.fromFirestore(doc);
       } else {
@@ -386,8 +399,7 @@ class UserService {
 
   Future<List<UserModel>> searchUsers(String query) async {
     try {
-      QuerySnapshot snapshot =
-      await _firestore
+      QuerySnapshot snapshot = await _firestore
           .collection('users')
           .where('email', isGreaterThanOrEqualTo: query)
           .where('email', isLessThanOrEqualTo: '$query\uf8ff')

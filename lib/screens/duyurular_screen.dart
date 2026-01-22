@@ -37,12 +37,15 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
   }
 
   bool get _canManageAnnouncements =>
-      _currentUser != null && (_currentUser!.isAdmin || _currentUser!.isCaptain);
+      _currentUser != null &&
+          (_currentUser!.isAdmin || _currentUser!.isCaptain);
 
   Future<void> _openAnnouncementEditor({Announcement? announcement}) async {
     final titleController = TextEditingController(text: announcement?.title);
-    final subtitleController = TextEditingController(text: announcement?.subtitle);
-    final contentController = TextEditingController(text: announcement?.content);
+    final subtitleController =
+    TextEditingController(text: announcement?.subtitle);
+    final contentController =
+    TextEditingController(text: announcement?.content);
 
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
@@ -50,12 +53,15 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
       context: context,
       builder: (context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: Container(
             constraints: const BoxConstraints(maxWidth: 500),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              gradient: AppColors.backgroundGradient, // Gradient aynı kalacak
+              gradient: isDarkMode
+                  ? AppColors.darkBackgroundGradient
+                  : AppColors.backgroundGradient,
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -64,7 +70,9 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
+                    gradient: isDarkMode
+                        ? AppColors.darkPrimaryGradient
+                        : AppColors.primaryGradient,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(20),
                       topRight: Radius.circular(20),
@@ -87,7 +95,9 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text(
-                          announcement == null ? 'Yeni Duyuru Oluştur' : 'Duyuruyu Düzenle',
+                          announcement == null
+                              ? 'Yeni Duyuru Oluştur'
+                              : 'Duyuruyu Düzenle',
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -137,7 +147,9 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: isDarkMode ? Colors.grey[850] : Colors.white,
+                    color: isDarkMode
+                        ? AppColors.darkCardBackground
+                        : AppColors.cardBackground,
                     borderRadius: const BorderRadius.only(
                       bottomLeft: Radius.circular(20),
                       bottomRight: Radius.circular(20),
@@ -150,7 +162,11 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                           onPressed: () => Navigator.pop(context),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            side: BorderSide(color: isDarkMode ? Colors.white24 : AppColors.border),
+                            side: BorderSide(
+                              color: isDarkMode
+                                  ? AppColors.darkBorder
+                                  : AppColors.border,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -160,7 +176,9 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                              color: isDarkMode ? Colors.white70 : AppColors.textSecondary,
+                              color: isDarkMode
+                                  ? Colors.white70
+                                  : AppColors.textSecondary,
                             ),
                           ),
                         ),
@@ -169,10 +187,12 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () async {
-                            if (titleController.text.trim().isEmpty || contentController.text.trim().isEmpty) {
+                            if (titleController.text.trim().isEmpty ||
+                                contentController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: const Text('Başlık ve içerik boş olamaz.'),
+                                  content: const Text(
+                                      'Başlık ve içerik boş olamaz.'),
                                   backgroundColor: AppColors.error,
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
@@ -185,7 +205,8 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                             if (_currentUser == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: const Text('Kullanıcı bilgisi alınamadı.'),
+                                  content: const Text(
+                                      'Kullanıcı bilgisi alınamadı.'),
                                   backgroundColor: AppColors.error,
                                   behavior: SnackBarBehavior.floating,
                                   shape: RoundedRectangleBorder(
@@ -206,17 +227,20 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                                 creatorDisplayName: _currentUser!.displayName,
                                 createdAt: DateTime.now(),
                               );
-                              await _announcementService.addAnnouncement(newAnn);
+                              await _announcementService
+                                  .addAnnouncement(newAnn);
                             } else {
                               final updated = announcement.copyWith(
                                 title: titleController.text.trim(),
                                 subtitle: subtitleController.text.trim(),
                                 content: contentController.text.trim(),
                                 lastEditorUid: _currentUser!.uid,
-                                lastEditorDisplayName: _currentUser!.displayName,
+                                lastEditorDisplayName:
+                                _currentUser!.displayName,
                                 lastEditedAt: DateTime.now(),
                               );
-                              await _announcementService.updateAnnouncement(updated);
+                              await _announcementService
+                                  .updateAnnouncement(updated);
                             }
 
                             if (mounted) Navigator.pop(context);
@@ -279,19 +303,23 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
         TextField(
           controller: controller,
           maxLines: maxLines,
-          style: TextStyle(fontSize: 15, color: isDarkMode ? Colors.white : Colors.black),
+          style: TextStyle(
+              fontSize: 15, color: isDarkMode ? Colors.white : Colors.black),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: isDarkMode ? Colors.white38 : AppColors.textHint),
+            hintStyle: TextStyle(
+                color: isDarkMode ? Colors.white38 : AppColors.textHint),
             filled: true,
             fillColor: isDarkMode ? Colors.grey[800] : Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: isDarkMode ? Colors.white24 : AppColors.border),
+              borderSide: BorderSide(
+                  color: isDarkMode ? Colors.white24 : AppColors.border),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: isDarkMode ? Colors.white24 : AppColors.border),
+              borderSide: BorderSide(
+                  color: isDarkMode ? Colors.white24 : AppColors.border),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -336,7 +364,8 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                valueColor:
+                AlwaysStoppedAnimation<Color>(AppColors.primary),
               ),
             );
           }
@@ -345,11 +374,15 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 64, color: AppColors.error),
+                  Icon(Icons.error_outline,
+                      size: 64, color: AppColors.error),
                   const SizedBox(height: 16),
                   Text(
                     'Hata: ${snapshot.error}',
-                    style: TextStyle(color: isDarkMode ? Colors.white70 : AppColors.textSecondary),
+                    style: TextStyle(
+                        color: isDarkMode
+                            ? Colors.white70
+                            : AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -378,7 +411,9 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: isDarkMode ? Colors.white70 : AppColors.textPrimary,
+                      color: isDarkMode
+                          ? Colors.white70
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -386,7 +421,9 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                     'İlk duyuruyu siz oluşturun',
                     style: TextStyle(
                       fontSize: 14,
-                      color: isDarkMode ? Colors.white54 : AppColors.textSecondary,
+                      color: isDarkMode
+                          ? Colors.white54
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -458,9 +495,11 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                 builder: (context) => DuyuruDetayScreen(
                   announcement: announcement,
                   canManage: _canManageAnnouncements,
-                  onEdit: () => _openAnnouncementEditor(announcement: announcement),
+                  onEdit: () =>
+                      _openAnnouncementEditor(announcement: announcement),
                   onDelete: () async {
-                    await _announcementService.deleteAnnouncement(announcement.id);
+                    await _announcementService
+                        .deleteAnnouncement(announcement.id);
                   },
                 ),
               ),
@@ -493,7 +532,8 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: isDarkMode ? Colors.white : AppColors.textPrimary,
+                          color:
+                          isDarkMode ? Colors.white : AppColors.textPrimary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -507,7 +547,9 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                             : announcement.content),
                         style: TextStyle(
                           fontSize: 14,
-                          color: isDarkMode ? Colors.white60 : AppColors.textSecondary,
+                          color: isDarkMode
+                              ? Colors.white60
+                              : AppColors.textSecondary,
                           height: 1.4,
                         ),
                         maxLines: 2,
@@ -519,28 +561,36 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                           Icon(
                             Icons.person_outline_rounded,
                             size: 14,
-                            color: isDarkMode ? Colors.white54 : AppColors.textHint,
+                            color: isDarkMode
+                                ? Colors.white54
+                                : AppColors.textHint,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             announcement.creatorDisplayName,
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDarkMode ? Colors.white54 : AppColors.textHint,
+                              color: isDarkMode
+                                  ? Colors.white54
+                                  : AppColors.textHint,
                             ),
                           ),
                           const SizedBox(width: 12),
                           Icon(
                             Icons.access_time_rounded,
                             size: 14,
-                            color: isDarkMode ? Colors.white54 : AppColors.textHint,
+                            color: isDarkMode
+                                ? Colors.white54
+                                : AppColors.textHint,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             _formatDate(announcement.createdAt),
                             style: TextStyle(
                               fontSize: 12,
-                              color: isDarkMode ? Colors.white54 : AppColors.textHint,
+                              color: isDarkMode
+                                  ? Colors.white54
+                                  : AppColors.textHint,
                             ),
                           ),
                         ],
@@ -551,7 +601,9 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDarkMode ? Colors.white12 : AppColors.primary.withOpacity(0.1),
+                    color: isDarkMode
+                        ? Colors.white12
+                        : AppColors.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(

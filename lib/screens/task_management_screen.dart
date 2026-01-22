@@ -79,23 +79,30 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
   }
 
   Widget _buildLoadingScreen() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? AppColors.darkBackgroundGradient
+              : AppColors.backgroundGradient,
         ),
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isDark ? AppColors.darkPrimary : AppColors.primary,
+                ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
                 'Yükleniyor...',
                 style: TextStyle(
-                  color: AppColors.textSecondary,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.textSecondary,
                   fontSize: 14,
                 ),
               ),
@@ -107,10 +114,13 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
   }
 
   Widget _buildErrorScreen() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? AppColors.darkBackgroundGradient
+              : AppColors.backgroundGradient,
         ),
         child: Center(
           child: Padding(
@@ -118,34 +128,38 @@ class _TaskManagementScreenState extends State<TaskManagementScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                Icon(
                   Icons.error_outline,
                   size: 64,
-                  color: AppColors.error,
+                  color: isDark ? AppColors.darkError : AppColors.error,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   _errorMessage ?? 'Kullanıcı bilgisi alınamadı',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: isDark
+                        ? AppColors.darkTextPrimary
+                        : AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Lütfen tekrar giriş yapın',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.textSecondary,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
-                  onPressed: () => Navigator.of(context)
-                      .pushReplacementNamed('/login'),
+                  onPressed: () =>
+                      Navigator.of(context).pushReplacementNamed('/login'),
                   icon: const Icon(Icons.login),
                   label: const Text('Giriş Sayfasına Dön'),
                   style: ElevatedButton.styleFrom(

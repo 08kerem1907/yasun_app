@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../constants/colors.dart';
 import '../models/user_model.dart';
 import '../models/team_model.dart';
 import '../services/user_service.dart';
@@ -9,11 +7,9 @@ import 'admin_add_user_screen_fixed.dart';
 import 'admin_create_team_screen.dart';
 
 // Dark Mode'da da sabit kalması gereken özel durum renkleri.
-const Color _primaryColor = Color(0xFF4A148C); // AppColors.primary
 const Color _successColor = Color(0xFF4CAF50); // AppColors.success
 const Color _warningColor = Color(0xFFFFC107); // AppColors.warning
 const Color _errorColor = Color(0xFFF44336); // AppColors.error
-const Color _infoColor = Color(0xFF2196F3); // Ek Bilgi rengi
 
 // InheritedWidget ile tab değiştirme fonksiyonunu paylaş
 class UsersListNavigator extends InheritedWidget {
@@ -139,7 +135,8 @@ class _UsersListScreenState extends State<UsersListScreen>
                   color: colorScheme.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(Icons.people, color: colorScheme.onPrimary, size: 24),
+                child:
+                Icon(Icons.people, color: colorScheme.onPrimary, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -194,7 +191,8 @@ class _UsersListScreenState extends State<UsersListScreen>
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                     ),
-                    icon: Icon(Icons.person_add, size: 20, color: colorScheme.onPrimary),
+                    icon: Icon(Icons.person_add,
+                        size: 20, color: colorScheme.onPrimary),
                     label: Text(
                       'Kullanıcı Ekle',
                       style: TextStyle(
@@ -243,7 +241,8 @@ class _UsersListScreenState extends State<UsersListScreen>
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                     ),
-                    icon: Icon(Icons.group_add, size: 20, color: colorScheme.onPrimary),
+                    icon: Icon(Icons.group_add,
+                        size: 20, color: colorScheme.onPrimary),
                     label: Text(
                       'Takım Oluştur',
                       style: TextStyle(
@@ -308,7 +307,8 @@ class _UsersListScreenState extends State<UsersListScreen>
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         style: TextStyle(color: colorScheme.onSurface),
       ),
@@ -320,11 +320,14 @@ class _UsersListScreenState extends State<UsersListScreen>
       stream: _userService.getAllUsers(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
+          return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary));
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('Hata: ${snapshot.error}', style: TextStyle(color: colorScheme.error)));
+          return Center(
+              child: Text('Hata: ${snapshot.error}',
+                  style: TextStyle(color: colorScheme.error)));
         }
 
         var users = snapshot.data ?? [];
@@ -356,11 +359,14 @@ class _UsersListScreenState extends State<UsersListScreen>
       stream: _userService.getUsersByRole(role),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
+          return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary));
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('Hata: ${snapshot.error}', style: TextStyle(color: colorScheme.error)));
+          return Center(
+              child: Text('Hata: ${snapshot.error}',
+                  style: TextStyle(color: colorScheme.error)));
         }
 
         var users = snapshot.data ?? [];
@@ -374,9 +380,12 @@ class _UsersListScreenState extends State<UsersListScreen>
 
         if (users.isEmpty) {
           String emptyMessage = 'Henüz ';
-          if (role == 'admin') emptyMessage += 'yönetici';
-          else if (role == 'captain') emptyMessage += 'kaptan';
-          else emptyMessage += 'kullanıcı';
+          if (role == 'admin')
+            emptyMessage += 'yönetici';
+          else if (role == 'captain')
+            emptyMessage += 'kaptan';
+          else
+            emptyMessage += 'kullanıcı';
           emptyMessage += ' bulunmamaktadır.';
 
           return _buildEmptyState(emptyMessage, colorScheme);
@@ -398,11 +407,14 @@ class _UsersListScreenState extends State<UsersListScreen>
       stream: _teamService.getAllTeams(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator(color: colorScheme.primary));
+          return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary));
         }
 
         if (snapshot.hasError) {
-          return Center(child: Text('Hata: ${snapshot.error}', style: TextStyle(color: colorScheme.error)));
+          return Center(
+              child: Text('Hata: ${snapshot.error}',
+                  style: TextStyle(color: colorScheme.error)));
         }
 
         var teams = snapshot.data ?? [];
@@ -509,7 +521,8 @@ class _UsersListScreenState extends State<UsersListScreen>
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
@@ -543,7 +556,8 @@ class _UsersListScreenState extends State<UsersListScreen>
         if (captainSnapshot.connectionState == ConnectionState.waiting) {
           return Padding(
             padding: const EdgeInsets.all(20),
-            child: Center(child: CircularProgressIndicator(color: colorScheme.primary)),
+            child: Center(
+                child: CircularProgressIndicator(color: colorScheme.primary)),
           );
         }
 
@@ -555,7 +569,9 @@ class _UsersListScreenState extends State<UsersListScreen>
             if (membersSnapshot.connectionState == ConnectionState.waiting) {
               return Padding(
                 padding: const EdgeInsets.all(20),
-                child: Center(child: CircularProgressIndicator(color: colorScheme.primary)),
+                child: Center(
+                    child:
+                    CircularProgressIndicator(color: colorScheme.primary)),
               );
             }
 
@@ -687,9 +703,8 @@ class _UsersListScreenState extends State<UsersListScreen>
         color: colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isLeader
-              ? _warningColor.withOpacity(0.3)
-              : colorScheme.outline,
+          color:
+          isLeader ? _warningColor.withOpacity(0.3) : colorScheme.outline,
         ),
       ),
       child: Row(
@@ -904,7 +919,8 @@ class _UsersListScreenState extends State<UsersListScreen>
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: colorScheme.surface,
-        title: Text('Kullanıcıyı Sil', style: TextStyle(color: colorScheme.onSurface)),
+        title: Text('Kullanıcıyı Sil',
+            style: TextStyle(color: colorScheme.onSurface)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -947,7 +963,8 @@ class _UsersListScreenState extends State<UsersListScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('İptal', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+            child: Text('İptal',
+                style: TextStyle(color: colorScheme.onSurfaceVariant)),
           ),
           ElevatedButton(
             onPressed: () async {
