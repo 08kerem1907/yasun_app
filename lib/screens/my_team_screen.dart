@@ -167,7 +167,7 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
         future: Future.wait([
           _userService.getTeamMemberCount(userData.uid),
           _userService.getCompletedTasksThisMonth(userData.uid),
-          _userService.getTotalScore(userData.uid),
+          _userService.getTeamTotalScore(userData.uid), // ✅ DÜZELTME: Sadece üyelerin puanı
         ]).then((responses) {
           return {
             'team_members': responses[0],
@@ -371,6 +371,7 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
       },
     );
   }
+
   Widget _buildMemberCard(UserModel member, UserModel captain, ColorScheme colorScheme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1056,7 +1057,7 @@ class _MyTeamScreenState extends State<MyTeamScreen> {
                       Text(
                         'Puan: ${snapshot.data ?? 0}',
                         style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: _successColor, // Sabit renk
                         ),

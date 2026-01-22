@@ -87,5 +87,54 @@ service cloud.firestore {
       // Sadece admin duyuru silebilir
       allow delete: if isAdmin();
     }
+
+    // ============================================
+    // ✅ YENİ: Teams collection rules (KRİTİK EKSİK!)
+    // ============================================
+    match /teams/{teamId} {
+      // Giriş yapmış herkes takımları okuyabilir
+      allow read: if isSignedIn();
+
+      // Sadece admin takım oluşturabilir
+      allow create: if isAdmin();
+
+      // Admin takımı güncelleyebilir
+      // Captain kendi takımını güncelleyebilir (üye ekleme/çıkarma için)
+      allow update: if isAdmin() ||
+        (isCaptain() && resource.data.captainId == request.auth.uid);
+
+      // Sadece admin takım silebilir
+      allow delete: if isAdmin();
+    }
+
+    // ============================================
+    // ✅ YENİ: Activities collection rules (KRİTİK EKSİK!)
+    // ============================================
+    match /activities/{activityId} {
+      // Giriş yapmış herkes aktiviteleri okuyabilir
+      allow read: if isSignedIn();
+
+      // Giriş yapmış herkes aktivite oluşturabilir (sistem tarafından)
+      allow create: if isSignedIn();
+
+      // Aktiviteler güncellenemez ve silinemez (log integrity)
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ============================================
+    // ✅ YENİ: Task Activities collection rules
+    // ============================================
+    match /task_activities/{activityId} {
+      // Giriş yapmış herkes görev aktivitelerini okuyabilir
+      allow read: if isSignedIn();
+
+      // Giriş yapmış herkes görev aktivitesi oluşturabilir
+      allow create: if isSignedIn();
+
+      // Aktiviteler güncellenemez (log integrity)
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
   }
 }

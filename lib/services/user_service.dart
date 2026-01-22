@@ -274,6 +274,29 @@ class UserService {
     }
   }
 
+  // ✅ DÜZELTME: Takımın toplam puanını hesapla (Sadece üyelerin puanları)
+  Future<int> getTeamTotalScore(String captainUid) async {
+    try {
+      // Takım üyelerinin puanlarını al
+      final teamMembersSnapshot = await _firestore
+          .collection('users')
+          .where('captainId', isEqualTo: captainUid)
+          .get();
+
+      int membersScore = 0;
+      for (var doc in teamMembersSnapshot.docs) {
+        final member = UserModel.fromFirestore(doc);
+        membersScore += member.totalScore;
+      }
+
+      print('🔍 DEBUG [UserService]: Takım toplam puanı (Sadece Üyeler): $membersScore');
+      return membersScore;
+    } catch (e) {
+      print('❌ ERROR [UserService]: Takım toplam puanı alınamadı: $e');
+      return 0;
+    }
+  }
+
   Future<int> getTeamMemberCount(String captainUid) async {
     try {
       QuerySnapshot snapshot = await _firestore
