@@ -340,10 +340,13 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
       backgroundColor: isDarkMode ? Colors.grey[900] : AppColors.background,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.transparent,
+        backgroundColor:
+        isDarkMode ? AppColors.darkCardBackground : Colors.white,
         flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.backgroundGradient,
+          decoration: BoxDecoration(
+            gradient: isDarkMode
+                ? AppColors.darkPrimaryGradient
+                : AppColors.primaryGradient,
           ),
         ),
         title: Text(
@@ -351,7 +354,7 @@ class _DuyurularScreenState extends State<DuyurularScreen> {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20,
-            color: isDarkMode ? Colors.white : Colors.black,
+            color: Colors.white,
           ),
         ),
         centerTitle: true,
