@@ -325,17 +325,17 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
             ),
             const SizedBox(height: 4),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: _getRoleColor(user.role).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
-                user.roleDisplayName,
+                _getRoleName(user.role),
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 10,
                   color: _getRoleColor(user.role),
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -347,27 +347,63 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
             IconButton(
               icon: const Icon(Icons.edit, color: AppColors.primary),
               onPressed: () => _showEditUserDialog(user),
-              tooltip: 'Kullanıcıyı Düzenle',
             ),
-
-            // 🔥 Sadece yöneticilere görünen silme butonu
-            if (_currentUser?.role == 'admin')
-              IconButton(
-                icon: const Icon(Icons.delete_forever, color: AppColors.error),
-                onPressed: () => _showDeleteConfirmation(user),
-                tooltip: 'Kullanıcıyı Sil',
-              ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: AppColors.error),
+              onPressed: () => _showDeleteConfirmation(user),
+            ),
           ],
         ),
-
       ),
     );
+  }
+
+  String _getRoleName(String role) {
+    switch (role) {
+      case 'admin':
+        return 'Yönetici';
+      case 'captain':
+        return 'Kaptan';
+      case 'user':
+        return 'Kullanıcı';
+      default:
+        return 'Bilinmiyor';
+    }
+  }
+
+  IconData _getRoleIcon(String role) {
+    switch (role) {
+      case 'admin':
+        return Icons.admin_panel_settings;
+      case 'captain':
+        return Icons.stars;
+      case 'user':
+        return Icons.person;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  Color _getRoleColor(String role) {
+    switch (role) {
+      case 'admin':
+        return Colors.red;
+      case 'captain':
+        return Colors.orange;
+      case 'user':
+        return Colors.blue;
+      default:
+        return Colors.grey;
+    }
   }
 
   void _showEditUserDialog(UserModel user) {
     showDialog(
       context: context,
-      builder: (context) => _EditUserDialog(user: user, userService: _userService),
+      builder: (context) => _EditUserDialog(
+        user: user,
+        userService: _userService,
+      ),
     ).then((result) {
       if (result == true) {
         setState(() {});
@@ -380,115 +416,42 @@ class _AdminManageUsersScreenState extends State<AdminManageUsersScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Kullanıcıyı Sil'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${user.displayName} adlı kullanıcıyı silmek istediğinize emin misiniz?'),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.error.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.warning_amber,
-                    color: AppColors.error,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Bu işlem geri alınamaz!',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.error,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+        content: Text('${user.displayName} isimli kullanıcıyı silmek istediğinize emin misiniz?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('İptal'),
           ),
-          ElevatedButton(
+          TextButton(
             onPressed: () async {
+              Navigator.pop(context);
               try {
-                // Silme işlemini yönetici bilgisi ile yap
-                await _userService.deleteUser(
-                  user.uid,
-                  deletedByAdminUid: _currentUser?.uid,
-                  deletedByAdminName: _currentUser?.displayName,
-                );
-
+                await _userService.deleteUser(user.uid);
+                setState(() {});
                 if (mounted) {
-                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${user.displayName} başarıyla silindi'),
+                    const SnackBar(
+                      content: Text('Kullanıcı başarıyla silindi'),
                       backgroundColor: AppColors.success,
-                      duration: const Duration(seconds: 2),
                     ),
                   );
-                  setState(() {});
                 }
               } catch (e) {
                 if (mounted) {
-                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Hata: $e'),
                       backgroundColor: AppColors.error,
-                      duration: const Duration(seconds: 3),
                     ),
                   );
                 }
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-            ),
-            child: const Text('Sil', style: TextStyle(color: Colors.white)),
+            child: const Text('Sil', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
     );
-  }
-
-  Color _getRoleColor(String role) {
-    switch (role) {
-      case 'admin':
-        return AppColors.primary;
-      case 'captain':
-        return Colors.blue;
-      case 'user':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getRoleIcon(String role) {
-    switch (role) {
-      case 'admin':
-        return Icons.admin_panel_settings;
-      case 'captain':
-        return Icons.star;
-      case 'user':
-        return Icons.person;
-      default:
-        return Icons.help;
-    }
   }
 }
 
