@@ -5,7 +5,7 @@ ThemeData buildLightTheme() {
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
-    colorScheme: ColorScheme.light(
+    colorScheme: const ColorScheme.light(
       primary: AppColors.primary,
       primaryContainer: AppColors.primaryLight,
       secondary: AppColors.primaryDark,
@@ -140,7 +140,7 @@ ThemeData buildDarkTheme() {
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
-    colorScheme: ColorScheme.dark(
+    colorScheme: const ColorScheme.dark(
       primary: AppColors.darkPrimary,
       primaryContainer: AppColors.darkPrimaryDark,
       secondary: AppColors.darkPrimaryDark,

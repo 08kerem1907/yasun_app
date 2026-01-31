@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../constants/colors.dart';
 import '../services/auth_service_fixed.dart';
-import '../services/user_service.dart';
-import '../models/user_model.dart';
 
 class AdminAddUserScreen extends StatefulWidget {
   const AdminAddUserScreen({super.key});
@@ -26,7 +24,6 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
   bool _obscurePassword = true;
   bool _obscureAdminPassword = true;
 
-  final UserService _userService = UserService();
 
   @override
   void dispose() {
