@@ -541,5 +541,5 @@ class _AdminAddUserScreenState extends State<AdminAddUserScreen> {
         ),
       ],
     );
-  }
+   }
 }
